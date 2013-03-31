@@ -1,5 +1,9 @@
-bin/*
-android_*_mr?/*
+bin/
+android_*_mr?/
+gen/
+
+local.properties
+build.xml
 
 !*.apk
 *~
