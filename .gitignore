@@ -1,4 +1,5 @@
 bin/*
+android_*_mr?/*
 
 !*.apk
 *~
