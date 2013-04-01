@@ -1,4 +1,4 @@
-bin/
+bin/*
 android_*_mr?/
 gen/
 

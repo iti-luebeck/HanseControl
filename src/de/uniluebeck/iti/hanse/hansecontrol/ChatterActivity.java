@@ -31,21 +31,21 @@ import org.ros.node.topic.Subscriber;
 
 import std_msgs.String;
 
-public class MapScreen extends RosActivity {
+public class ChatterActivity extends RosActivity {
 
 	private Talker talker;
 	private Listener listener;
 	
 	TextView history;
 	
-	public MapScreen() {
+	public ChatterActivity() {
 		super("HanseControl", "HanseControl");
 	}
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_map_screen);
+		setContentView(R.layout.activity_chatter);
 		final Button sendbutton = (Button) findViewById(R.id.sendButton);
 		history = (TextView) findViewById(R.id.history);
 		final TextView sendtext = (TextView) findViewById(R.id.messageText);
