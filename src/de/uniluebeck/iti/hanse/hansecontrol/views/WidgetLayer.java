@@ -33,15 +33,15 @@ public class WidgetLayer extends RelativeLayout {
 	}
 	
 	private void init() {
-		MapWidget dummy = new MapWidget(getContext());
-		dummy.getDebugPaint().setColor(Color.BLUE);
-		
-		RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(200, 200);
-		params.leftMargin = 90;
-		params.topMargin = 200;
-		//dummy.setVisibility(View.INVISIBLE);
-		dummy.setLayoutParams(params);
-		addView(dummy);
+//		MapWidget dummy = new MapWidget(getContext());
+//		dummy.getDebugPaint().setColor(Color.BLUE);
+//		
+//		RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(200, 200);
+//		params.leftMargin = 90;
+//		params.topMargin = 200;
+//		//dummy.setVisibility(View.INVISIBLE);
+//		dummy.setLayoutParams(params);
+//		addView(dummy);
 	}
 	
 	@Override

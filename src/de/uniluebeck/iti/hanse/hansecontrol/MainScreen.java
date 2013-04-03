@@ -4,21 +4,28 @@ import de.uniluebeck.iti.hanse.hansecontrol.views.DragLayer;
 import de.uniluebeck.iti.hanse.hansecontrol.views.WidgetLayer;
 import de.uniluebeck.iti.hanse.hansecontrol.views.MapWidget;
 import android.os.Bundle;
+import android.provider.ContactsContract.CommonDataKinds.Relation;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.Button;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 
 public class MainScreen extends Activity {
 
+	private boolean widgetbar_isvisible = true;
+	private RelativeLayout.LayoutParams widgetbar_isvisible_true_params;
+	private RelativeLayout.LayoutParams widgetbar_isvisible_false_params;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -33,7 +40,16 @@ public class MainScreen extends Activity {
 		final HorizontalScrollView widgetLayoutScroll = (HorizontalScrollView) findViewById(R.id.horizontalScrollView1);
 		final DragLayer dragLayer = (DragLayer) findViewById(R.id.dragLayer1);
 		
+		
+		//init widget bar params
+		widgetbar_isvisible_true_params = new RelativeLayout.LayoutParams(widgetLayoutScroll.getLayoutParams());
+		widgetbar_isvisible_true_params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+		widgetbar_isvisible_false_params = new RelativeLayout.LayoutParams(widgetbar_isvisible_true_params);
+		widgetbar_isvisible_false_params.height = 0;
+		
 		w1.setLayoutParams(new LayoutParams(90, 90));
+		
+		
 		
 //		LayoutInflater inflater = (LayoutInflater) widgetLayout.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 //		inflater.infl
@@ -116,6 +132,32 @@ public class MainScreen extends Activity {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main_screen, menu);
 		return true;
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch(item.getItemId()) {
+			case R.id.showhidewidgetbar:
+				if (widgetbar_isvisible) {
+					item.setTitle(getResources().getString(R.string.action_showhidewidgetbar_show));
+				} else {
+					item.setTitle(getResources().getString(R.string.action_showhidewidgetbar_hide));
+				}
+				setWidgetBarVisibility(!widgetbar_isvisible);
+				widgetbar_isvisible = !widgetbar_isvisible;
+				return true;
+			
+		}
+		return false;
+	}
+	
+	public void setWidgetBarVisibility(boolean isvisible) {
+		HorizontalScrollView widgetLayoutScroll = (HorizontalScrollView) findViewById(R.id.horizontalScrollView1);
+		if (isvisible) {
+			widgetLayoutScroll.setLayoutParams(widgetbar_isvisible_true_params);
+		} else {
+			widgetLayoutScroll.setLayoutParams(widgetbar_isvisible_false_params);
+		}
 	}
 
 }
