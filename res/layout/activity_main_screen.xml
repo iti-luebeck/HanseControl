@@ -4,33 +4,46 @@
     android:layout_height="match_parent"
     tools:context=".MainScreen" >
 
-    <de.uniluebeck.iti.hanse.hansecontrol.views.MapViewer
-        android:id="@+id/mapViewer1"
+    <de.uniluebeck.iti.hanse.hansecontrol.views.DragLayer
+        android:id="@+id/dragLayer1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true" />
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true" >
 
-    <HorizontalScrollView
-        android:id="@+id/horizontalScrollView1"
-        android:layout_width="fill_parent"
-        android:layout_height="90dip"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentBottom="true" >
-
-        <LinearLayout
-            android:id="@+id/widgetLayout"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent" >
-
-            <Button
-                android:id="@+id/button1"
-                android:layout_width="wrap_content"
-                android:layout_height="fill_parent"
-                android:text="Button" />
-
-        </LinearLayout>
-
-    </HorizontalScrollView>
+	    <de.uniluebeck.iti.hanse.hansecontrol.views.WidgetLayer
+	        android:id="@+id/mapViewer1"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_alignParentBottom="true"
+	        android:layout_alignParentLeft="true"
+	        android:layout_alignParentRight="true"
+	        android:layout_alignParentTop="true" />
+	
+	    <HorizontalScrollView
+	        android:id="@+id/horizontalScrollView1"
+	        android:layout_width="fill_parent"
+	        android:layout_height="90dip"
+	        android:layout_alignParentLeft="true"
+	        android:layout_alignParentBottom="true" >
+	
+	        <LinearLayout
+	            android:id="@+id/widgetLayout"
+	            android:layout_width="wrap_content"
+	            android:layout_height="match_parent" >
+	
+	            <Button
+	                android:id="@+id/button1"
+	                android:layout_width="wrap_content"
+	                android:layout_height="fill_parent"
+	                android:text="Button" />
+	
+	        </LinearLayout>
+	
+	    </HorizontalScrollView>
+        
+    </de.uniluebeck.iti.hanse.hansecontrol.views.DragLayer>
 
 </RelativeLayout>

@@ -4,6 +4,6 @@
     <string name="app_name">HanseControl</string>
     <string name="action_settings">Settings</string>
     <string name="hello_world">Hello world!</string>
-    <string name="title_activity_main_screen">Main Screen</string>
+    <string name="title_activity_main_screen">Hanse Control</string>
 
 </resources>

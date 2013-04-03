@@ -59,11 +59,11 @@ public class BasicView extends View {
 	
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
-		if (debugMode) {
+		if (debugMode && event.getActionMasked() == MotionEvent.ACTION_MOVE) {
 			points.add(new PointF(event.getX(), event.getY()));
 			invalidate();
 			return true;
 		}
-		return false;
+		return true;
 	}
 }
