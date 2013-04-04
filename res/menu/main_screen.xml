@@ -5,6 +5,11 @@
 <!--         android:orderInCategory="100" -->
 <!--         android:showAsAction="never" -->
 <!--         android:title="@string/action_settings"/> -->
+	
+	<item android:id="@+id/tabClose" android:title="@string/action_tab_close"
+        android:showAsAction="always"/>
+    <item android:id="@+id/tabCreate" android:title="@string/action_tab_create"
+        android:showAsAction="always"/>
     <item android:id="@+id/showhidewidgetbar" android:title="@string/action_showhidewidgetbar_hide"
         android:showAsAction="always"/>
     <item android:id="@+id/resetsettings" android:title="@string/resetsettings"

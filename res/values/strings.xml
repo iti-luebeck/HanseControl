@@ -7,7 +7,9 @@
     <string name="title_activity_main_screen">Hanse Control</string>
     <string name="action_showhidewidgetbar_hide">Hide Widget Chooser</string>
     <string name="action_showhidewidgetbar_show">Show Widget Chooser</string>
-    <string name="resetsettings">Reset All</string>
+    <string name="action_tab_create">Create tab</string>
+    <string name="action_tab_close">Close tab</string>
+    <string name="resetsettings">Reset all</string>
     
 
 </resources>

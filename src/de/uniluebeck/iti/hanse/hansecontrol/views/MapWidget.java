@@ -14,6 +14,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.WebView.FindListener;
@@ -32,7 +33,7 @@ public class MapWidget extends BasicView {
 	DragLayer dragLayer = null;
 	
 	private int widgetID = -1;
-	public static final String PREF_PREFIX = "MapWidget-";
+	public static final String WIDGET_PREFIX = "MapWidget-";
 	
 //	public MapWidget(Context context, AttributeSet attrs, int defStyle) {
 //		super(context, attrs, defStyle);
@@ -133,26 +134,29 @@ public class MapWidget extends BasicView {
 	private void updateMode() {
 		switch(currentMode) {
 			case ICON_MODE:
+				float pixSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 85, getResources().getDisplayMetrics());
+				float pixMargin = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 5, getResources().getDisplayMetrics());
+				
 				//TODO get size from constant in MainScreen!!
 				LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) getLayoutParams();
-				params.width = 85;
-				params.height = 85;
-				params.setMargins(5, 0, 5, 8);
+				params.width = (int) pixSize;
+				params.height = (int) pixSize;
+				params.setMargins((int)pixMargin, 0, (int)pixMargin, (int)pixMargin);
 				setLayoutParams(params);
 				break;
 			case FULLSIZE_MODE:
 				//TODO get size from upper derivation
 				RelativeLayout.LayoutParams params2 = (RelativeLayout.LayoutParams) getLayoutParams();
-				params2.width = 200; 
-				params2.height = 200;				
+				params2.width = 200;
+				params2.height = 200;
 				setLayoutParams(params2);
 				break;
 		}
 	}
 	
 	
-	public void savePrefs(SharedPreferences.Editor ed) {
-		String id = PREF_PREFIX + widgetID;
+	public void savePrefs(String tabPrefix, SharedPreferences.Editor ed) {
+		String id = tabPrefix + WIDGET_PREFIX + widgetID;
 		ed.putInt(id+"-currentMode", currentMode);
 		Log.d("ttt1save", id+"-currentMode");
 		if (getMode() == FULLSIZE_MODE) {
@@ -162,8 +166,8 @@ public class MapWidget extends BasicView {
 		}
 	}
 	
-	public void loadPrefs(SharedPreferences prefs) {
-		String id = PREF_PREFIX + widgetID;
+	public void loadPrefs(String tabPrefix, SharedPreferences prefs) {
+		String id = tabPrefix + WIDGET_PREFIX + widgetID;
 		setMode(prefs.getInt(id+"-currentMode", ICON_MODE));
 		if (getMode() == FULLSIZE_MODE) {
 			RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) getLayoutParams();

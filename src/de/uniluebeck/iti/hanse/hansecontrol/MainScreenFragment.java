@@ -31,12 +31,20 @@ public class MainScreenFragment extends Fragment {
 	
 	WidgetLayer widgetLayer;
 	LinearLayout widgetbarLayout;
+		
+	private int tabID = -1;
+	public static final String TAB_PREFIX = "MainScreenFragment-";
+	
+	boolean dontSaveStateFlag = false;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		Log.d("statemanagement", "MainScreenFragment.onCreate() called.");
 		super.onCreate(savedInstanceState);
 		mPrefs = getActivity().getSharedPreferences("pref", 0);
+		if (getArguments() != null) {
+			tabID = getArguments().getInt("tabid", -1);
+		}
 	}
 	
 	@Override
@@ -64,8 +72,8 @@ public class MainScreenFragment extends Fragment {
 		//add widgets
 		for (int i = 0; i < widgetRegistry.getAllWidgets().size(); i++) {
 			MapWidget w = widgetRegistry.getAllWidgets().get(i);
-			Log.d("ttt1load", MapWidget.PREF_PREFIX+i+"-currentMode");
-			switch(mPrefs.getInt(MapWidget.PREF_PREFIX+i+"-currentMode", MapWidget.ICON_MODE)) {
+			Log.d("ttt1load", TAB_PREFIX + tabID + MapWidget.WIDGET_PREFIX+i+"-currentMode");
+			switch(mPrefs.getInt(TAB_PREFIX + tabID + MapWidget.WIDGET_PREFIX+i+"-currentMode", MapWidget.ICON_MODE)) {
 				case MapWidget.ICON_MODE:
 					widgetbarLayout.addView(w);
 					break;
@@ -74,7 +82,7 @@ public class MainScreenFragment extends Fragment {
 					break;
 			}
 			//loading of layout params must take place after adding widget to a layout
-			w.loadPrefs(mPrefs);			
+			w.loadPrefs(TAB_PREFIX + tabID, mPrefs);			
 		}
 		
 		//init widget bar params
@@ -83,8 +91,7 @@ public class MainScreenFragment extends Fragment {
 		widgetbar_isvisible_false_params = new RelativeLayout.LayoutParams(widgetbar_isvisible_true_params);
 		widgetbar_isvisible_false_params.height = 0;
 		
-		
-		
+				
 		
 //		//create colored test widgets
 //		int hueSteps = 30;
@@ -116,7 +123,7 @@ public class MainScreenFragment extends Fragment {
 	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		Log.d("actionbar", "MainScreenFragment: Menu action activated! '" + item.getTitle() + "'");
+		Log.d("actionbar", "MainScreenFragment: Menu action activated! s'" + item.getTitle() + "'");
 		
 		switch(item.getItemId()) {
 			case R.id.showhidewidgetbar:
@@ -129,16 +136,9 @@ public class MainScreenFragment extends Fragment {
 				widgetbar_isvisible = !widgetbar_isvisible;
 				return true;
 			case R.id.resetsettings:
-				SharedPreferences.Editor ed = mPrefs.edit();
-				ed.clear();
-				ed.commit();
-				for (MapWidget w : widgetRegistry.getAllWidgets()) {
-					if (w.getMode() == MapWidget.FULLSIZE_MODE) {
-						widgetLayer.removeView(w);
-						widgetbarLayout.addView(w, w.getWidgetID());
-						w.setMode(MapWidget.ICON_MODE);
-					}					
-				}
+			case R.id.tabClose:
+				dontSaveStateFlag = true;
+				return false;
 		}
 		return false;
 	}
@@ -147,9 +147,13 @@ public class MainScreenFragment extends Fragment {
 	public void onPause() {
 		Log.d("statemanagement", "MainScreenFragment.onPause() called.");
 		super.onPause();		
+		if (dontSaveStateFlag) {
+			Log.d("statemanagement", "MainScreenFragment.onPause(): dontSaveStateFlag active");
+			return;
+		}
 		SharedPreferences.Editor ed = mPrefs.edit();
 		for (MapWidget w : widgetRegistry.getAllWidgets()) {
-			w.savePrefs(ed);
+			w.savePrefs(TAB_PREFIX + tabID, ed);
 		}
 		ed.commit();
 	}
@@ -163,4 +167,30 @@ public class MainScreenFragment extends Fragment {
 		}
 	}	
 	
+	
+	
+	
+	float tt1 = -5;
+	
+	public float getXanimpos() { 
+		Log.d("animator", "Getter called. Current value="+tt1);
+//        final int width = getWidth();  
+//          
+//        if(width != 0)  
+//        {  
+//             return getX() / getWidth();  
+//        }  
+//        else  
+//        {  
+//             return getX();  
+//        } 
+		return tt1;
+   }  
+
+   public void setXanimpos(float value) {   
+	   Log.d("animator", "Setter called with value="+value);
+	   tt1 = value;
+//        final int width = getWidth();  
+//        setX((width > 0) ? (value * width) : -9999);  
+   }  
 }
