@@ -1,11 +1,12 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
 
-    <item
-        android:id="@+id/action_settings"
-        android:orderInCategory="100"
-        android:showAsAction="never"
-        android:title="@string/action_settings"/>
+<!--     <item -->
+<!--         android:id="@+id/action_settings" -->
+<!--         android:orderInCategory="100" -->
+<!--         android:showAsAction="never" -->
+<!--         android:title="@string/action_settings"/> -->
     <item android:id="@+id/showhidewidgetbar" android:title="@string/action_showhidewidgetbar_hide"
         android:showAsAction="always"/>
-
+    <item android:id="@+id/resetsettings" android:title="@string/resetsettings"
+        android:showAsAction="never"/>
 </menu>

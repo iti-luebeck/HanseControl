@@ -11,9 +11,10 @@ import android.graphics.PointF;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.RelativeLayout;
 
-public class BasicView extends View {
-	boolean debugMode = true;
+public class BasicView extends RelativeLayout {
+	private final boolean debugMode = true;
 	
 	Paint paint = new Paint();
 	List<PointF> points = new LinkedList<PointF>();
@@ -38,24 +39,32 @@ public class BasicView extends View {
 		paint.setColor(Color.RED);
 		paint.setStrokeWidth(5);
 		paint.setStyle(Paint.Style.STROKE);
+		if (debugMode) {
+			View view = new View(getContext()) {
+				@Override
+				protected void onDraw(Canvas canvas) {
+					super.onDraw(canvas);
+					for (int i = 1; i < points.size(); i++) {
+						PointF a = points.get(i-1);
+						PointF b = points.get(i);
+						canvas.drawLine(a.x, a.y, b.x, b.y, paint);
+					}
+					canvas.drawLine(0, 0, getWidth(), getHeight(), paint);
+					canvas.drawRect(0, 0, getWidth(), getHeight(), paint);
+				}
+			};
+			addView(view);
+		}
 	}
 	
 	public Paint getDebugPaint() {
 		return paint;
 	}
-	
-	@Override
-	protected void onDraw(Canvas canvas) {
-		if (debugMode) {
-			for (int i = 1; i < points.size(); i++) {
-				PointF a = points.get(i-1);
-				PointF b = points.get(i);
-				canvas.drawLine(a.x, a.y, b.x, b.y, paint);
-			}
-			canvas.drawLine(0, 0, getWidth(), getHeight(), paint);
-			canvas.drawRect(0, 0, getWidth(), getHeight(), paint);
-		}
-	}
+		
+//	@Override
+//	protected void onDraw(Canvas canvas) {
+//		
+//	}
 	
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {

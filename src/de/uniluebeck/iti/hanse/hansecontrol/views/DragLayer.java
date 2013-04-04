@@ -80,7 +80,7 @@ public class DragLayer extends RelativeLayout {
 				case MotionEvent.ACTION_UP:
 					//place widget at current position
 					removeView(dragInProgress_widgetFromList);
-					((WidgetLayer) findViewById(R.id.mapViewer1)).addView(dragInProgress_widgetFromList);
+					((WidgetLayer) findViewById(R.id.widgetLayer)).addView(dragInProgress_widgetFromList);
 					dragInProgress_widgetFromList = null;
 			}
 			return true;

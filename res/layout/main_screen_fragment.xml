@@ -14,7 +14,7 @@
         android:layout_alignParentTop="true" >
 
 	    <de.uniluebeck.iti.hanse.hansecontrol.views.WidgetLayer
-	        android:id="@+id/mapViewer1"
+	        android:id="@+id/widgetLayer"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
 	        android:layout_alignParentBottom="true"
@@ -32,14 +32,7 @@
 	        <LinearLayout
 	            android:id="@+id/widgetLayout"
 	            android:layout_width="wrap_content"
-	            android:layout_height="match_parent" >
-	
-	            <Button
-	                android:id="@+id/button1"
-	                android:layout_width="wrap_content"
-	                android:layout_height="fill_parent"
-	                android:text="Button" />
-	
+	            android:layout_height="match_parent" >            
 	        </LinearLayout>
 	
 	    </HorizontalScrollView>

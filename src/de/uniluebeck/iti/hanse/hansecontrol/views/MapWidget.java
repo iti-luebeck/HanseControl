@@ -2,9 +2,12 @@ package de.uniluebeck.iti.hanse.hansecontrol.views;
 
 import java.util.Observer;
 
+import com.google.common.base.Preconditions;
+
 import de.uniluebeck.iti.hanse.hansecontrol.R;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Observable;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -28,18 +31,22 @@ public class MapWidget extends BasicView {
 	
 	DragLayer dragLayer = null;
 	
-	public MapWidget(Context context, AttributeSet attrs, int defStyle) {
-		super(context, attrs, defStyle);
-		init();
-	}
+	private int widgetID = -1;
+	public static final String PREF_PREFIX = "MapWidget-";
+	
+//	public MapWidget(Context context, AttributeSet attrs, int defStyle) {
+//		super(context, attrs, defStyle);
+//		init();
+//	}
+//
+//	public MapWidget(Context context, AttributeSet attrs) {
+//		super(context, attrs);
+//		init();
+//	}
 
-	public MapWidget(Context context, AttributeSet attrs) {
-		super(context, attrs);
-		init();
-	}
-
-	public MapWidget(Context context) {
+	public MapWidget(int widgetID, Context context) {
 		super(context);
+		this.widgetID = widgetID;
 		init();
 	}
 	
@@ -115,18 +122,58 @@ public class MapWidget extends BasicView {
 		updateMode();
 	}
 	
+	public int getMode() {
+		return currentMode;
+	}
+
+	public int getWidgetID() {
+		return widgetID;
+	}
+	
 	private void updateMode() {
-		RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) getLayoutParams();
 		switch(currentMode) {
 			case ICON_MODE:
 				//TODO get size from constant in MainScreen!!
-				params.width = 85; 
+				LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) getLayoutParams();
+				params.width = 85;
 				params.height = 85;
+				params.setMargins(5, 0, 5, 8);
+				setLayoutParams(params);
+				break;
 			case FULLSIZE_MODE:
 				//TODO get size from upper derivation
-				params.width = 200; 
-				params.height = 200;				
+				RelativeLayout.LayoutParams params2 = (RelativeLayout.LayoutParams) getLayoutParams();
+				params2.width = 200; 
+				params2.height = 200;				
+				setLayoutParams(params2);
+				break;
 		}
-		setLayoutParams(params);		
 	}
+	
+	
+	public void savePrefs(SharedPreferences.Editor ed) {
+		String id = PREF_PREFIX + widgetID;
+		ed.putInt(id+"-currentMode", currentMode);
+		Log.d("ttt1save", id+"-currentMode");
+		if (getMode() == FULLSIZE_MODE) {
+			RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) getLayoutParams();
+			ed.putInt(id+"-params.leftMargin", params.leftMargin);
+			ed.putInt(id+"-params.topMargin", params.topMargin);
+		}
+	}
+	
+	public void loadPrefs(SharedPreferences prefs) {
+		String id = PREF_PREFIX + widgetID;
+		setMode(prefs.getInt(id+"-currentMode", ICON_MODE));
+		if (getMode() == FULLSIZE_MODE) {
+			RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) getLayoutParams();
+			params.leftMargin = prefs.getInt(id+"-params.leftMargin", -1);
+			params.topMargin = prefs.getInt(id+"-params.topMargin", -1);
+		}
+	}
+	
+//	public void setWidgetID(int widgetID) {
+//		this.widgetID = widgetID;
+//	}
+	
 }
