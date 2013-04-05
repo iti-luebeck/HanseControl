@@ -37,6 +37,8 @@ public class MainScreenFragment extends Fragment {
 	
 	boolean dontSaveStateFlag = false;
 	
+	private Menu actionBarMenu;
+	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		Log.d("statemanagement", "MainScreenFragment.onCreate() called.");
@@ -91,6 +93,7 @@ public class MainScreenFragment extends Fragment {
 		widgetbar_isvisible_false_params = new RelativeLayout.LayoutParams(widgetbar_isvisible_true_params);
 		widgetbar_isvisible_false_params.height = 0;
 		
+		
 				
 		
 //		//create colored test widgets
@@ -119,6 +122,8 @@ public class MainScreenFragment extends Fragment {
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 		inflater.inflate(R.menu.main_screen, menu);
         super.onCreateOptionsMenu(menu, inflater);
+        actionBarMenu = menu;
+        setWidgetBarVisibility(mPrefs.getBoolean(TAB_PREFIX + tabID + "_widgetbarisvisible", true));
 	}
 	
 	@Override
@@ -127,11 +132,6 @@ public class MainScreenFragment extends Fragment {
 		
 		switch(item.getItemId()) {
 			case R.id.showhidewidgetbar:
-				if (widgetbar_isvisible) {
-					item.setTitle(getResources().getString(R.string.action_showhidewidgetbar_show));
-				} else {
-					item.setTitle(getResources().getString(R.string.action_showhidewidgetbar_hide));
-				}
 				setWidgetBarVisibility(!widgetbar_isvisible);
 				widgetbar_isvisible = !widgetbar_isvisible;
 				return true;
@@ -155,42 +155,19 @@ public class MainScreenFragment extends Fragment {
 		for (MapWidget w : widgetRegistry.getAllWidgets()) {
 			w.savePrefs(TAB_PREFIX + tabID, ed);
 		}
+		ed.putBoolean(TAB_PREFIX + tabID + "_widgetbarisvisible", widgetbar_isvisible);
 		ed.commit();
 	}
 	
 	public void setWidgetBarVisibility(boolean isvisible) {
 		HorizontalScrollView widgetLayoutScroll = (HorizontalScrollView) getView().findViewById(R.id.horizontalScrollView1);
+		MenuItem item = actionBarMenu.findItem(R.id.showhidewidgetbar);
 		if (isvisible) {
 			widgetLayoutScroll.setLayoutParams(widgetbar_isvisible_true_params);
+			item.setTitle(getResources().getString(R.string.action_showhidewidgetbar_hide));
 		} else {
 			widgetLayoutScroll.setLayoutParams(widgetbar_isvisible_false_params);
+			item.setTitle(getResources().getString(R.string.action_showhidewidgetbar_show));
 		}
 	}	
-	
-	
-	
-	
-	float tt1 = -5;
-	
-	public float getXanimpos() { 
-		Log.d("animator", "Getter called. Current value="+tt1);
-//        final int width = getWidth();  
-//          
-//        if(width != 0)  
-//        {  
-//             return getX() / getWidth();  
-//        }  
-//        else  
-//        {  
-//             return getX();  
-//        } 
-		return tt1;
-   }  
-
-   public void setXanimpos(float value) {   
-	   Log.d("animator", "Setter called with value="+value);
-	   tt1 = value;
-//        final int width = getWidth();  
-//        setX((width > 0) ? (value * width) : -9999);  
-   }  
 }

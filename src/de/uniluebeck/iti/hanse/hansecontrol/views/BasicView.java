@@ -44,6 +44,8 @@ public class BasicView extends RelativeLayout {
 				@Override
 				protected void onDraw(Canvas canvas) {
 					super.onDraw(canvas);
+					paint.setStrokeWidth(5);
+					paint.setStyle(Paint.Style.STROKE);
 					for (int i = 1; i < points.size(); i++) {
 						PointF a = points.get(i-1);
 						PointF b = points.get(i);

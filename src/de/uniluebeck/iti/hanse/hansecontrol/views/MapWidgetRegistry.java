@@ -20,8 +20,13 @@ public class MapWidgetRegistry {
 		float[] hsv = new float[] {0,1,1};
 		int color = Color.HSVToColor(hsv);
 		
+		int minSize = 100;
+		int maxSize = 250;
 		for (int i = 0; i < 20; i++) {
-			MapWidget widget = new MapWidget(i, context);
+			MapWidget widget = new MapWidget(
+					(int)(Math.random() * (maxSize - minSize) + minSize), 
+					(int)(Math.random() * (maxSize - minSize) + minSize), 
+					i, context);
 			widget.getDebugPaint().setColor(color);
 			//assign unique widget ID
 			widget.setId(i); //TODO widget Registry class?

@@ -12,6 +12,7 @@ import android.database.Observable;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.PointF;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
@@ -35,6 +36,12 @@ public class MapWidget extends BasicView {
 	private int widgetID = -1;
 	public static final String WIDGET_PREFIX = "MapWidget-";
 	
+	public int defaultWidth;
+	public int defaultHeight;
+	
+	//allow ratio change??
+	//public float zoom = 1; //TODO implement
+	
 //	public MapWidget(Context context, AttributeSet attrs, int defStyle) {
 //		super(context, attrs, defStyle);
 //		init();
@@ -45,19 +52,28 @@ public class MapWidget extends BasicView {
 //		init();
 //	}
 
-	public MapWidget(int widgetID, Context context) {
+	public MapWidget(int defaultWidth, int defaultHeight, int widgetID, Context context) {
 		super(context);
 		this.widgetID = widgetID;
+		this.defaultWidth = defaultWidth;
+		this.defaultHeight = defaultHeight;
 		init();
 	}
 	
 	private void init() {
-		getDebugPaint().setColor(Color.GREEN);
-	}
-	
-	@Override
-	protected void onDraw(Canvas canvas) {
-		super.onDraw(canvas);
+		View view = new View(getContext()) {
+			@Override
+			protected void onDraw(Canvas canvas) {
+				super.onDraw(canvas);
+				if (getMode() == ICON_MODE) {
+					paint.setTextSize(20);
+					paint.setStrokeWidth(1);
+					paint.setStyle(Paint.Style.FILL);
+					canvas.drawText("ICON", 30, 25, paint);
+				}
+			}
+		};
+		addView(view);		
 	}
 	
 	@Override
@@ -78,16 +94,24 @@ public class MapWidget extends BasicView {
 				break;
 		}
 		
-		if (getParent() instanceof WidgetLayer && event.getActionMasked() == MotionEvent.ACTION_MOVE) {
-			float dX = event.getX() - mX;
-			float dY = event.getY() - mY;
-			RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) getLayoutParams();
-			params.leftMargin += dX;
-			params.topMargin += dY;
-			setLayoutParams(params);
-			invalidate();
+		if (getParent() instanceof WidgetLayer && event.getActionMasked() == MotionEvent.ACTION_MOVE && dragLayer != null) {
+			//request touch event interception from dragLayer
+			dragLayer.startWidgetDraggingOnWidgetLayer(this, mX, mY);
 			return true;
 		}
+		
+//		if (getParent() instanceof WidgetLayer && event.getActionMasked() == MotionEvent.ACTION_MOVE) {
+////			Log.w("touchlog", "event.getX(): " + event.getX());
+//			float dX = event.getX() - mX;
+//			float dY = event.getY() - mY;
+//			RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) getLayoutParams();
+//			params.leftMargin += dX;
+//			params.topMargin += dY;
+//			setLayoutParams(params);
+//			invalidate();
+//			return true;
+//		}
+		
 		if (getParent() instanceof LinearLayout && event.getActionMasked() == MotionEvent.ACTION_MOVE && dragLayer != null) {
 			float distY = mY - event.getY();
 			float distX = mX - event.getX();
@@ -147,8 +171,11 @@ public class MapWidget extends BasicView {
 			case FULLSIZE_MODE:
 				//TODO get size from upper derivation
 				RelativeLayout.LayoutParams params2 = (RelativeLayout.LayoutParams) getLayoutParams();
-				params2.width = 200;
-				params2.height = 200;
+//				params2.width = 200;
+//				params2.height = 200;
+				params2.width = defaultWidth;
+				params2.height = defaultHeight;
+				
 				setLayoutParams(params2);
 				break;
 		}
@@ -163,6 +190,8 @@ public class MapWidget extends BasicView {
 			RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) getLayoutParams();
 			ed.putInt(id+"-params.leftMargin", params.leftMargin);
 			ed.putInt(id+"-params.topMargin", params.topMargin);
+			ed.putInt(id+"-params.width", params.width);
+			ed.putInt(id+"-params.height", params.height);
 		}
 	}
 	
@@ -173,11 +202,14 @@ public class MapWidget extends BasicView {
 			RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) getLayoutParams();
 			params.leftMargin = prefs.getInt(id+"-params.leftMargin", -1);
 			params.topMargin = prefs.getInt(id+"-params.topMargin", -1);
+			params.width = prefs.getInt(id+"-params.width", defaultWidth);
+			params.height = prefs.getInt(id+"-params.height", defaultHeight);
 		}
 	}
 	
 //	public void setWidgetID(int widgetID) {
 //		this.widgetID = widgetID;
 //	}
+	
 	
 }

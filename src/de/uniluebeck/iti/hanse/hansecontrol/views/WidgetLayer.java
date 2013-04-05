@@ -15,7 +15,7 @@ import android.widget.RelativeLayout;
 
 public class WidgetLayer extends RelativeLayout {
 	
-	List<MapWidget> widgets = new LinkedList<MapWidget>();
+//	List<MapWidget> widgets = new LinkedList<MapWidget>();
 	
 	public WidgetLayer(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
