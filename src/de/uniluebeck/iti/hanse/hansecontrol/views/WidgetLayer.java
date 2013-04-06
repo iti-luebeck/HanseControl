@@ -3,6 +3,8 @@ package de.uniluebeck.iti.hanse.hansecontrol.views;
 import java.util.LinkedList;
 import java.util.List;
 
+import de.uniluebeck.iti.hanse.hansecontrol.R;
+
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -54,6 +56,11 @@ public class WidgetLayer extends RelativeLayout {
 		return super.onTouchEvent(event);
 	}
 	
-	
+	public void removeWidget(MapWidget widget) {
+		removeView(widget);
+		LinearLayout widgetlist = (LinearLayout)((DragLayer) getParent()).findViewById(R.id.widgetLayout);
+		widgetlist.addView(widget, widget.getId());
+		widget.setMode(MapWidget.ICON_MODE);
+	}
 	
 }

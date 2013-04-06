@@ -4,6 +4,7 @@ import de.uniluebeck.iti.hanse.hansecontrol.views.DragLayer;
 import de.uniluebeck.iti.hanse.hansecontrol.views.MapWidget;
 import de.uniluebeck.iti.hanse.hansecontrol.views.MapWidgetRegistry;
 import de.uniluebeck.iti.hanse.hansecontrol.views.WidgetLayer;
+import android.app.ActionBar;
 import android.app.Fragment;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -15,6 +16,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.webkit.WebView.FindListener;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
@@ -59,6 +61,13 @@ public class MainScreenFragment extends Fragment {
 	}
 	
 	@Override
+	public void onResume() {
+		super.onResume();
+		Log.d("errfind", "MainScreenFragment.onResume");
+		setWidgetBarVisibility(mPrefs.getBoolean(TAB_PREFIX + tabID + "_widgetbarisvisible", true));
+	}
+	
+	@Override
 	public void onViewCreated(View view, Bundle savedInstanceState) {
 		Log.d("statemanagement", "MainScreenFragment.onViewCreated() called.");
 		super.onViewCreated(view, savedInstanceState);
@@ -93,8 +102,28 @@ public class MainScreenFragment extends Fragment {
 		widgetbar_isvisible_false_params = new RelativeLayout.LayoutParams(widgetbar_isvisible_true_params);
 		widgetbar_isvisible_false_params.height = 0;
 		
+		widgetbar_isvisible = mPrefs.getBoolean(TAB_PREFIX + tabID + "_widgetbarisvisible", true);
 		
-				
+//		if (actionBarMenu != null) {
+//			MenuItem item = actionBarMenu.findItem(R.id.showhidewidgetbar);
+//			if (widgetbar_isvisible) {
+//				item.setTitle(getResources().getString(R.string.action_showhidewidgetbar_hide));
+//			} else {
+//				item.setTitle(getResources().getString(R.string.action_showhidewidgetbar_show));
+//			}
+//		}
+		
+//		View dragview = getView().findViewById(R.id.dragLayer1);
+//		dragview.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+//			@Override
+//			public void onGlobalLayout() {
+//				// TODO Auto-generated method stub
+//				setWidgetBarVisibility(mPrefs.getBoolean(TAB_PREFIX + tabID + "_widgetbarisvisible", true));
+//			}
+//		});
+		
+		
+		
 		
 //		//create colored test widgets
 //		int hueSteps = 30;
@@ -118,13 +147,32 @@ public class MainScreenFragment extends Fragment {
 //		}
 	}
 	
+	
 	@Override
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-		inflater.inflate(R.menu.main_screen, menu);
         super.onCreateOptionsMenu(menu, inflater);
-        actionBarMenu = menu;
-        setWidgetBarVisibility(mPrefs.getBoolean(TAB_PREFIX + tabID + "_widgetbarisvisible", true));
+        inflater.inflate(R.menu.main_screen, menu);
+    	actionBarMenu = menu;
+    	MenuItem item = actionBarMenu.findItem(R.id.showhidewidgetbar);
+		if (widgetbar_isvisible) {
+			item.setTitle(getResources().getString(R.string.action_showhidewidgetbar_hide));
+		} else {
+			item.setTitle(getResources().getString(R.string.action_showhidewidgetbar_show));
+		}
+	    
+        Log.d("errfind", "MainScreenFragment.onCreateOptionsMenu");
+//        setWidgetBarVisibility(mPrefs.getBoolean(TAB_PREFIX + tabID + "_widgetbarisvisible", true));
+        
+//        try {
+//			Thread.sleep(4000);
+//		} catch (InterruptedException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		setWidgetBarVisibility(mPrefs.getBoolean(TAB_PREFIX + tabID + "_widgetbarisvisible", true));
 	}
+	
+//	public void externalOnViewCreated
 	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
@@ -143,6 +191,8 @@ public class MainScreenFragment extends Fragment {
 		return false;
 	}
 	
+	
+		
 	@Override
 	public void onPause() {
 		Log.d("statemanagement", "MainScreenFragment.onPause() called.");
@@ -161,13 +211,26 @@ public class MainScreenFragment extends Fragment {
 	
 	public void setWidgetBarVisibility(boolean isvisible) {
 		HorizontalScrollView widgetLayoutScroll = (HorizontalScrollView) getView().findViewById(R.id.horizontalScrollView1);
-		MenuItem item = actionBarMenu.findItem(R.id.showhidewidgetbar);
+		Log.d("errfind", "MainScreenFragment, actionBarMenu is null = " + (actionBarMenu == null));
+		Log.d("errfind", "MainScreenFragment, widgetandayoutScroll is null = " + (widgetLayoutScroll == null));
+		
+//		Menu menu = (Menu) getActivity().findViewById(R.menu.main_screen);
+//		Log.d("errfind", "menu is null = " + (menu == null));
+		if (actionBarMenu != null) {
+			//dirty, workaround for startup problem
+			MenuItem item = actionBarMenu.findItem(R.id.showhidewidgetbar);
+			if (isvisible) {
+				item.setTitle(getResources().getString(R.string.action_showhidewidgetbar_hide));
+			} else {
+				item.setTitle(getResources().getString(R.string.action_showhidewidgetbar_show));
+			}
+		}
 		if (isvisible) {
 			widgetLayoutScroll.setLayoutParams(widgetbar_isvisible_true_params);
-			item.setTitle(getResources().getString(R.string.action_showhidewidgetbar_hide));
 		} else {
 			widgetLayoutScroll.setLayoutParams(widgetbar_isvisible_false_params);
-			item.setTitle(getResources().getString(R.string.action_showhidewidgetbar_show));
 		}
-	}	
+	}
+	
+	
 }

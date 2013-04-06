@@ -20,11 +20,13 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.TransitionDrawable;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.Button;
 import android.widget.HorizontalScrollView;
@@ -291,6 +293,11 @@ public class MainScreen extends Activity {
 	    public void onTabReselected(Tab tab, FragmentTransaction ft) {
 	        // User selected the already selected tab. Usually do nothing.
 	    }
+	}
+	@Override
+	protected void onResume() {
+		super.onResume();
+		Log.d("errfind", "MainScreen.onResume");
 	}
 	
 	

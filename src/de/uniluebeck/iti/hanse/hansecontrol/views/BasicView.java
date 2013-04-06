@@ -14,7 +14,7 @@ import android.view.View;
 import android.widget.RelativeLayout;
 
 public class BasicView extends RelativeLayout {
-	private final boolean debugMode = true;
+	public final boolean DEBUG_MODE = true;
 	
 	Paint paint = new Paint();
 	List<PointF> points = new LinkedList<PointF>();
@@ -39,18 +39,18 @@ public class BasicView extends RelativeLayout {
 		paint.setColor(Color.RED);
 		paint.setStrokeWidth(5);
 		paint.setStyle(Paint.Style.STROKE);
-		if (debugMode) {
+		if (DEBUG_MODE) {
 			View view = new View(getContext()) {
 				@Override
 				protected void onDraw(Canvas canvas) {
 					super.onDraw(canvas);
 					paint.setStrokeWidth(5);
 					paint.setStyle(Paint.Style.STROKE);
-					for (int i = 1; i < points.size(); i++) {
-						PointF a = points.get(i-1);
-						PointF b = points.get(i);
-						canvas.drawLine(a.x, a.y, b.x, b.y, paint);
-					}
+//					for (int i = 1; i < points.size(); i++) {
+//						PointF a = points.get(i-1);
+//						PointF b = points.get(i);
+//						canvas.drawLine(a.x, a.y, b.x, b.y, paint);
+//					}
 					canvas.drawLine(0, 0, getWidth(), getHeight(), paint);
 					canvas.drawRect(0, 0, getWidth(), getHeight(), paint);
 				}
@@ -70,7 +70,7 @@ public class BasicView extends RelativeLayout {
 	
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
-		if (debugMode && event.getActionMasked() == MotionEvent.ACTION_MOVE) {
+		if (DEBUG_MODE && event.getActionMasked() == MotionEvent.ACTION_MOVE) {
 			points.add(new PointF(event.getX(), event.getY()));
 			invalidate();
 			return true;

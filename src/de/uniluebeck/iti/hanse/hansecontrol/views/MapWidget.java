@@ -21,6 +21,7 @@ import android.view.View;
 import android.webkit.WebView.FindListener;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.RelativeLayout.LayoutParams;
 
 public class MapWidget extends BasicView {
 	
@@ -61,19 +62,29 @@ public class MapWidget extends BasicView {
 	}
 	
 	private void init() {
-		View view = new View(getContext()) {
-			@Override
-			protected void onDraw(Canvas canvas) {
-				super.onDraw(canvas);
-				if (getMode() == ICON_MODE) {
-					paint.setTextSize(20);
-					paint.setStrokeWidth(1);
-					paint.setStyle(Paint.Style.FILL);
-					canvas.drawText("ICON", 30, 25, paint);
+		if (DEBUG_MODE) {
+			View view = new View(getContext()) {
+				@Override
+				protected void onDraw(Canvas canvas) {
+					super.onDraw(canvas);
+					if (getMode() == ICON_MODE) {
+						paint.setTextSize(20);
+						paint.setStrokeWidth(1);
+						paint.setStyle(Paint.Style.FILL);
+						canvas.drawText("ICON", 30, 25, paint);
+					}
 				}
-			}
-		};
-		addView(view);		
+			};
+			addView(view);	
+		}
+		CloseButton closeButton = new CloseButton(getContext(), this);
+		addView(closeButton);
+		int closeButtonWidth = (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 17, getResources().getDisplayMetrics());
+		RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(closeButtonWidth, closeButtonWidth);
+		params.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+		params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+		
+		closeButton.setLayoutParams(params);		
 	}
 	
 	@Override
@@ -211,5 +222,33 @@ public class MapWidget extends BasicView {
 //		this.widgetID = widgetID;
 //	}
 	
-	
+	public class CloseButton extends View {
+		Paint paint;
+		MapWidget parentWidget;
+		
+		public CloseButton(Context context, MapWidget parentWidget) {
+			super(context);
+			paint = new Paint();
+			this.parentWidget = parentWidget;
+		}
+		
+		@Override
+		protected void onDraw(Canvas canvas) {
+			if (getMode() == FULLSIZE_MODE) {
+				super.onDraw(canvas);
+				canvas.drawLine(0, 0, getWidth() - 1, getHeight() - 1, paint);
+				canvas.drawLine(0, getHeight() - 1, getWidth() - 1, 0, paint);
+			}
+		}
+		
+		@Override
+		public boolean onTouchEvent(MotionEvent event) {
+			if (getMode() == FULLSIZE_MODE) {
+				WidgetLayer widgetLayer = (WidgetLayer) parentWidget.getParent();
+				widgetLayer.removeWidget(parentWidget);
+				return true;
+			}
+			return false;
+		}
+	}
 }
