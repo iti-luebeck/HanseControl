@@ -1,11 +1,19 @@
 package de.uniluebeck.iti.hanse.hansecontrol.views;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Observer;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Preconditions;
 
+import de.uniluebeck.iti.hanse.hansecontrol.MainScreen;
 import de.uniluebeck.iti.hanse.hansecontrol.R;
 
+import android.animation.Animator;
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Observable;
@@ -22,6 +30,7 @@ import android.webkit.WebView.FindListener;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.RelativeLayout.LayoutParams;
+import android.widget.RemoteViews.ActionException;
 
 public class MapWidget extends BasicView {
 	
@@ -53,6 +62,16 @@ public class MapWidget extends BasicView {
 //		init();
 //	}
 
+	CloseButton closeButton;
+	
+	CornerResizer cornerResizerTopLeft;
+	CornerResizer cornerResizerTopRight;
+	CornerResizer cornerResizerBottomLeft;
+	CornerResizer cornerResizerBottomRight;
+	
+	private boolean controlsVisible = false;
+	private ScheduledFuture autoHideFuture = null;
+	
 	public MapWidget(int defaultWidth, int defaultHeight, int widgetID, Context context) {
 		super(context);
 		this.widgetID = widgetID;
@@ -77,15 +96,46 @@ public class MapWidget extends BasicView {
 			};
 			addView(view);	
 		}
-		CloseButton closeButton = new CloseButton(getContext(), this);
-		addView(closeButton);
-		int closeButtonWidth = (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 17, getResources().getDisplayMetrics());
-		RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(closeButtonWidth, closeButtonWidth);
-		params.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-		params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
-		
-		closeButton.setLayoutParams(params);		
+		initCloseButton();
+		initCornerResizer();		
 	}
+	
+	private void initCloseButton() {
+		closeButton = new CloseButton(getContext(), this);
+		addView(closeButton);
+		int closeButtonWidth = (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 30, getResources().getDisplayMetrics());
+		RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(closeButtonWidth, closeButtonWidth);
+//		params.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+//		params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+		closeButton.setLayoutParams(params);
+		closeButton.setVisibility(View.INVISIBLE);
+	}
+	
+	private void initCornerResizer() {
+		cornerResizerTopLeft = new CornerResizer(getContext(), CornerResizer.TOP_LEFT);
+		cornerResizerTopRight = new CornerResizer(getContext(), CornerResizer.TOP_RIGHT);
+		cornerResizerBottomLeft = new CornerResizer(getContext(), CornerResizer.BOTTOM_LEFT);
+		cornerResizerBottomRight = new CornerResizer(getContext(), CornerResizer.BOTTOM_RIGHT);
+		
+		addView(cornerResizerTopLeft);
+		addView(cornerResizerTopRight);
+		addView(cornerResizerBottomLeft);
+		addView(cornerResizerBottomRight);
+		
+		int cornerResizerWidth = (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 40, getResources().getDisplayMetrics());
+		RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(cornerResizerWidth, cornerResizerWidth);
+		
+		cornerResizerTopLeft.setLayoutParams(new RelativeLayout.LayoutParams(params));
+		cornerResizerTopRight.setLayoutParams(new RelativeLayout.LayoutParams(params));
+		cornerResizerBottomLeft.setLayoutParams(new RelativeLayout.LayoutParams(params));
+		cornerResizerBottomRight.setLayoutParams(new RelativeLayout.LayoutParams(params));
+		
+		cornerResizerTopLeft.setVisibility(View.INVISIBLE);
+		cornerResizerTopRight.setVisibility(View.INVISIBLE);
+		cornerResizerBottomLeft.setVisibility(View.INVISIBLE);
+		cornerResizerBottomRight.setVisibility(View.INVISIBLE);
+	}
+	
 	
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
@@ -105,43 +155,218 @@ public class MapWidget extends BasicView {
 				break;
 		}
 		
-		if (getParent() instanceof WidgetLayer && event.getActionMasked() == MotionEvent.ACTION_MOVE && dragLayer != null) {
+		//single tap on "empty space" in MapWidget
+		if (event.getActionMasked() == MotionEvent.ACTION_UP) {
+			//play animation to make closebutton and cornerresizers visible
+			Log.d("animator", "animation started");
+			
+//			cornerResizerTopLeft.setYPos(20);
+//			cornerResizerTopLeft.setXPos(20);
+			
+			if (controlsVisible) {
+				hideControls();
+			} else {
+				showControls(event);
+			}
+		}
+		
+		int minDragDistance = 5;
+		
+		//dragging on WidgetLayer
+		if (getParent() instanceof WidgetLayer && event.getActionMasked() == MotionEvent.ACTION_MOVE && dragLayer != null
+				&& Math.abs(mX - event.getX()) >= minDragDistance && Math.abs(mY - event.getY()) >= minDragDistance) {
 			//request touch event interception from dragLayer
 			dragLayer.startWidgetDraggingOnWidgetLayer(this, mX, mY);
 			return true;
 		}
 		
-//		if (getParent() instanceof WidgetLayer && event.getActionMasked() == MotionEvent.ACTION_MOVE) {
-////			Log.w("touchlog", "event.getX(): " + event.getX());
-//			float dX = event.getX() - mX;
-//			float dY = event.getY() - mY;
-//			RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) getLayoutParams();
-//			params.leftMargin += dX;
-//			params.topMargin += dY;
-//			setLayoutParams(params);
-//			invalidate();
-//			return true;
-//		}
-		
+		//dragging on WidgetList
 		if (getParent() instanceof LinearLayout && event.getActionMasked() == MotionEvent.ACTION_MOVE && dragLayer != null) {
 			float distY = mY - event.getY();
 			float distX = mX - event.getX();
 			float len = (float) Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2));
 			float alpha = (float) Math.acos(distY/len);
 			
-			Log.w("touchcalc", String.format("distx: %f, disty: %f, len: %f, alpha: %f", distX, distY, len, alpha));
+//			Log.w("touchcalc", String.format("distx: %f, disty: %f, len: %f, alpha: %f", distX, distY, len, alpha));
 			
 			if (distY > 20 && alpha < Math.PI / 4) {
 				//dragging up
-				
-				Log.w("touchlog", "Up drag started!!!");
-				
 				dragLayer.startWidgetDraggingFromList(this);
-				
 				return true;
 			}
 		}
 		return super.onTouchEvent(event);
+	}
+	
+	public void showControls() {
+		MotionEvent event = MotionEvent.obtain(0, 0, 0, getWidth() / 2, getHeight() / 2, 0, 0, 0, 0, 0, 0, 0);
+		showControls(event);
+	}
+	
+	public void showControls(MotionEvent event) {
+		//reset previous layout settings
+		((RelativeLayout.LayoutParams) cornerResizerTopLeft.getLayoutParams()).addRule(RelativeLayout.ALIGN_PARENT_TOP, 0);
+		((RelativeLayout.LayoutParams) cornerResizerTopLeft.getLayoutParams()).addRule(RelativeLayout.ALIGN_PARENT_LEFT, 0);
+		((RelativeLayout.LayoutParams) cornerResizerTopRight.getLayoutParams()).addRule(RelativeLayout.ALIGN_PARENT_TOP, 0);
+		((RelativeLayout.LayoutParams) cornerResizerTopRight.getLayoutParams()).addRule(RelativeLayout.ALIGN_PARENT_RIGHT, 0);
+		((RelativeLayout.LayoutParams) cornerResizerBottomLeft.getLayoutParams()).addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, 0);
+		((RelativeLayout.LayoutParams) cornerResizerBottomLeft.getLayoutParams()).addRule(RelativeLayout.ALIGN_PARENT_LEFT, 0);
+		((RelativeLayout.LayoutParams) cornerResizerBottomRight.getLayoutParams()).addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, 0);
+		((RelativeLayout.LayoutParams) cornerResizerBottomRight.getLayoutParams()).addRule(RelativeLayout.ALIGN_PARENT_RIGHT, 0);
+		((RelativeLayout.LayoutParams) closeButton.getLayoutParams()).addRule(RelativeLayout.CENTER_HORIZONTAL, 0);
+		((RelativeLayout.LayoutParams) closeButton.getLayoutParams()).addRule(RelativeLayout.ALIGN_PARENT_TOP, 0);
+		
+		fadeObjects(1, 0, cornerResizerTopLeft, cornerResizerTopRight, cornerResizerBottomLeft, cornerResizerBottomRight, closeButton);
+		fadeObjects(200, 1, cornerResizerTopLeft, cornerResizerTopRight, cornerResizerBottomLeft, cornerResizerBottomRight, closeButton);
+		
+		int duration = 400;
+		
+		cornerResizerTopLeft.setVisibility(View.VISIBLE);
+		ObjectAnimator cornerResizerTopLeft_x = ObjectAnimator.ofFloat(cornerResizerTopLeft, "xPos", event.getX(), 0);
+		cornerResizerTopLeft_x.setDuration(duration);
+		ObjectAnimator cornerResizerTopLeft_y = ObjectAnimator.ofFloat(cornerResizerTopLeft, "yPos", event.getY(), 0);
+		cornerResizerTopLeft_y.setDuration(duration);
+		
+		cornerResizerTopRight.setVisibility(View.VISIBLE);
+		ObjectAnimator cornerResizerTopRight_x = ObjectAnimator.ofFloat(cornerResizerTopRight, "xPos", event.getX(), getWidth() - cornerResizerTopRight.getWidth());
+		cornerResizerTopRight_x.setDuration(duration);
+		ObjectAnimator cornerResizerTopRight_y = ObjectAnimator.ofFloat(cornerResizerTopRight, "yPos", event.getY(), 0);
+		cornerResizerTopRight_y.setDuration(duration);
+		
+		cornerResizerBottomLeft.setVisibility(View.VISIBLE);
+		ObjectAnimator cornerResizerBottomLeft_x = ObjectAnimator.ofFloat(cornerResizerBottomLeft, "xPos", event.getX(), 0);
+		cornerResizerBottomLeft_x.setDuration(duration);
+		ObjectAnimator cornerResizerBottomLeft_y = ObjectAnimator.ofFloat(cornerResizerBottomLeft, "yPos", event.getY(), getHeight() - cornerResizerBottomLeft.getHeight());
+		cornerResizerBottomLeft_y.setDuration(duration);
+		
+		cornerResizerBottomRight.setVisibility(View.VISIBLE);
+		ObjectAnimator cornerResizerBottomRight_x = ObjectAnimator.ofFloat(cornerResizerBottomRight, "xPos", event.getX(), getWidth() - cornerResizerBottomRight.getWidth());
+		cornerResizerBottomRight_x.setDuration(duration);
+		ObjectAnimator cornerResizerBottomRight_y = ObjectAnimator.ofFloat(cornerResizerBottomRight, "yPos", event.getY(), getHeight() - cornerResizerBottomRight.getHeight());
+		cornerResizerBottomRight_y.setDuration(duration);
+		
+		closeButton.setVisibility(View.VISIBLE);
+		ObjectAnimator closeButton_x = ObjectAnimator.ofFloat(closeButton, "xPos", event.getX(), getWidth() / 2 - cornerResizerBottomRight.getWidth() / 2);
+		closeButton_x.setDuration(duration);
+		ObjectAnimator closeButton_y = ObjectAnimator.ofFloat(closeButton, "yPos", event.getY(), 0);
+		closeButton_y.setDuration(duration);
+		
+		AnimatorSet showControls = new AnimatorSet();
+		showControls
+			.play(cornerResizerTopLeft_x)
+			.with(cornerResizerTopLeft_y)
+			.with(cornerResizerTopRight_x)
+			.with(cornerResizerTopRight_y)
+			.with(cornerResizerBottomLeft_x)
+			.with(cornerResizerBottomLeft_y)
+			.with(cornerResizerBottomRight_x)
+			.with(cornerResizerBottomRight_y)
+			.with(closeButton_x)
+			.with(closeButton_y);
+		
+		showControls.start();
+		
+		showControls.addListener(new Animator.AnimatorListener() {
+			
+			@Override
+			public void onAnimationStart(Animator animation) { }
+			
+			@Override
+			public void onAnimationRepeat(Animator animation) { }
+			
+			@Override
+			public void onAnimationEnd(Animator animation) {
+				//set margins to zero, preventing issues while layout resizing
+				((RelativeLayout.LayoutParams) cornerResizerTopLeft.getLayoutParams()).leftMargin = 0;
+				((RelativeLayout.LayoutParams) cornerResizerTopLeft.getLayoutParams()).topMargin = 0;
+				((RelativeLayout.LayoutParams) cornerResizerTopRight.getLayoutParams()).leftMargin = 0;
+				((RelativeLayout.LayoutParams) cornerResizerTopRight.getLayoutParams()).topMargin = 0;
+				((RelativeLayout.LayoutParams) cornerResizerBottomLeft.getLayoutParams()).leftMargin = 0;
+				((RelativeLayout.LayoutParams) cornerResizerBottomLeft.getLayoutParams()).topMargin = 0;
+				((RelativeLayout.LayoutParams) cornerResizerBottomRight.getLayoutParams()).leftMargin = 0;
+				((RelativeLayout.LayoutParams) cornerResizerBottomRight.getLayoutParams()).topMargin = 0;
+				((RelativeLayout.LayoutParams) closeButton.getLayoutParams()).leftMargin = 0;
+				((RelativeLayout.LayoutParams) closeButton.getLayoutParams()).topMargin = 0;
+				
+				((RelativeLayout.LayoutParams) cornerResizerTopLeft.getLayoutParams()).addRule(RelativeLayout.ALIGN_PARENT_TOP);
+				((RelativeLayout.LayoutParams) cornerResizerTopLeft.getLayoutParams()).addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+				((RelativeLayout.LayoutParams) cornerResizerTopRight.getLayoutParams()).addRule(RelativeLayout.ALIGN_PARENT_TOP);
+				((RelativeLayout.LayoutParams) cornerResizerTopRight.getLayoutParams()).addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+				((RelativeLayout.LayoutParams) cornerResizerBottomLeft.getLayoutParams()).addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+				((RelativeLayout.LayoutParams) cornerResizerBottomLeft.getLayoutParams()).addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+				((RelativeLayout.LayoutParams) cornerResizerBottomRight.getLayoutParams()).addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+				((RelativeLayout.LayoutParams) cornerResizerBottomRight.getLayoutParams()).addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+				((RelativeLayout.LayoutParams) closeButton.getLayoutParams()).addRule(RelativeLayout.CENTER_HORIZONTAL);
+				((RelativeLayout.LayoutParams) closeButton.getLayoutParams()).addRule(RelativeLayout.ALIGN_PARENT_TOP);
+				controlsVisible = true;
+			}
+			
+			@Override
+			public void onAnimationCancel(Animator animation) { }
+		});
+		
+		delayHideControls();
+	}
+	
+	public void cancelDelayedHideControls() {
+		if (autoHideFuture != null) {
+			autoHideFuture.cancel(false);
+		}
+	}
+	
+	public void delayHideControls() {
+		cancelDelayedHideControls();
+		autoHideFuture = MainScreen.executorService.schedule(new Runnable() {
+			
+			@Override
+			public void run() {
+				Log.d("test", "executorTask");
+				//run task on UI thread
+				post(new Runnable() {
+					
+					@Override
+					public void run() {
+						hideControls();
+					}
+				});
+			}
+		}, 3000, TimeUnit.MILLISECONDS);
+	}
+	
+	public void hideControls() {
+		if (!controlsVisible) {
+			return;
+		}
+		fadeObjects(500, 0, cornerResizerTopLeft, cornerResizerTopRight, cornerResizerBottomLeft, cornerResizerBottomRight, closeButton).addListener(new Animator.AnimatorListener() {
+			
+			@Override
+			public void onAnimationStart(Animator animation) {}
+			
+			@Override
+			public void onAnimationRepeat(Animator animation) {}
+			
+			@Override
+			public void onAnimationEnd(Animator animation) {
+				controlsVisible = false;
+			}
+			
+			@Override
+			public void onAnimationCancel(Animator animation) {}
+			
+		});
+	}
+	
+	private AnimatorSet fadeObjects(int duration, float alpha, Object... objects) {
+		AnimatorSet animatorSet = new AnimatorSet();
+		List<Animator> animations = new LinkedList<Animator>();
+		for (Object object : objects) {
+			ObjectAnimator fadeAnimator = ObjectAnimator.ofFloat(object, "alpha", alpha);
+			fadeAnimator.setDuration(duration);
+			animations.add(fadeAnimator);
+		}
+		animatorSet.playTogether(animations);
+		animatorSet.start();
+		return animatorSet;
 	}
 	
 	public void setDragStart(float mX, float mY) {
@@ -222,7 +447,38 @@ public class MapWidget extends BasicView {
 //		this.widgetID = widgetID;
 //	}
 	
-	public class CloseButton extends View {
+	public class AnimatedView extends View {
+		
+		public AnimatedView(Context context) {
+			super(context);
+		}
+		
+		public float getXPos() {
+			RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) getLayoutParams();
+			return params.leftMargin;
+		}
+		
+		public float getYPos() {
+			RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) getLayoutParams();
+			return params.topMargin;
+		}
+		
+		public void setXPos(float xPos) {
+//			Log.d("animatortest", "setXPos() " + xPos);
+			RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) getLayoutParams();
+			params.leftMargin = (int) xPos;
+			setLayoutParams(params);
+		}
+		
+		public void setYPos(float yPos) {
+//			Log.d("animatortest", "setYPos() " + yPos);
+			RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) getLayoutParams();
+			params.topMargin = (int) yPos;
+			setLayoutParams(params);
+		}
+	}
+	
+	public class CloseButton extends AnimatedView {
 		Paint paint;
 		MapWidget parentWidget;
 		
@@ -243,12 +499,94 @@ public class MapWidget extends BasicView {
 		
 		@Override
 		public boolean onTouchEvent(MotionEvent event) {
+			if (!controlsVisible) {
+				return false;
+			}
+			Log.w("touchlog", String.format("MapWidget.CloseButton.onTouchEvent(): x: %f, y: %f, action: %d, actionmasked: %d", event.getX(), event.getY(), 
+					event.getAction(), event.getActionMasked()));
 			if (getMode() == FULLSIZE_MODE) {
+				hideControls();
 				WidgetLayer widgetLayer = (WidgetLayer) parentWidget.getParent();
 				widgetLayer.removeWidget(parentWidget);
 				return true;
 			}
 			return false;
 		}
+		
+//		private void layoutControls
+//		
+//		@Override
+//		protected void onLayout(boolean changed, int left, int top, int right,
+//				int bottom) {
+//			super.onLayout(changed, left, top, right, bottom);
+//			
+//		}
 	}
+	
+	public class CornerResizer extends AnimatedView {
+		
+		public static final int TOP_LEFT = 0;
+		public static final int TOP_RIGHT = 1;
+		public static final int BOTTOM_LEFT = 2;
+		public static final int BOTTOM_RIGHT = 3;
+		
+		private int corner;
+		Paint paint;
+		
+		private Float mX, mY;
+		
+		public CornerResizer(Context context, int corner) {
+			super(context);
+			this.corner = corner;
+			paint = new Paint();
+		}
+		
+		@Override
+		protected void onDraw(Canvas canvas) {
+			canvas.drawLine(0, 0, getWidth() - 1, getHeight() - 1, paint);
+			canvas.drawLine(0, getHeight() - 1, getWidth() - 1, 0, paint);
+		}
+		
+		@Override
+		public boolean onTouchEvent(MotionEvent event) {
+			Log.w("touchlog", String.format("MapWidget.CornerResizer.onTouchEvent(): x: %f, y: %f, action: %d, actionmasked: %d", event.getX(), event.getY(), 
+					event.getAction(), event.getActionMasked()));
+			if (!controlsVisible) {
+				return false;
+			}
+			switch (event.getActionMasked()) {
+				case MotionEvent.ACTION_DOWN:
+					mX = event.getX();
+					mY = event.getY();
+					break;
+				case MotionEvent.ACTION_CANCEL:
+				case MotionEvent.ACTION_UP:
+					mX = null;
+					mY = null;
+					break;
+			}			
+			//dragging on WidgetLayer
+			if (getMode() == FULLSIZE_MODE && event.getActionMasked() == MotionEvent.ACTION_MOVE && dragLayer != null) {
+				//request touch event interception from dragLayer
+				Log.d("touchlog", "CornerResizer: requesting interception from draglayer...");
+				dragLayer.startWidgetResizing(this, mX, mY);
+//				return true;
+			}
+			return true;
+		}
+		
+		public int getCorner() {
+			return corner;
+		}
+	}
+	
+//	@Override
+//	public void forceLayout() {
+//		super.forceLayout();
+//		cornerResizerTopLeft.forceLayout();
+//		cornerResizerTopRight.forceLayout();
+//		cornerResizerBottomLeft.forceLayout();
+//		cornerResizerBottomRight.forceLayout();
+//		closeButton.forceLayout();
+//	}
 }

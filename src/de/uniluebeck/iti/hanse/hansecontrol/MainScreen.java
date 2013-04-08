@@ -3,6 +3,8 @@ package de.uniluebeck.iti.hanse.hansecontrol;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 import de.uniluebeck.iti.hanse.hansecontrol.views.DragLayer;
 import de.uniluebeck.iti.hanse.hansecontrol.views.WidgetLayer;
@@ -42,10 +44,16 @@ public class MainScreen extends Activity {
 	private SharedPreferences mPrefs;
 	HashMap<Tab, Integer> tabIDs = new HashMap<Tab, Integer>();
 	
+	public static ScheduledExecutorService executorService = Executors.newScheduledThreadPool(2);
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main_screen);
+		
+//		if (executorService.isShutdown()) {
+//			executorService = Executors.newScheduledThreadPool(2);
+//		}
 		
 		mPrefs = getSharedPreferences("pref", 0);
 		
@@ -300,5 +308,10 @@ public class MainScreen extends Activity {
 		Log.d("errfind", "MainScreen.onResume");
 	}
 	
+//	@Override
+//	protected void onStop() {
+//		super.onStop();
+//		executorService.shutdown();
+//	}
 	
 }
