@@ -17,10 +17,14 @@ import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Observable;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PointF;
+import android.graphics.Rect;
+import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
@@ -72,6 +76,9 @@ public class MapWidget extends BasicView {
 	private boolean controlsVisible = false;
 	private ScheduledFuture autoHideFuture = null;
 	
+	//TODO find better place for this
+	Bitmap bitmap_closeButton, bitmap_resizer;
+	
 	public MapWidget(int defaultWidth, int defaultHeight, int widgetID, Context context) {
 		super(context);
 		this.widgetID = widgetID;
@@ -97,13 +104,17 @@ public class MapWidget extends BasicView {
 			addView(view);	
 		}
 		initCloseButton();
-		initCornerResizer();		
+		initCornerResizer();
+		
+		bitmap_closeButton = BitmapFactory.decodeResource(getResources(), R.drawable.trashbin);
+		bitmap_resizer = BitmapFactory.decodeResource(getResources(), R.drawable.resize);
+		
 	}
 	
 	private void initCloseButton() {
 		closeButton = new CloseButton(getContext(), this);
 		addView(closeButton);
-		int closeButtonWidth = (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 30, getResources().getDisplayMetrics());
+		int closeButtonWidth = (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 40, getResources().getDisplayMetrics());
 		RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(closeButtonWidth, closeButtonWidth);
 //		params.addRule(RelativeLayout.ALIGN_PARENT_TOP);
 //		params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
@@ -122,7 +133,7 @@ public class MapWidget extends BasicView {
 		addView(cornerResizerBottomLeft);
 		addView(cornerResizerBottomRight);
 		
-		int cornerResizerWidth = (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 40, getResources().getDisplayMetrics());
+		int cornerResizerWidth = (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 45, getResources().getDisplayMetrics());
 		RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(cornerResizerWidth, cornerResizerWidth);
 		
 		cornerResizerTopLeft.setLayoutParams(new RelativeLayout.LayoutParams(params));
@@ -246,7 +257,7 @@ public class MapWidget extends BasicView {
 		cornerResizerBottomRight_y.setDuration(duration);
 		
 		closeButton.setVisibility(View.VISIBLE);
-		ObjectAnimator closeButton_x = ObjectAnimator.ofFloat(closeButton, "xPos", event.getX(), getWidth() / 2 - cornerResizerBottomRight.getWidth() / 2);
+		ObjectAnimator closeButton_x = ObjectAnimator.ofFloat(closeButton, "xPos", event.getX(), (getWidth() - 1) / 2 - (cornerResizerBottomRight.getWidth() - 1) / 2);
 		closeButton_x.setDuration(duration);
 		ObjectAnimator closeButton_y = ObjectAnimator.ofFloat(closeButton, "yPos", event.getY(), 0);
 		closeButton_y.setDuration(duration);
@@ -492,8 +503,12 @@ public class MapWidget extends BasicView {
 		protected void onDraw(Canvas canvas) {
 			if (getMode() == FULLSIZE_MODE) {
 				super.onDraw(canvas);
-				canvas.drawLine(0, 0, getWidth() - 1, getHeight() - 1, paint);
-				canvas.drawLine(0, getHeight() - 1, getWidth() - 1, 0, paint);
+//				canvas.drawLine(0, 0, getWidth() - 1, getHeight() - 1, paint);
+//				canvas.drawLine(0, getHeight() - 1, getWidth() - 1, 0, paint);
+				
+				//TODO consider to use a async task instead!
+//				canvas.drawBitmap(bitmap_closeButton, 0, 0, null);
+				canvas.drawBitmap(bitmap_closeButton, null, new RectF(0, 0, getWidth(), getHeight()), null);
 			}
 		}
 		
@@ -543,8 +558,9 @@ public class MapWidget extends BasicView {
 		
 		@Override
 		protected void onDraw(Canvas canvas) {
-			canvas.drawLine(0, 0, getWidth() - 1, getHeight() - 1, paint);
-			canvas.drawLine(0, getHeight() - 1, getWidth() - 1, 0, paint);
+//			canvas.drawLine(0, 0, getWidth() - 1, getHeight() - 1, paint);
+//			canvas.drawLine(0, getHeight() - 1, getWidth() - 1, 0, paint);
+			canvas.drawBitmap(bitmap_resizer, null, new RectF(0, 0, getWidth(), getHeight()), null);
 		}
 		
 		@Override
