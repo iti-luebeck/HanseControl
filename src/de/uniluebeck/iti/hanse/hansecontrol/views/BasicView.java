@@ -46,11 +46,11 @@ public class BasicView extends RelativeLayout {
 					super.onDraw(canvas);
 					paint.setStrokeWidth(5);
 					paint.setStyle(Paint.Style.STROKE);
-//					for (int i = 1; i < points.size(); i++) {
-//						PointF a = points.get(i-1);
-//						PointF b = points.get(i);
-//						canvas.drawLine(a.x, a.y, b.x, b.y, paint);
-//					}
+					for (int i = 1; i < points.size(); i++) {
+						PointF a = points.get(i-1);
+						PointF b = points.get(i);
+						canvas.drawLine(a.x, a.y, b.x, b.y, paint);
+					}
 					canvas.drawLine(0, 0, getWidth(), getHeight(), paint);
 					canvas.drawRect(0, 0, getWidth(), getHeight(), paint);
 				}
