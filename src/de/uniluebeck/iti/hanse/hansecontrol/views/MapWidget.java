@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Preconditions;
 
+import de.uniluebeck.iti.hanse.hansecontrol.BitmapManager;
 import de.uniluebeck.iti.hanse.hansecontrol.MainScreen;
 import de.uniluebeck.iti.hanse.hansecontrol.R;
 
@@ -106,8 +107,10 @@ public class MapWidget extends BasicView {
 		initCloseButton();
 		initCornerResizer();
 		
-		bitmap_closeButton = BitmapFactory.decodeResource(getResources(), R.drawable.trashbin);
-		bitmap_resizer = BitmapFactory.decodeResource(getResources(), R.drawable.resize);
+//		bitmap_closeButton = BitmapFactory.decodeResource(getResources(), R.drawable.trashbin);
+		bitmap_closeButton = BitmapManager.getInstance().getBitmap(getResources(), R.drawable.trashbin);
+//		bitmap_resizer = BitmapFactory.decodeResource(getResources(), R.drawable.resize);
+		bitmap_resizer = BitmapManager.getInstance().getBitmap(getResources(), R.drawable.resize);
 		
 	}
 	
@@ -432,7 +435,7 @@ public class MapWidget extends BasicView {
 	public void savePrefs(String tabPrefix, SharedPreferences.Editor ed) {
 		String id = tabPrefix + WIDGET_PREFIX + widgetID;
 		ed.putInt(id+"-currentMode", currentMode);
-		Log.d("ttt1save", id+"-currentMode");
+//		Log.d("ttt1save", id+"-currentMode");
 		if (getMode() == FULLSIZE_MODE) {
 			RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) getLayoutParams();
 			ed.putInt(id+"-params.leftMargin", params.leftMargin);

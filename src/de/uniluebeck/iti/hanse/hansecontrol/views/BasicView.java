@@ -8,6 +8,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PointF;
+import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
@@ -44,15 +45,21 @@ public class BasicView extends RelativeLayout {
 				@Override
 				protected void onDraw(Canvas canvas) {
 					super.onDraw(canvas);
+					paint.setAlpha(255);
 					paint.setStrokeWidth(5);
 					paint.setStyle(Paint.Style.STROKE);
-					for (int i = 1; i < points.size(); i++) {
-						PointF a = points.get(i-1);
-						PointF b = points.get(i);
-						canvas.drawLine(a.x, a.y, b.x, b.y, paint);
-					}
+//					for (int i = 1; i < points.size(); i++) {
+//						PointF a = points.get(i-1);
+//						PointF b = points.get(i);
+//						canvas.drawLine(a.x, a.y, b.x, b.y, paint);
+//					}
 					canvas.drawLine(0, 0, getWidth(), getHeight(), paint);
 					canvas.drawRect(0, 0, getWidth(), getHeight(), paint);
+					
+					paint.setAlpha(80);
+					paint.setStyle(Paint.Style.FILL);
+					canvas.drawRect(new Rect(0,0, getWidth(), getHeight()), paint);
+					
 				}
 			};
 			addView(view);

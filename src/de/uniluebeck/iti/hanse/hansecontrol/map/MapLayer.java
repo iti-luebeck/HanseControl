@@ -1,8 +1,17 @@
 package de.uniluebeck.iti.hanse.hansecontrol.map;
 
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+
+import de.uniluebeck.iti.hanse.hansecontrol.BitmapManager;
+import de.uniluebeck.iti.hanse.hansecontrol.MainScreen;
+import de.uniluebeck.iti.hanse.hansecontrol.MainScreenFragment;
 import de.uniluebeck.iti.hanse.hansecontrol.R;
 import de.uniluebeck.iti.hanse.hansecontrol.views.WidgetLayer;
+import android.app.FragmentManager;
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -33,6 +42,13 @@ public class MapLayer extends SurfaceView implements SurfaceHolder.Callback{
 	
 	GestureDetector gestureDetector;
 	ScaleGestureDetector scaleGestureDetector;
+	ScheduledFuture surfaceDrawingFuture;
+	Paint surfaceBackgroundPaint = new Paint();
+	public static final String MAP_LAYER_PREFIX = "MapLayer-";
+	
+//	private SharedPreferences mPrefs;
+//	private MainScreenFragment mainScreenFragment;
+//	Runnable loadMapSurfacePrefsRunnable;
 	
 	public MapLayer(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
@@ -51,7 +67,8 @@ public class MapLayer extends SurfaceView implements SurfaceHolder.Callback{
 	
 	private void init() {
 		getHolder().addCallback(this);
-		testimage = BitmapFactory.decodeResource(getResources(), R.drawable.test_tile);
+//		testimage = BitmapFactory.decodeResource(getResources(), R.drawable.test_tile);
+		testimage = BitmapManager.getInstance().getBitmap(getResources(), R.drawable.test_tile);
 		gestureDetector = new GestureDetector(getContext(), new SimpleOnGestureListener() {
 			@Override
 			public boolean onDown(MotionEvent e) {
@@ -62,6 +79,7 @@ public class MapLayer extends SurfaceView implements SurfaceHolder.Callback{
 			public boolean onScroll(MotionEvent e1, MotionEvent e2,
 					float distanceX, float distanceY) {
 				mapSurface.translate(-distanceX, -distanceY);
+				scheduleSurfaceDrawing();
 				return true;
 			}
 		});
@@ -76,6 +94,7 @@ public class MapLayer extends SurfaceView implements SurfaceHolder.Callback{
 			public boolean onScale(ScaleGestureDetector detector) {
 				Log.d("multitouch", String.format("PinchToZoom: focusX=%f, factor=%f", detector.getFocusX(), detector.getScaleFactor()));
 				mapSurface.zoom(detector.getFocusX(), detector.getFocusY(), detector.getScaleFactor());
+				scheduleSurfaceDrawing();
 				return true;
 			}
 		});
@@ -84,8 +103,41 @@ public class MapLayer extends SurfaceView implements SurfaceHolder.Callback{
 //		mapSurface.setY(0);
 //		mapSurface.setWidth(700);
 //		mapSurface.setHeight(500);
+		surfaceBackgroundPaint.setColor(Color.LTGRAY);
+		surfaceBackgroundPaint.setStrokeWidth(0);
+		mapSurface = new MapSurface(testimage, getWidth(), getHeight(), getResources());
 	}
 
+	private void scheduleSurfaceDrawing() {
+		if (surfaceDrawingFuture != null) {
+			surfaceDrawingFuture.cancel(true);
+		}
+		surfaceDrawingFuture = MainScreen.executorService.schedule(new Runnable() {
+			
+			@Override
+			public void run() {
+				try{
+//					Log.d("tt", "drawing!");
+					Canvas canvas = getHolder().lockCanvas();
+//					canvas.drawBitmap(testimage, null, new Rect(0, 0, 300, 300), null);
+//					mapSurface.scaleToViewport(getWidth(), getHeight());
+					canvas.drawRect(new Rect(0,0,getWidth(), getHeight()), surfaceBackgroundPaint);
+					mapSurface.draw(canvas);
+//										canvas.drawLine(0, 0, 300, 300, paint);
+					
+					getHolder().unlockCanvasAndPost(canvas);
+					
+					Thread.sleep(0);
+					
+				} catch (InterruptedException e) {
+				} catch (Exception e) {
+					Log.d("MapSurface", "Scheduled drawing throwed exception! ", e);
+				}
+				
+			}
+		}, 0, TimeUnit.MILLISECONDS);
+	}
+	
 	@Override
 	public void surfaceChanged(SurfaceHolder holder, int format, int width,
 			int height) {
@@ -96,41 +148,45 @@ public class MapLayer extends SurfaceView implements SurfaceHolder.Callback{
 	@Override
 	public void surfaceCreated(SurfaceHolder holder) {
 		// TODO Auto-generated method stub
-		final Paint paint = new Paint();
-		paint.setColor(Color.LTGRAY);
-		paint.setStrokeWidth(0);
-		mapSurface = new MapSurface(testimage, getWidth(), getHeight());
+		
+		scheduleSurfaceDrawing();
 		
 //		MapSurface mapSurface = new MapSurface(testimage);
 		
+		
+		
+//		MainScreen.executorService.execute(loadMapSurfacePrefsRunnable);
+		
 		//TODO try to replace this with scheduling task
-		new Thread() {
-			@Override
-			public void run() {
-				while (true) {
-//					Log.d("tt", "drawing!");
-					Canvas canvas = getHolder().lockCanvas();
-//					canvas.drawBitmap(testimage, null, new Rect(0, 0, 300, 300), null);
-//					mapSurface.scaleToViewport(getWidth(), getHeight());
-					canvas.drawRect(new Rect(0,0,getWidth(), getHeight()), paint);
-					mapSurface.draw(canvas);
-					canvas.drawLine(0, 0, 300, 300, paint);
-					
-					getHolder().unlockCanvasAndPost(canvas);
-					
-					try {
-						Thread.sleep(0);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-				}
-			}
-		}.start();
+//		new Thread() {
+//			@Override
+//			public void run() {
+//				while (true) {
+//					try{
+//	//					Log.d("tt", "drawing!");
+//						Canvas canvas = getHolder().lockCanvas();
+//	//					canvas.drawBitmap(testimage, null, new Rect(0, 0, 300, 300), null);
+//	//					mapSurface.scaleToViewport(getWidth(), getHeight());
+//						canvas.drawRect(new Rect(0,0,getWidth(), getHeight()), paint);
+//						mapSurface.draw(canvas);
+////						canvas.drawLine(0, 0, 300, 300, paint);
+//						
+//						getHolder().unlockCanvasAndPost(canvas);
+//						
+//						Thread.sleep(0);
+//						
+//					} catch (Exception e) {
+//						e.printStackTrace();
+//						break;
+//					}
+//				}
+//			}
+//		}.start();
 	}
 
 	@Override
 	public void surfaceDestroyed(SurfaceHolder holder) {
-		// TODO Auto-generated method stub
+		testimage.recycle();
 	}
 	
 	@Override
@@ -140,6 +196,31 @@ public class MapLayer extends SurfaceView implements SurfaceHolder.Callback{
 		return gestureDetector.onTouchEvent(event);
 	}
 	
+	public void savePrefs(String tabPrefix, SharedPreferences.Editor ed) {
+		String id = tabPrefix + MAP_LAYER_PREFIX;
+		
+		ed.putFloat(id+"-mapSurface.x", mapSurface.getX());
+		ed.putFloat(id+"-mapSurface.y", mapSurface.getY());
+		ed.putFloat(id+"-mapSurface.zoom", mapSurface.getZoom());
+		
+		ed.commit();
+	}
+	
+	public void loadPrefs(String tabPrefix, final SharedPreferences prefs) {
+		
+		mapSurface.setImage(testimage);
+		
+		String id = tabPrefix + MAP_LAYER_PREFIX;
+		mapSurface.setX(prefs.getFloat(id+"-mapSurface.x", Float.MIN_VALUE));
+		mapSurface.setY(prefs.getFloat(id+"-mapSurface.y", Float.MIN_VALUE));
+		mapSurface.setZoom(prefs.getFloat(id+"-mapSurface.zoom", Float.MIN_VALUE));
+		if (mapSurface.getX() == Float.MIN_VALUE 
+				|| mapSurface.getY() == Float.MIN_VALUE 
+				|| mapSurface.getZoom() == Float.MIN_VALUE) {
+			mapSurface.scaleToViewport(getWidth(), getHeight());
+		}
+//		scheduleSurfaceDrawing();
+	}
 }
 
 class MapSurface {
@@ -157,9 +238,11 @@ class MapSurface {
 //	private float initViewPortY;
 	private float initViewPortY_relativeToMap; // (y+ly) / h
 	
+	private Resources res;
 	
-	public MapSurface(Bitmap image, float viewportWidth, float viewportHeight) {
+	public MapSurface(Bitmap image, float viewportWidth, float viewportHeight, Resources res) {
 		this.image = image;
+		this.res = res;
 		setImage(image);
 		scaleToViewport(viewportWidth, viewportHeight);
 	}
@@ -190,10 +273,14 @@ class MapSurface {
 	}
 	
 	public synchronized void draw(Canvas canvas) {
+		//TODO change this
+		if (image.isRecycled()) {
+			image = BitmapManager.getInstance().getBitmap(res, R.drawable.test_tile);
+		}
 		canvas.drawBitmap(image, null, new RectF(x, y, x + getWidth(), y + getHeight()), null);
 	}
 	
-	public void startPinchToZoom(float initViewPortX, float initViewPortY) {
+	public synchronized void startPinchToZoom(float initViewPortX, float initViewPortY) {
 //		this.initViewPortX = initViewPortX;
 //		this.initViewPortY = initViewPortY;
 		initViewPortX_relativeToMap = (initViewPortX - x) / getWidth();
@@ -243,5 +330,9 @@ class MapSurface {
 	
 	public Bitmap getImage() {
 		return image;
+	}
+	
+	public synchronized void setZoom(float zoom) {
+		this.zoom = zoom;
 	}
 }

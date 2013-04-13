@@ -305,7 +305,7 @@ public class MainScreen extends Activity {
 	@Override
 	protected void onResume() {
 		super.onResume();
-		Log.d("errfind", "MainScreen.onResume");
+		Log.d("statemanagement", "MainScreen.onResume");
 	}
 	
 //	@Override
@@ -314,4 +314,8 @@ public class MainScreen extends Activity {
 //		executorService.shutdown();
 //	}
 	
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		
+	}
 }
