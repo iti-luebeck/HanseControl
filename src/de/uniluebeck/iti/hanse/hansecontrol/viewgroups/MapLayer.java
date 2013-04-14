@@ -1,4 +1,4 @@
-package de.uniluebeck.iti.hanse.hansecontrol.map;
+package de.uniluebeck.iti.hanse.hansecontrol.viewgroups;
 
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -7,7 +7,6 @@ import de.uniluebeck.iti.hanse.hansecontrol.BitmapManager;
 import de.uniluebeck.iti.hanse.hansecontrol.MainScreen;
 import de.uniluebeck.iti.hanse.hansecontrol.MainScreenFragment;
 import de.uniluebeck.iti.hanse.hansecontrol.R;
-import de.uniluebeck.iti.hanse.hansecontrol.views.WidgetLayer;
 import android.app.FragmentManager;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -33,6 +32,11 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 
+/**
+ * On this surface view all contents of the map will be drawn.
+ * 
+ * @author Stefan Hueske
+ */
 public class MapLayer extends SurfaceView implements SurfaceHolder.Callback{
 	
 //	GestureDetector gestureDetector;

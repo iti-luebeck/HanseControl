@@ -11,6 +11,8 @@ import com.google.common.base.Preconditions;
 import de.uniluebeck.iti.hanse.hansecontrol.BitmapManager;
 import de.uniluebeck.iti.hanse.hansecontrol.MainScreen;
 import de.uniluebeck.iti.hanse.hansecontrol.R;
+import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.DragLayer;
+import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.WidgetLayer;
 
 import android.animation.Animator;
 import android.animation.AnimatorSet;
@@ -37,6 +39,13 @@ import android.widget.RelativeLayout;
 import android.widget.RelativeLayout.LayoutParams;
 import android.widget.RemoteViews.ActionException;
 
+/**
+ * This is the base class of all widgets.
+ * It is responsible for functionality which is 
+ * available for all widgets like dragging, resizing, closing.
+ * 
+ * @author Stefan Hueske
+ */
 public class MapWidget extends BasicView {
 	
 	public static final int ICON_MODE = 0;

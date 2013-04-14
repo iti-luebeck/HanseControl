@@ -31,8 +31,15 @@ import org.ros.node.topic.Subscriber;
 
 import std_msgs.String;
 
+/**
+ * This is just a test activity to test rosandroid.
+ * 
+ * @author Stefan Hueske
+ */
 public class ChatterActivity extends RosActivity {
-
+	
+	//TODO remove this class in final version
+	
 	private Talker talker;
 	private Listener listener;
 	

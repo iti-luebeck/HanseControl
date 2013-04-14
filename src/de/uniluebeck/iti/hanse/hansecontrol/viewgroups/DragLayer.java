@@ -1,9 +1,10 @@
-package de.uniluebeck.iti.hanse.hansecontrol.views;
+package de.uniluebeck.iti.hanse.hansecontrol.viewgroups;
 
 import java.util.LinkedList;
 import java.util.List;
 
 import de.uniluebeck.iti.hanse.hansecontrol.R;
+import de.uniluebeck.iti.hanse.hansecontrol.views.MapWidget;
 import de.uniluebeck.iti.hanse.hansecontrol.views.MapWidget.CornerResizer;
 
 import android.content.Context;
@@ -19,8 +20,16 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
+/**
+ * This Layer handles dragging, resizing and snapping of widgets.
+ * It is also the root of all other ViewGroups in the MainScreen Activity.
+ * 
+ * @author Stefan Hueske
+ */
 public class DragLayer extends RelativeLayout {
 
+	//TODO cleanup
+	
 	private MapWidget dragInProgress_widgetFromList = null;
 	LinearLayout dragInProgress_widgetFromList_layout;
 	// int dragInProgress_widgetFromList_oldIndex;

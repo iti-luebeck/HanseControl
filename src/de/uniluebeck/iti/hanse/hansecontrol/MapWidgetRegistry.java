@@ -1,13 +1,21 @@
-package de.uniluebeck.iti.hanse.hansecontrol.views;
+package de.uniluebeck.iti.hanse.hansecontrol;
 
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
+import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.DragLayer;
+import de.uniluebeck.iti.hanse.hansecontrol.views.MapWidget;
+
 import android.content.Context;
 import android.graphics.Color;
 import android.widget.LinearLayout;
 
+/**
+ * In this class all available widgets must be instantiated.
+ * 
+ * @author Stefan Hueske
+ */
 public class MapWidgetRegistry {
 	List<MapWidget> allWidgets = new LinkedList<MapWidget>();
 	Context context;

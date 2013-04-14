@@ -1,10 +1,9 @@
 package de.uniluebeck.iti.hanse.hansecontrol;
 
-import de.uniluebeck.iti.hanse.hansecontrol.map.MapLayer;
-import de.uniluebeck.iti.hanse.hansecontrol.views.DragLayer;
+import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.DragLayer;
+import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.MapLayer;
+import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.WidgetLayer;
 import de.uniluebeck.iti.hanse.hansecontrol.views.MapWidget;
-import de.uniluebeck.iti.hanse.hansecontrol.views.MapWidgetRegistry;
-import de.uniluebeck.iti.hanse.hansecontrol.views.WidgetLayer;
 import android.app.ActionBar;
 import android.app.Fragment;
 import android.content.SharedPreferences;
@@ -23,23 +22,41 @@ import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
+/**
+ * This class represents a tab in the main activity (MainScreen)
+ * 
+ * @author Stefan Hueske
+ */
 public class MainScreenFragment extends Fragment {
 	
+	//widget bar visibility and positions
 	private boolean widgetbar_isvisible = true;
 	private RelativeLayout.LayoutParams widgetbar_isvisible_true_params;
 	private RelativeLayout.LayoutParams widgetbar_isvisible_false_params;
 	
+	//persistent app settings (eg. current Tabs, open widgets, map position and zoom, ...)
 	private SharedPreferences mPrefs;
+	
+	//registry in which all widget instances will be created
 	MapWidgetRegistry widgetRegistry;	
 	
+	//Layer on which the full-size widgets will be shown
 	WidgetLayer widgetLayer;
+	
+	//Layer on which the icon-size widgets will be shown
 	LinearLayout widgetbarLayout;
-		
+	
+	//tab ID of this Tab
 	private int tabID = -1;
+	
+	//prefix of all tabs, used when saving preferences in mPref
 	public static final String TAB_PREFIX = "MainScreenFragment-";
 	
+	//when true this prevents saving the state of this tab
+	//this is used when the user hits "close tab"
 	boolean dontSaveStateFlag = false;
 	
+	//the menu of the action bar, used in setWidgetBarVisibility() to change text and icons
 	private Menu actionBarMenu;
 	
 	@Override
@@ -49,6 +66,9 @@ public class MainScreenFragment extends Fragment {
 		mPrefs = getActivity().getSharedPreferences("pref", 0);
 		if (getArguments() != null) {
 			tabID = getArguments().getInt("tabid", -1);
+		}
+		if (tabID == -1) {
+			Log.e("MainScreenFragment", "Tab ID is -1");
 		}
 	}
 	
@@ -66,7 +86,7 @@ public class MainScreenFragment extends Fragment {
 		super.onResume();
 		Log.d("statemanagement", "MainScreenFragment" + tabID + ".onResume");
 		setWidgetBarVisibility(mPrefs.getBoolean(TAB_PREFIX + tabID + "_widgetbarisvisible", true));
-		//setup MapLayer prefs
+		//load MapLayer preferences (map position and zoom)
 		((MapLayer)getView().findViewById(R.id.mapLayer1)).loadPrefs(TAB_PREFIX + tabID, mPrefs);
 	}
 	
@@ -74,8 +94,7 @@ public class MainScreenFragment extends Fragment {
 	public void onViewCreated(View view, Bundle savedInstanceState) {
 		Log.d("statemanagement", "MainScreenFragment.onViewCreated() called.");
 		super.onViewCreated(view, savedInstanceState);
-		
-		
+				
 		widgetLayer = (WidgetLayer) view.findViewById(R.id.widgetLayer);
 		widgetbarLayout = (LinearLayout) view.findViewById(R.id.widgetLayout);	
 		final HorizontalScrollView widgetbarLayoutScroll = (HorizontalScrollView) view.findViewById(R.id.horizontalScrollView1);
@@ -241,6 +260,6 @@ public class MainScreenFragment extends Fragment {
 	
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
-		
+		//do nothing here, preventing android from saving the state (this is done in onPause())
 	}
 }

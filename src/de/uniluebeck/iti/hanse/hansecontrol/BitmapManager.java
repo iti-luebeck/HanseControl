@@ -6,6 +6,11 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
+/**
+ * This class manages the loading and caching of bitmaps.
+ * 
+ * @author Stefan Hueske
+ */
 public class BitmapManager {
 	
 	private static BitmapManager instance = new BitmapManager();

@@ -14,6 +14,12 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.RelativeLayout;
 
+/**
+ * All custom views are based on this class.
+ * It offers basic debug functionality.
+ * 
+ * @author Stefan Hueske
+ */
 public class BasicView extends RelativeLayout {
 	public final boolean DEBUG_MODE = true;
 	

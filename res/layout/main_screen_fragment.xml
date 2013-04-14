@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     tools:context=".MainScreen" >
 
-    <de.uniluebeck.iti.hanse.hansecontrol.views.DragLayer
+    <de.uniluebeck.iti.hanse.hansecontrol.viewgroups.DragLayer
         android:id="@+id/dragLayer1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -13,7 +13,7 @@
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true" >
 
-        <de.uniluebeck.iti.hanse.hansecontrol.map.MapLayer
+        <de.uniluebeck.iti.hanse.hansecontrol.viewgroups.MapLayer
             android:id="@+id/mapLayer1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" 
@@ -22,7 +22,7 @@
 	        android:layout_alignParentRight="true"
 	        android:layout_alignParentTop="true" />
 
-	    <de.uniluebeck.iti.hanse.hansecontrol.views.WidgetLayer
+		<de.uniluebeck.iti.hanse.hansecontrol.viewgroups.WidgetLayer
 	        android:id="@+id/widgetLayer"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
@@ -46,6 +46,6 @@
 	
 	    </HorizontalScrollView>
         
-    </de.uniluebeck.iti.hanse.hansecontrol.views.DragLayer>
+    </de.uniluebeck.iti.hanse.hansecontrol.viewgroups.DragLayer>
 
 </RelativeLayout>

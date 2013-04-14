@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
-import de.uniluebeck.iti.hanse.hansecontrol.views.DragLayer;
-import de.uniluebeck.iti.hanse.hansecontrol.views.WidgetLayer;
+import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.DragLayer;
+import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.WidgetLayer;
 import de.uniluebeck.iti.hanse.hansecontrol.views.MapWidget;
 import android.media.audiofx.AcousticEchoCanceler;
 import android.os.Bundle;
@@ -36,47 +36,45 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.app.ActionBar;
 
+/**
+ * This is the main Activity, it shows tabs (Fragments),
+ * which are instances of MainScreenFragment.
+ * 
+ * @author Stefan Hueske
+ */
 public class MainScreen extends Activity {
 	
-//	private MainScreenFragment frag1 = new MainScreenFragment();
-//	private MainScreenFragment frag2 = new MainScreenFragment();
-	
+	//persistent app settings (eg. current Tabs, open widgets, map position and zoom, ...)
 	private SharedPreferences mPrefs;
+	
+	//Map of all currently open tabs and their IDs
 	HashMap<Tab, Integer> tabIDs = new HashMap<Tab, Integer>();
 	
-	public static ScheduledExecutorService executorService = Executors.newScheduledThreadPool(2);
+	//global executor service which should be used to schedule tasks at any location in this Activity (and MainScreenFragment Tabs)
+	public static ScheduledExecutorService executorService;
+	//TODO make sure to shutdown executorService when the app stops
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		//set predefined XML layout
 		setContentView(R.layout.main_screen);
 		
-//		if (executorService.isShutdown()) {
-//			executorService = Executors.newScheduledThreadPool(2);
-//		}
+		//start executor service
+		if (executorService == null || executorService.isShutdown()) {
+			executorService = Executors.newScheduledThreadPool(2);
+		}
 		
+		//load shared preferences
 		mPrefs = getSharedPreferences("pref", 0);
 		
+		//init action bar
 		ActionBar actionBar = getActionBar();
 		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 		actionBar.setDisplayShowTitleEnabled(true);
 		
 		
-		
-//		Tab tab = actionBar.newTab().setText("Testtab 1").setTabListener(
-//				new TabListener<MainScreenFragment>(this, "testtag1", MainScreenFragment.class, 1));
-//		actionBar.addTab(tab);
-//		
-////		tab = actionBar.newTab().setText("Testtab 2").setTabListener(
-////				new TabListener<MapWidgetFragment>(this, "testtag2", MapWidgetFragment.class));
-////		actionBar.addTab(tab);
-//		
-//		tab = actionBar.newTab().setText("Testtab 3").setTabListener(
-//				new TabListener<MainScreenFragment>(this, "testtag3", MainScreenFragment.class, 2));
-//		actionBar.addTab(tab);
-		
 		//restore tabs
-		
 		String openTabs = mPrefs.getString("global_opentabs", "");
 		if (!openTabs.isEmpty()) {
 			try {
@@ -98,6 +96,8 @@ public class MainScreen extends Activity {
 				Log.e("encoding", "Error while trying to decode opentabs!");
 			}
 		}
+		
+		//at least one tab must always be open
 		if (actionBar.getTabCount() == 0) {
 			addNewTab();
 		}
@@ -131,6 +131,7 @@ public class MainScreen extends Activity {
 	
 	public void addNewTab() {
 		ActionBar actionBar = getActionBar();
+		
 		//find lowest free id (starting at 1)
 		int id = 1;
 		while (tabIDs.values().contains(id)) {
@@ -152,6 +153,8 @@ public class MainScreen extends Activity {
 				getActionBar().removeTab(t);
 				tabIDs.remove(t);
 				clearTabPrefs(tabID);
+				
+				//at least one tab must always be open
 				if (getActionBar().getTabCount() == 0) {
 					addNewTab();
 				}
@@ -208,51 +211,12 @@ public class MainScreen extends Activity {
 			ed.putInt("global_selectedTab", tabIDs.get(actionBar.getSelectedTab()));
 		}
 		ed.commit();
+		
 	}
-
-//	@Override
-//	public void onTabReselected(Tab tab, FragmentTransaction ft) {
-//		Log.d("actionbar", String.format("onTabReselected: tabtext=%s", tab.getText()));
-//	}
-//
-//	@Override
-//	public void onTabSelected(Tab tab, FragmentTransaction ft) {
-//		Log.d("actionbar", String.format("onTabSelected: tabtext=%s", tab.getText()));
-//		//TODO change this, see http://developer.android.com/guide/topics/ui/actionbar.html#ActionView
-//		if (tab.getText().equals("Testtab 1")) {
-//			ft.attach(frag1);
-//		} else {
-//			ft.attach(frag2);					
-//		}
-//	}
-//
-//	@Override
-//	public void onTabUnselected(Tab tab, FragmentTransaction ft) {
-//		Log.d("actionbar", String.format("onTabUnselected: tabtext=%s", tab.getText()));
-//		if (tab.getText().equals("Testtab 1")) {
-//			ft.detach(frag1);
-//		} else {
-//			ft.detach(frag2);					
-//		}
-//	}
-	
-//	@Override
-//	public boolean onCreateOptionsMenu(Menu menu) {
-//		// Inflate the menu; this adds items to the action bar if it is present.
-//		getMenuInflater().inflate(R.menu.main_screen, menu);
-//		return true;
-//	}
-	
-//	@Override
-//	public boolean onOptionsItemSelected(MenuItem item) {
-//		Log.d("actionbar", "MainScreen: Menu action activated! '" + item.getTitle() + "'");
-//		return false;
-//	}
-	
-	
 	
 	/*
 	 * Modified version of example in http://developer.android.com/guide/topics/ui/actionbar.html#Tabs
+	 * Manages attaching and detaching of Tabs (MainScreenFragments instances)
 	 */
 	public static class TabListener<T extends Fragment> implements ActionBar.TabListener {
 	    private Fragment mFragment;
@@ -302,20 +266,21 @@ public class MainScreen extends Activity {
 	        // User selected the already selected tab. Usually do nothing.
 	    }
 	}
+	
 	@Override
 	protected void onResume() {
 		super.onResume();
 		Log.d("statemanagement", "MainScreen.onResume");
 	}
 	
-//	@Override
-//	protected void onStop() {
-//		super.onStop();
-//		executorService.shutdown();
-//	}
-	
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
-		
+		//do nothing here, preventing android from saving the state (this is done in onPause())
+	}
+	
+	@Override
+	protected void onStop() {
+		super.onStop();
+		executorService.shutdownNow();
 	}
 }

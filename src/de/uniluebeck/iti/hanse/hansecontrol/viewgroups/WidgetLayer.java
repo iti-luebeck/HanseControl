@@ -1,9 +1,10 @@
-package de.uniluebeck.iti.hanse.hansecontrol.views;
+package de.uniluebeck.iti.hanse.hansecontrol.viewgroups;
 
 import java.util.LinkedList;
 import java.util.List;
 
 import de.uniluebeck.iti.hanse.hansecontrol.R;
+import de.uniluebeck.iti.hanse.hansecontrol.views.MapWidget;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -15,6 +16,11 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
+/**
+ * This is the root ViewGroup for all currently active full-size widgets.
+ * 
+ * @author Stefan Hueske
+ */
 public class WidgetLayer extends RelativeLayout {
 	
 //	List<MapWidget> widgets = new LinkedList<MapWidget>();
