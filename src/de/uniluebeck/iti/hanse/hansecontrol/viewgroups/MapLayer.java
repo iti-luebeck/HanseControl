@@ -43,7 +43,7 @@ public class MapLayer extends SurfaceView implements SurfaceHolder.Callback{
 	
 //	GestureDetector gestureDetector;
 	
-	public static Bitmap testimage;
+//	public static Bitmap testimage;
 	private MapSurface mapSurface;
 	
 	GestureDetector gestureDetector;
@@ -76,7 +76,7 @@ public class MapLayer extends SurfaceView implements SurfaceHolder.Callback{
 	private void init() {
 		getHolder().addCallback(this);
 //		testimage = BitmapFactory.decodeResource(getResources(), R.drawable.test_tile);
-		testimage = BitmapManager.getInstance().getBitmap(getResources(), R.drawable.test_tile);
+//		testimage = BitmapManager.getInstance().getBitmap(getResources(), R.drawable.test_tile);
 		gestureDetector = new GestureDetector(getContext(), new SimpleOnGestureListener() {
 			@Override
 			public boolean onDown(MotionEvent e) {
@@ -198,7 +198,9 @@ public class MapLayer extends SurfaceView implements SurfaceHolder.Callback{
 
 	@Override
 	public void surfaceDestroyed(SurfaceHolder holder) {
-		testimage.recycle();
+		if (mapSurface.getImage() != null) {
+			mapSurface.getImage().recycle();
+		}
 	}
 	
 	@Override
@@ -230,6 +232,11 @@ public class MapLayer extends SurfaceView implements SurfaceHolder.Callback{
 	public void loadPrefs(String tabPrefix, final SharedPreferences prefs) {
 //		Log.d("errfind", "MapLayer.loadPreds() " + getWidth());
 		String id = tabPrefix + MAP_LAYER_PREFIX;
+		
+		if (MapManager.getInstance().getMaps().isEmpty()) {
+			//no maps found
+			return;
+		}
 		
 		Map map = null;
 		try {
@@ -276,8 +283,11 @@ class MapSurface {
 //	private float initViewPortY;
 	private float initViewPortY_relativeToMap; // (y+ly) / h
 	
+	private Paint textPaint;
+	
 	public MapSurface() {
-		
+		textPaint = new Paint();
+		textPaint.setTextSize(20);
 	}
 	
 	public synchronized void setMap(Map map) {
@@ -318,7 +328,9 @@ class MapSurface {
 	}
 	
 	public synchronized void draw(Canvas canvas) {
-		if (map == null) {
+		if (map == null || image == null) {
+			canvas.drawText("No Map was found in folder " + MapManager.getInstance().getMapsDir(),
+					50, 50, textPaint);
 			return;
 		}
 		if (image.isRecycled()) {

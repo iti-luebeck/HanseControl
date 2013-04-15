@@ -25,10 +25,14 @@ public class MapManager {
 		return instance;
 	}
 	
-	public MapManager() {
+	public String getMapsDir() {
 		File extStorage = Environment.getExternalStorageDirectory();
-		Log.d("mapmanager", extStorage.getAbsolutePath() + File.separator + MAPS_DIR);
-		File mapsDir = new File(extStorage.getAbsolutePath() + File.separator + MAPS_DIR);
+		return extStorage.getAbsolutePath() + File.separator + MAPS_DIR;
+	}
+	
+	public MapManager() {
+//		Log.d("mapmanager", extStorage.getAbsolutePath() + File.separator + MAPS_DIR);
+		File mapsDir = new File(getMapsDir());
 		if (!mapsDir.exists()) {
 			Log.e("MapManager", String.format("Maps folder '%s' was not found on external storage!", MAPS_DIR));
 			return;
