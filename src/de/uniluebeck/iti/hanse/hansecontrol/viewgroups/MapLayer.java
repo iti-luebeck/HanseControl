@@ -6,6 +6,8 @@ import java.util.concurrent.TimeUnit;
 import de.uniluebeck.iti.hanse.hansecontrol.BitmapManager;
 import de.uniluebeck.iti.hanse.hansecontrol.MainScreen;
 import de.uniluebeck.iti.hanse.hansecontrol.MainScreenFragment;
+import de.uniluebeck.iti.hanse.hansecontrol.MapManager;
+import de.uniluebeck.iti.hanse.hansecontrol.MapManager.Map;
 import de.uniluebeck.iti.hanse.hansecontrol.R;
 import android.app.FragmentManager;
 import android.content.Context;
@@ -42,7 +44,7 @@ public class MapLayer extends SurfaceView implements SurfaceHolder.Callback{
 //	GestureDetector gestureDetector;
 	
 	public static Bitmap testimage;
-	MapSurface mapSurface;
+	private MapSurface mapSurface;
 	
 	GestureDetector gestureDetector;
 	ScaleGestureDetector scaleGestureDetector;
@@ -53,6 +55,8 @@ public class MapLayer extends SurfaceView implements SurfaceHolder.Callback{
 //	private SharedPreferences mPrefs;
 //	private MainScreenFragment mainScreenFragment;
 //	Runnable loadMapSurfacePrefsRunnable;
+	
+	private boolean mapPositionRestoredFlag = true;
 	
 	public MapLayer(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
@@ -109,7 +113,8 @@ public class MapLayer extends SurfaceView implements SurfaceHolder.Callback{
 //		mapSurface.setHeight(500);
 		surfaceBackgroundPaint.setColor(Color.LTGRAY);
 		surfaceBackgroundPaint.setStrokeWidth(0);
-		mapSurface = new MapSurface(testimage, getWidth(), getHeight(), getResources());
+		mapSurface = new MapSurface();
+//		Log.d("errfind", "MapLayer.init()" + getWidth());
 	}
 
 	private void scheduleSurfaceDrawing() {
@@ -149,15 +154,18 @@ public class MapLayer extends SurfaceView implements SurfaceHolder.Callback{
 		
 	}
 
+	
+	
 	@Override
 	public void surfaceCreated(SurfaceHolder holder) {
 		// TODO Auto-generated method stub
 		
+//		Log.d("errfind", "MapLayer.surfaceCreated()" + getWidth());
+//		MapSurface mapSurface = new MapSurface(testimage);		
+		if (!mapPositionRestoredFlag) {
+			mapSurface.scaleToViewport(getWidth(), getHeight());
+		}
 		scheduleSurfaceDrawing();
-		
-//		MapSurface mapSurface = new MapSurface(testimage);
-		
-		
 		
 //		MainScreen.executorService.execute(loadMapSurfacePrefsRunnable);
 		
@@ -200,39 +208,65 @@ public class MapLayer extends SurfaceView implements SurfaceHolder.Callback{
 		return gestureDetector.onTouchEvent(event);
 	}
 	
+	public void setMap(Map map) {
+		mapSurface.setMap(map);
+		mapSurface.scaleToViewport(getWidth(), getHeight());
+		scheduleSurfaceDrawing();
+	}
+	
 	public void savePrefs(String tabPrefix, SharedPreferences.Editor ed) {
 		String id = tabPrefix + MAP_LAYER_PREFIX;
 		
 		ed.putFloat(id+"-mapSurface.x", mapSurface.getX());
 		ed.putFloat(id+"-mapSurface.y", mapSurface.getY());
 		ed.putFloat(id+"-mapSurface.zoom", mapSurface.getZoom());
+		if (mapSurface.getMap() != null) {
+			ed.putString(id + "-currentmap", mapSurface.getMap().getConfigPath());
+		}
 		
 		ed.commit();
 	}
 	
 	public void loadPrefs(String tabPrefix, final SharedPreferences prefs) {
-		
-		mapSurface.setImage(testimage);
-		
+//		Log.d("errfind", "MapLayer.loadPreds() " + getWidth());
 		String id = tabPrefix + MAP_LAYER_PREFIX;
+		
+		Map map = null;
+		try {
+			if (prefs.contains(id + "-currentmap")) {
+				map = MapManager.getInstance().getMapFromConfigPath(prefs.getString(id + "-currentmap", ""));
+			}
+		} catch (Exception e) {
+			Log.e("MapLayer", "Error while loading saved map");
+		}
+		if (map == null) {
+			map = MapManager.getInstance().getMaps().get(0);
+		}
+		mapSurface.setMap(map);
+		
 		mapSurface.setX(prefs.getFloat(id+"-mapSurface.x", Float.MIN_VALUE));
 		mapSurface.setY(prefs.getFloat(id+"-mapSurface.y", Float.MIN_VALUE));
 		mapSurface.setZoom(prefs.getFloat(id+"-mapSurface.zoom", Float.MIN_VALUE));
 		if (mapSurface.getX() == Float.MIN_VALUE 
-				|| mapSurface.getY() == Float.MIN_VALUE 
+				|| mapSurface.getY() == Float.MIN_VALUE
 				|| mapSurface.getZoom() == Float.MIN_VALUE) {
-			mapSurface.scaleToViewport(getWidth(), getHeight());
+			mapPositionRestoredFlag = false;
 		}
 //		scheduleSurfaceDrawing();
+	}
+	
+	public MapSurface getMapSurface() {
+		return mapSurface;
 	}
 }
 
 class MapSurface {
 	
-	Bitmap image;
+	private Map map;
+	private Bitmap image;
 	
 	private float x,y;
-	private float zoom;
+	private float zoom = 1;
 	
 	private float imgWidth, imgHeight;
 	private float imgRatio; //  width / height
@@ -242,21 +276,28 @@ class MapSurface {
 //	private float initViewPortY;
 	private float initViewPortY_relativeToMap; // (y+ly) / h
 	
-	private Resources res;
-	
-	public MapSurface(Bitmap image, float viewportWidth, float viewportHeight, Resources res) {
-		this.image = image;
-		this.res = res;
-		setImage(image);
-		scaleToViewport(viewportWidth, viewportHeight);
+	public MapSurface() {
+		
 	}
 	
-	public synchronized void setImage(Bitmap image) {
+	public synchronized void setMap(Map map) {
+		this.map = map;
+		if (map != null) {
+			loadImage();
+		}
+	}
+	
+	public Map getMap() {
+		return map;
+	}
+	
+	private void loadImage() {
+		image = BitmapManager.getInstance().getBitmap(map.getImagePath());
 		imgWidth = (float)image.getWidth();
 		imgHeight = (float)image.getHeight();
 		imgRatio = imgWidth / imgHeight;
 	}
-	
+		
 	public synchronized void scaleToViewport(float viewportWidth, float viewportHeight) {
 		if (viewportWidth / viewportHeight < imgRatio) {
 			zoom = viewportWidth / imgWidth;
@@ -277,9 +318,11 @@ class MapSurface {
 	}
 	
 	public synchronized void draw(Canvas canvas) {
-		//TODO change this
+		if (map == null) {
+			return;
+		}
 		if (image.isRecycled()) {
-			image = BitmapManager.getInstance().getBitmap(res, R.drawable.test_tile);
+			loadImage();
 		}
 		canvas.drawBitmap(image, null, new RectF(x, y, x + getWidth(), y + getHeight()), null);
 	}

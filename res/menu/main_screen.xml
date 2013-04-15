@@ -14,4 +14,22 @@
         android:showAsAction="always"/>
     <item android:id="@+id/resetsettings" android:title="@string/resetsettings"
         android:showAsAction="never"/>
+    
+    <item
+    android:id="@+id/mapmenu"
+    android:icon="@drawable/mapicon"
+    android:showAsAction="always"
+    android:title="Choose map">
+    <menu>
+<!--         <item -->
+<!--             android:id="@+id/menuSortNewest" -->
+<!--             android:title="Sort by newest"  -->
+<!--             android:checkable="true"/> -->
+<!--         <item -->
+<!--             android:id="@+id/menuSortRating" -->
+<!--             android:title="Sort by rating"  -->
+<!--             android:checkable="true"/> -->
+    </menu>
+</item>
+    
 </menu>

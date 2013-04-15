@@ -54,16 +54,18 @@ public class MainScreen extends Activity {
 	public static ScheduledExecutorService executorService;
 	//TODO make sure to shutdown executorService when the app stops
 	
+	public MainScreen() {
+		//start executor service
+		if (executorService == null || executorService.isShutdown()) {
+			executorService = Executors.newScheduledThreadPool(2);
+		}
+	}
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		//set predefined XML layout
 		setContentView(R.layout.main_screen);
-		
-		//start executor service
-		if (executorService == null || executorService.isShutdown()) {
-			executorService = Executors.newScheduledThreadPool(2);
-		}
 		
 		//load shared preferences
 		mPrefs = getSharedPreferences("pref", 0);
@@ -73,6 +75,8 @@ public class MainScreen extends Activity {
 		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 		actionBar.setDisplayShowTitleEnabled(true);
 		
+		//TODO remove this
+		MapManager.getInstance();
 		
 		//restore tabs
 		String openTabs = mPrefs.getString("global_opentabs", "");
@@ -270,6 +274,10 @@ public class MainScreen extends Activity {
 	@Override
 	protected void onResume() {
 		super.onResume();
+		//start executor service
+		if (executorService == null || executorService.isShutdown()) {
+			executorService = Executors.newScheduledThreadPool(2);
+		}
 		Log.d("statemanagement", "MainScreen.onResume");
 	}
 	

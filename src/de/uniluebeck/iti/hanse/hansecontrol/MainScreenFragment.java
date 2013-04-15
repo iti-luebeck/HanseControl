@@ -1,5 +1,8 @@
 package de.uniluebeck.iti.hanse.hansecontrol;
 
+import java.util.HashMap;
+
+import de.uniluebeck.iti.hanse.hansecontrol.MapManager.Map;
 import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.DragLayer;
 import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.MapLayer;
 import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.WidgetLayer;
@@ -14,6 +17,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.SubMenu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
@@ -58,6 +62,9 @@ public class MainScreenFragment extends Fragment {
 	
 	//the menu of the action bar, used in setWidgetBarVisibility() to change text and icons
 	private Menu actionBarMenu;
+	
+	//map of menu item to MapManager.Map
+	HashMap<MenuItem, Map> maps = new HashMap<MenuItem, Map>();
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -183,15 +190,18 @@ public class MainScreenFragment extends Fragment {
 		}
 	    
         Log.d("statemanagement", "MainScreenFragment" + tabID + ".onCreateOptionsMenu");
-//        setWidgetBarVisibility(mPrefs.getBoolean(TAB_PREFIX + tabID + "_widgetbarisvisible", true));
         
-//        try {
-//			Thread.sleep(4000);
-//		} catch (InterruptedException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//		setWidgetBarVisibility(mPrefs.getBoolean(TAB_PREFIX + tabID + "_widgetbarisvisible", true));
+        //create maps menu        
+        MenuItem mapMenu = actionBarMenu.findItem(R.id.mapmenu);
+        
+        for (Map map : MapManager.getInstance().getMaps()) {
+        	MenuItem mapItem = mapMenu.getSubMenu().add(map.getName()).setCheckable(true);
+        	if (map.getConfigPath().equals(mPrefs.getString(TAB_PREFIX + tabID
+        			+ MapLayer.MAP_LAYER_PREFIX + "-currentmap", ""))) {
+        		 mapItem.setChecked(true);
+        	}
+        	maps.put(mapItem, map);
+        }
 	}
 	
 //	public void externalOnViewCreated
@@ -209,6 +219,17 @@ public class MainScreenFragment extends Fragment {
 			case R.id.tabClose:
 				dontSaveStateFlag = true;
 				return false;
+		}
+		
+		Map map = maps.get(item);
+		if (map != null) {
+			for (MenuItem i : maps.keySet()) {
+				i.setChecked(false);
+			}
+			item.setChecked(true);
+			MapManager.getInstance().recycleAllMapImages();
+			((MapLayer) getView().findViewById(R.id.mapLayer1)).setMap(map);
+			return true;
 		}
 		return false;
 	}
