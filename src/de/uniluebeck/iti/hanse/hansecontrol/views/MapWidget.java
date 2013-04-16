@@ -89,16 +89,18 @@ public class MapWidget extends BasicView {
 	//TODO find better place for this
 	Bitmap bitmap_closeButton, bitmap_resizer;
 	
-	public MapWidget(int defaultWidth, int defaultHeight, int widgetID, Context context) {
+	public MapWidget(int defaultWidth, int defaultHeight, int widgetID, Context context, DragLayer dragLayer) {
 		super(context);
 		this.widgetID = widgetID;
 		this.defaultWidth = defaultWidth;
 		this.defaultHeight = defaultHeight;
+		setId(widgetID);
+		setDragLayer(dragLayer);
 		init();
 	}
 	
 	private void init() {
-		if (DEBUG_MODE) {
+		if (DEBUG_MODE && !(this instanceof RosMapWidget)) {
 			View view = new View(getContext()) {
 				@Override
 				protected void onDraw(Canvas canvas) {
@@ -179,7 +181,7 @@ public class MapWidget extends BasicView {
 		}
 		
 		//single tap on "empty space" in MapWidget
-		if (event.getActionMasked() == MotionEvent.ACTION_UP) {
+		if (getMode() == FULLSIZE_MODE && event.getActionMasked() == MotionEvent.ACTION_UP) {
 			//play animation to make closebutton and cornerresizers visible
 			Log.d("animator", "animation started");
 			
@@ -429,13 +431,15 @@ public class MapWidget extends BasicView {
 				break;
 			case FULLSIZE_MODE:
 				//TODO get size from upper derivation
-				RelativeLayout.LayoutParams params2 = (RelativeLayout.LayoutParams) getLayoutParams();
-//				params2.width = 200;
-//				params2.height = 200;
-				params2.width = defaultWidth;
-				params2.height = defaultHeight;
-				
-				setLayoutParams(params2);
+				if (getLayoutParams() instanceof RelativeLayout.LayoutParams) {
+					RelativeLayout.LayoutParams params2 = (RelativeLayout.LayoutParams) getLayoutParams();
+	//				params2.width = 200;
+	//				params2.height = 200;
+					params2.width = defaultWidth;
+					params2.height = defaultHeight;
+					
+					setLayoutParams(params2);
+				}
 				break;
 		}
 	}

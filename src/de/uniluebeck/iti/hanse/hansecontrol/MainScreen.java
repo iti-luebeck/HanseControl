@@ -6,6 +6,14 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
+import org.ros.address.InetAddressFactory;
+import org.ros.android.RosActivity;
+import org.ros.namespace.GraphName;
+import org.ros.node.AbstractNodeMain;
+import org.ros.node.ConnectedNode;
+import org.ros.node.NodeConfiguration;
+import org.ros.node.NodeMainExecutor;
+
 import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.DragLayer;
 import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.WidgetLayer;
 import de.uniluebeck.iti.hanse.hansecontrol.views.MapWidget;
@@ -42,7 +50,7 @@ import android.app.ActionBar;
  * 
  * @author Stefan Hueske
  */
-public class MainScreen extends Activity {
+public class MainScreen extends RosActivity {
 	
 	//persistent app settings (eg. current Tabs, open widgets, map position and zoom, ...)
 	private SharedPreferences mPrefs;
@@ -54,7 +62,12 @@ public class MainScreen extends Activity {
 	public static ScheduledExecutorService executorService;
 	//TODO make sure to shutdown executorService when the app stops
 	
+	Node mainNode = new Node();
+	ConnectedNode node;
+	List<NodeConnectedListener> nodeConnectedListeners = new LinkedList<NodeConnectedListener>();
+	
 	public MainScreen() {
+		super("HanseControl", "HanseControl");
 		//start executor service
 		if (executorService == null || executorService.isShutdown()) {
 			executorService = Executors.newScheduledThreadPool(2);
@@ -291,4 +304,59 @@ public class MainScreen extends Activity {
 		super.onStop();
 		executorService.shutdownNow();
 	}
+
+	@Override
+	protected void init(NodeMainExecutor nodeMainExecutor) {
+		Log.d("ros", "MainScreen.init(): executing node");
+		NodeConfiguration nodeConfiguration = NodeConfiguration
+				.newPublic(InetAddressFactory.newNonLoopback().getHostAddress());
+		nodeConfiguration.setMasterUri(getMasterUri());
+		nodeMainExecutor.execute(mainNode, nodeConfiguration);
+	}
+	
+	private class Node extends AbstractNodeMain {
+
+		@Override
+		public GraphName getDefaultNodeName() {
+			return GraphName.of("hanse_control");
+		}
+		
+		@Override
+		public void onStart(ConnectedNode node1) {
+			node = node1;
+			Log.d("ros", "MainScreen.Node.onStart(): node is connected!");
+			executorService.execute(new Runnable() {
+				
+				@Override
+				public void run() {
+					synchronized (nodeConnectedListeners) {
+						for (NodeConnectedListener listener : nodeConnectedListeners) {
+							listener.onNodeConnected(node);
+						}
+					}
+				}
+			});
+			
+		}
+	}
+	
+	public static interface NodeConnectedListener {
+		public void onNodeConnected(ConnectedNode node);
+	}
+	
+	public void addNodeConnectedListener(final NodeConnectedListener listener) {
+		if (node != null) {
+			executorService.execute(new Runnable() {
+				@Override
+				public void run() {
+					listener.onNodeConnected(node);
+				}
+			});
+		} else {
+			synchronized (nodeConnectedListeners) {
+				nodeConnectedListeners.add(listener);				
+			}
+		}
+	}
+	
 }

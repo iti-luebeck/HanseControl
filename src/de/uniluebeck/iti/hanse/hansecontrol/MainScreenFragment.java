@@ -2,6 +2,8 @@ package de.uniluebeck.iti.hanse.hansecontrol;
 
 import java.util.HashMap;
 
+import org.ros.node.ConnectedNode;
+
 import de.uniluebeck.iti.hanse.hansecontrol.MapManager.Map;
 import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.DragLayer;
 import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.MapLayer;
@@ -97,6 +99,10 @@ public class MainScreenFragment extends Fragment {
 		((MapLayer)getView().findViewById(R.id.mapLayer1)).loadPrefs(TAB_PREFIX + tabID, mPrefs);
 	}
 	
+	public void setNode(ConnectedNode node) {
+		widgetRegistry.setNode(node);
+	}
+	
 	@Override
 	public void onViewCreated(View view, Bundle savedInstanceState) {
 		Log.d("statemanagement", "MainScreenFragment.onViewCreated() called.");
@@ -107,7 +113,14 @@ public class MainScreenFragment extends Fragment {
 		final HorizontalScrollView widgetbarLayoutScroll = (HorizontalScrollView) view.findViewById(R.id.horizontalScrollView1);
 		final DragLayer dragLayer = (DragLayer) view.findViewById(R.id.dragLayer1);
 		
-		widgetRegistry = new MapWidgetRegistry(view.getContext(), dragLayer);
+		widgetRegistry = new MapWidgetRegistry(view.getContext(), dragLayer, mPrefs);
+		((MainScreen)getActivity()).addNodeConnectedListener(new MainScreen.NodeConnectedListener() {
+			
+			@Override
+			public void onNodeConnected(ConnectedNode node) {
+				widgetRegistry.setNode(node);				
+			}
+		});
 		
 		//add widgets
 		for (int i = 0; i < widgetRegistry.getAllWidgets().size(); i++) {

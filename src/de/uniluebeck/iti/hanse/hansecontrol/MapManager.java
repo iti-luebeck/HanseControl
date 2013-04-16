@@ -14,7 +14,7 @@ import android.util.Log;
 
 public class MapManager {
 	
-	private static final String MAPS_DIR = "HanseControl_Maps";
+	private static final String MAPS_DIR = "HanseControl_data";
 	private static final String MAPCONFIG_EXTENSION = ".hctrlmap";
 	
 	List<MapManager.Map> maps = new LinkedList<MapManager.Map>();

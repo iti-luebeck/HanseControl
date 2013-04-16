@@ -114,15 +114,15 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1"
-     inkscape:cx="-91.488731"
-     inkscape:cy="820.04973"
+     inkscape:cx="528.3583"
+     inkscape:cy="909.60041"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
-     inkscape:window-width="1680"
-     inkscape:window-height="1001"
-     inkscape:window-x="1920"
-     inkscape:window-y="25"
+     inkscape:window-width="1920"
+     inkscape:window-height="1056"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
      inkscape:window-maximized="1" />
   <metadata
      id="metadata7">
@@ -196,6 +196,81 @@
          id="path3865"
          inkscape:connector-curvature="0"
          transform="matrix(1.7677587,0,0,1.7677587,-99.894,-31.65788)" />
+    </g>
+    <flowRoot
+       xml:space="preserve"
+       id="flowRoot3789"
+       style="fill:black;stroke:none;stroke-opacity:1;stroke-width:1px;stroke-linejoin:miter;stroke-linecap:butt;fill-opacity:1;font-family:Sans;font-style:normal;font-weight:normal;font-size:40px;line-height:125%;letter-spacing:0px;word-spacing:0px"><flowRegion
+         id="flowRegion3791"><rect
+           id="rect3793"
+           width="141.5"
+           height="46.5"
+           x="264"
+           y="253.36218" /></flowRegion><flowPara
+         id="flowPara3795"></flowPara></flowRoot>    <g
+       id="g3813"
+       transform="translate(126.1539,36.338095)"
+       inkscape:export-filename="/home/stefan/Development/android_workspace/HanseControl/res/drawable-xxhdpi/rostextwidget.png"
+       inkscape:export-xdpi="143.2"
+       inkscape:export-ydpi="143.2">
+      <rect
+         style="fill:#000000;fill-opacity:0.63265303;stroke:#000000;stroke-width:5.62900019;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+         id="rect3811"
+         width="151.5"
+         height="151.5"
+         x="382"
+         y="94.862183"
+         rx="27.779196"
+         ry="27.779196" />
+      <rect
+         ry="27.779196"
+         rx="27.779196"
+         y="94.862183"
+         x="382"
+         height="151.5"
+         width="151.5"
+         id="rect3015"
+         style="fill:none;stroke:#000000;stroke-width:5.62900019;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
+      <text
+         sodipodi:linespacing="125%"
+         id="text3785"
+         y="132.86218"
+         x="410.5"
+         style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#b3b3b3;fill-opacity:1;stroke:none;font-family:Sans"
+         xml:space="preserve"><tspan
+           y="132.86218"
+           x="410.5"
+           id="tspan3787"
+           sodipodi:role="line">topic</tspan></text>
+      <text
+         sodipodi:linespacing="125%"
+         id="text3797"
+         y="170.04039"
+         x="398.30716"
+         style="font-size:26.5604763px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#b3b3b3;fill-opacity:1;stroke:none;font-family:Sans"
+         xml:space="preserve"><tspan
+           y="170.04039"
+           x="398.30716"
+           id="tspan3799"
+           sodipodi:role="line">abcdef</tspan><tspan
+           id="tspan3801"
+           y="203.24098"
+           x="398.30716"
+           sodipodi:role="line">abcdef</tspan><tspan
+           id="tspan3803"
+           y="236.44157"
+           x="398.30716"
+           sodipodi:role="line">abcdef</tspan></text>
+      <path
+         inkscape:connector-curvature="0"
+         id="path3805"
+         d="m 381.83766,142.66931 151.85118,0"
+         style="fill:none;stroke:#000000;stroke-width:3.5999999;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
+      <path
+         inkscape:connector-curvature="0"
+         id="path3807"
+         d="m 517.57704,154.30624 0,57.45248"
+         style="fill:none;stroke:#000000;stroke-width:10.64709854;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:0.65306121;stroke-dasharray:none" />
     </g>
   </g>
 </svg>

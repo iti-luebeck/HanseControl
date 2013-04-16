@@ -21,7 +21,7 @@ import android.widget.RelativeLayout;
  * @author Stefan Hueske
  */
 public class BasicView extends RelativeLayout {
-	public final boolean DEBUG_MODE = true;
+	public boolean DEBUG_MODE = true;
 	
 	Paint paint = new Paint();
 	List<PointF> points = new LinkedList<PointF>();
@@ -46,7 +46,7 @@ public class BasicView extends RelativeLayout {
 		paint.setColor(Color.RED);
 		paint.setStrokeWidth(5);
 		paint.setStyle(Paint.Style.STROKE);
-		if (DEBUG_MODE) {
+		if (DEBUG_MODE && !(this instanceof RosMapWidget)) {
 			View view = new View(getContext()) {
 				@Override
 				protected void onDraw(Canvas canvas) {
