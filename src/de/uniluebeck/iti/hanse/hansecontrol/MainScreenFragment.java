@@ -9,6 +9,8 @@ import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.DragLayer;
 import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.MapLayer;
 import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.WidgetLayer;
 import de.uniluebeck.iti.hanse.hansecontrol.views.MapWidget;
+import de.uniluebeck.iti.hanse.hansecontrol.views.RosMapWidget;
+import de.uniluebeck.iti.hanse.hansecontrol.views.roswidgets.RosTextWidget;
 import android.app.ActionBar;
 import android.app.Fragment;
 import android.content.SharedPreferences;
@@ -24,6 +26,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.webkit.WebView.FindListener;
+import android.widget.Button;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -126,7 +129,14 @@ public class MainScreenFragment extends Fragment {
 		for (int i = 0; i < widgetRegistry.getAllWidgets().size(); i++) {
 			MapWidget w = widgetRegistry.getAllWidgets().get(i);
 //			Log.d("ttt1load", TAB_PREFIX + tabID + MapWidget.WIDGET_PREFIX+i+"-currentMode");
-			switch(mPrefs.getInt(TAB_PREFIX + tabID + MapWidget.WIDGET_PREFIX+i+"-currentMode", MapWidget.ICON_MODE)) {
+			int mode = -1;
+			if (w instanceof RosMapWidget) {
+				RosMapWidget rw = (RosMapWidget) w;
+				mode = mPrefs.getInt(TAB_PREFIX + tabID + MapWidget.WIDGET_PREFIX+rw.getRosTopic()+rw.getWidgetType().name()+"-currentMode", MapWidget.ICON_MODE);
+			} else {
+				mode = mPrefs.getInt(TAB_PREFIX + tabID + MapWidget.WIDGET_PREFIX+i+"-currentMode", MapWidget.ICON_MODE);
+			}
+			switch(mode) {
 				case MapWidget.ICON_MODE:
 					widgetbarLayout.addView(w);
 					break;
@@ -137,6 +147,18 @@ public class MainScreenFragment extends Fragment {
 			//loading of layout params must take place after adding widget to a layout
 			w.loadPrefs(TAB_PREFIX + tabID, mPrefs);			
 		}
+		
+		//setup add widget button
+		Button addWidgetButton = new Button(view.getContext());
+		addWidgetButton.setText("+");
+		widgetbarLayout.addView(addWidgetButton);
+		addWidgetButton.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				opendialog
+			}
+		});
 		
 		//init widget bar params
 		widgetbar_isvisible_true_params = new RelativeLayout.LayoutParams(widgetbarLayoutScroll.getLayoutParams());

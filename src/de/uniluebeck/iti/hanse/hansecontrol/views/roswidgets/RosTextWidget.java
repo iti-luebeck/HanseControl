@@ -22,6 +22,7 @@ import android.widget.RelativeLayout.LayoutParams;
 
 import de.uniluebeck.iti.hanse.hansecontrol.BitmapManager;
 import de.uniluebeck.iti.hanse.hansecontrol.R;
+import de.uniluebeck.iti.hanse.hansecontrol.MapWidgetRegistry.WidgetType;
 import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.DragLayer;
 import de.uniluebeck.iti.hanse.hansecontrol.views.RosMapWidget;
 
@@ -175,4 +176,13 @@ public class RosTextWidget extends RosMapWidget implements MessageListener<std_m
 		Log.d("ros", "RosTextWidget" + getWidgetID() + " received: " + msg.getData());
 	}
 	
+	@Override
+	public WidgetType getWidgetType() {
+		return WidgetType.ROS_TEXT_WIDGET;
+	}
+	
+	@Override
+	public String getRosTopic() {
+		return rosTopic;
+	}
 }

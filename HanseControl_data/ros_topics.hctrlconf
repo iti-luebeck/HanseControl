@@ -1,0 +1,6 @@
+#default widgets, this list of widgets and their topics is shown at first startup or after a "reset all" action.
+#Topic1 = WIDGET_TYPE1, WIDGET_TYPE2, ...
+#Topic2 = WIDGET_TYPE2, WIDGET_TYPE3, ...
+
+chatter = ROS_TEXT_WIDGET
+/hanse/langer/topic/name = ROS_TEXT_WIDGET

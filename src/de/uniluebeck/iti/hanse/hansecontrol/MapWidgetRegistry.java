@@ -1,8 +1,16 @@
 package de.uniluebeck.iti.hanse.hansecontrol;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Properties;
+import java.util.Set;
 
 import org.ros.node.ConnectedNode;
 
@@ -15,6 +23,7 @@ import de.uniluebeck.iti.hanse.hansecontrol.views.roswidgets.RosTextWidget;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.os.Environment;
 import android.widget.LinearLayout;
 
 /**
@@ -28,15 +37,53 @@ public class MapWidgetRegistry {
 	
 	SharedPreferences mPrefs;
 	
+	
+	public final String ROS_TOPICS_CONFIG_FILE = "ros_topics.hctrlconf";
+	
 	public MapWidgetRegistry(Context context, DragLayer dragLayer, SharedPreferences mPrefs) {
 		this.context = context;
 		this.mPrefs = mPrefs;
 		
-		RosTextWidget textWidget = new RosTextWidget(0, context, "chatter", dragLayer);
-		allWidgets.add(textWidget);
+			
+		//read properties from local SharedPrefernces file
+		HashMap<String, Set<String>> widgets = readWidgetsFromSharedPrefs(mPrefs);
+		if (widgets.keySet().isEmpty()) {		
+			//read properties from default config file
+			File preconf = new File(Environment.getExternalStorageDirectory()
+					.getAbsolutePath() + File.separator + MapManager.MAPS_DIR + File.separator + ROS_TOPICS_CONFIG_FILE);
+			if (preconf.exists()) {
+				Properties prop = new Properties();
+				try {
+					prop.load(new BufferedInputStream(new FileInputStream(preconf)));
+				} catch (FileNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				widgets = readWidgetsFromDefaultWidgetsFile(prop);
+			}
+		}
 		
-		textWidget = new RosTextWidget(1, context, "/hanse/langer/topic/name", dragLayer);
-		allWidgets.add(textWidget);
+		//create widgets
+		
+		int id = 0;
+		
+		for (String topic : widgets.keySet()) {
+			for (String widgetType : widgets.get(topic)) {
+				if (widgetType.equals(WidgetType.ROS_TEXT_WIDGET.name())) {
+					allWidgets.add(new RosTextWidget(id++, context, topic, dragLayer));
+				}
+			}
+		}
+		
+		
+//		RosTextWidget textWidget = new RosTextWidget(0, context, "chatter", dragLayer);
+//		allWidgets.add(textWidget);
+//		
+//		textWidget = new RosTextWidget(1, context, "/hanse/langer/topic/name", dragLayer);
+//		allWidgets.add(textWidget);
 		
 		//create colored test widgets
 		int hueSteps = 30;
@@ -45,20 +92,87 @@ public class MapWidgetRegistry {
 		
 		int minSize = 100;
 		int maxSize = 250;
-		for (int i = 2; i < 20; i++) {
+		for (int i = 1; i < 20; i++) {
 			MapWidget widget = new MapWidget(
 					(int)(Math.random() * (maxSize - minSize) + minSize), 
 					(int)(Math.random() * (maxSize - minSize) + minSize), 
-					i, context, dragLayer);
+					id++, context, dragLayer);
 			widget.getDebugPaint().setColor(color);
-			//assign unique widget ID
-			widget.setId(i); //TODO widget Registry class?
 						
 			allWidgets.add(widget);
 			
 			hsv[0] = (hsv[0] + hueSteps) % 360;
 			color = Color.HSVToColor(hsv);
 		}
+	}
+	
+	private HashMap<String, Set<String>> readWidgetsFromSharedPrefs(SharedPreferences pref) {
+		HashMap<String, Set<String>> res = new HashMap<String, Set<String>>();
+		
+		String topicsStr = pref.getString("rosTopics", "");
+		if (topicsStr.isEmpty()) {
+			return res;
+		}
+		
+		Set<String> topics = createStringSetFromCommaString(topicsStr);
+		for (String topic : topics) {
+			Set<String> widgets = createStringSetFromCommaString(pref.getString("rosTopics_" + topic, ""));
+			res.put(topic, widgets);
+		}
+		
+		return res;
+	}
+	
+	public void savePrefs(SharedPreferences.Editor ed) {
+		//Topic1 = WIDGET_TYPE1, WIDGET_TYPE2, ...
+		//Topic2 = WIDGET_TYPE2, WIDGET_TYPE3, ...
+		HashMap<String, Set<String>> widgets = new HashMap<String, Set<String>>();
+		for (MapWidget w : allWidgets) {
+			if (w instanceof RosMapWidget) {
+				String topic = ((RosMapWidget)w).getRosTopic();
+				Set<String> widgetTypes = widgets.get(topic);
+				if (widgetTypes == null) {
+					widgetTypes = new HashSet<String>();
+					widgets.put(topic, widgetTypes);
+				}
+				widgetTypes.add(((RosMapWidget)w).getWidgetType().name());				
+			}
+		}
+		
+		ed.putString("rosTopics", createCommaStringFromStringSet(widgets.keySet()));
+		for (String topic : widgets.keySet()) {
+			Set<String> widgetSet = widgets.get(topic);
+			ed.putString("rosTopics_" + topic, createCommaStringFromStringSet(widgetSet));
+ 		}
+	}
+	
+	private String createCommaStringFromStringSet(Set<String> stringSet) {
+		String res = "";
+		for (String t : stringSet) {
+			if (!res.isEmpty()) {
+				res += ",";
+			}
+			res += t;
+		}
+		return res;
+	}
+	
+	private Set<String> createStringSetFromCommaString(String stringSet) {
+		Set<String> res = new HashSet<String>();
+		String[] strings = stringSet.split(",");
+		for (String t : strings) {
+			res.add(t.trim());
+		}
+		return res;
+	}
+	
+	private HashMap<String, Set<String>> readWidgetsFromDefaultWidgetsFile(Properties prop) {
+		HashMap<String, Set<String>> res = new HashMap<String, Set<String>>();
+		for (Object o : prop.keySet()) {
+			String s = (String) o;
+			res.put(s, createStringSetFromCommaString(prop.getProperty(s)));
+		}
+		return res;
 	}
 	
 	public List<MapWidget> getAllWidgets() {
@@ -71,6 +185,10 @@ public class MapWidgetRegistry {
 				((RosMapWidget)w).setNode(node);
 			}
 		}
+	}
+	
+	public static enum WidgetType {
+		ROS_TEXT_WIDGET
 	}
 	
 }

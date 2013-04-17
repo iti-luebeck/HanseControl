@@ -3,6 +3,7 @@ package de.uniluebeck.iti.hanse.hansecontrol.views;
 import org.ros.node.ConnectedNode;
 
 import de.uniluebeck.iti.hanse.hansecontrol.HanseControlNode;
+import de.uniluebeck.iti.hanse.hansecontrol.MapWidgetRegistry.WidgetType;
 import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.DragLayer;
 import android.content.Context;
 import android.util.Log;
@@ -41,5 +42,8 @@ public abstract class RosMapWidget extends MapWidget {
 	
 	public abstract void unsubscribe(ConnectedNode node);
 	
-//	public abstract String getWidgetType();
+	public abstract WidgetType getWidgetType();
+	
+	public abstract String getRosTopic();
+	
 }

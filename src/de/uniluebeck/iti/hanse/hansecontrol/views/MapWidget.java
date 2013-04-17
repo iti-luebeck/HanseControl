@@ -446,7 +446,14 @@ public class MapWidget extends BasicView {
 	
 	
 	public void savePrefs(String tabPrefix, SharedPreferences.Editor ed) {
-		String id = tabPrefix + WIDGET_PREFIX + widgetID;
+		String id = null;
+		if (this instanceof RosMapWidget) {
+			RosMapWidget rw = (RosMapWidget) this;
+			id = tabPrefix + WIDGET_PREFIX + rw.getRosTopic() + rw.getWidgetType().name();
+		} else {
+			id = tabPrefix + WIDGET_PREFIX + widgetID;
+		}
+		
 		ed.putInt(id+"-currentMode", currentMode);
 //		Log.d("ttt1save", id+"-currentMode");
 		if (getMode() == FULLSIZE_MODE) {
@@ -459,7 +466,14 @@ public class MapWidget extends BasicView {
 	}
 	
 	public void loadPrefs(String tabPrefix, SharedPreferences prefs) {
-		String id = tabPrefix + WIDGET_PREFIX + widgetID;
+		String id = null;
+		if (this instanceof RosMapWidget) {
+			RosMapWidget rw = (RosMapWidget) this;
+			id = tabPrefix + WIDGET_PREFIX + rw.getRosTopic() + rw.getWidgetType().name();
+		} else {
+			id = tabPrefix + WIDGET_PREFIX + widgetID;
+		}
+		
 		setMode(prefs.getInt(id+"-currentMode", ICON_MODE));
 		if (getMode() == FULLSIZE_MODE) {
 			RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) getLayoutParams();
