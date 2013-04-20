@@ -24,6 +24,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Environment;
+import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 
 /**
@@ -39,11 +40,15 @@ public class MapWidgetRegistry {
 	
 	
 	public final String ROS_TOPICS_CONFIG_FILE = "ros_topics.hctrlconf";
+	private int currentIDforWidget = 0;
+	private DragLayer dragLayer;
+	
+	private ConnectedNode connectedNode;
 	
 	public MapWidgetRegistry(Context context, DragLayer dragLayer, SharedPreferences mPrefs) {
 		this.context = context;
 		this.mPrefs = mPrefs;
-		
+		this.dragLayer = dragLayer;
 			
 		//read properties from local SharedPrefernces file
 		HashMap<String, Set<String>> widgets = readWidgetsFromSharedPrefs(mPrefs);
@@ -68,13 +73,9 @@ public class MapWidgetRegistry {
 		
 		//create widgets
 		
-		int id = 0;
-		
 		for (String topic : widgets.keySet()) {
 			for (String widgetType : widgets.get(topic)) {
-				if (widgetType.equals(WidgetType.ROS_TEXT_WIDGET.name())) {
-					allWidgets.add(new RosTextWidget(id++, context, topic, dragLayer));
-				}
+				createWidget(WidgetType.valueOf(widgetType), topic);
 			}
 		}
 		
@@ -96,7 +97,7 @@ public class MapWidgetRegistry {
 			MapWidget widget = new MapWidget(
 					(int)(Math.random() * (maxSize - minSize) + minSize), 
 					(int)(Math.random() * (maxSize - minSize) + minSize), 
-					id++, context, dragLayer);
+					currentIDforWidget++, context, dragLayer);
 			widget.getDebugPaint().setColor(color);
 						
 			allWidgets.add(widget);
@@ -106,6 +107,16 @@ public class MapWidgetRegistry {
 		}
 	}
 	
+	public RosMapWidget createWidget(WidgetType widgetType, String topic) {
+		RosMapWidget widget = null;
+		if (widgetType == WidgetType.ROS_TEXT_WIDGET) {
+			widget = new RosTextWidget(currentIDforWidget++, context, topic, dragLayer);
+			allWidgets.add(widget);
+			widget.setNode(connectedNode);
+		}
+		return widget;
+	}
+		
 	private HashMap<String, Set<String>> readWidgetsFromSharedPrefs(SharedPreferences pref) {
 		HashMap<String, Set<String>> res = new HashMap<String, Set<String>>();
 		
@@ -180,6 +191,7 @@ public class MapWidgetRegistry {
 	}
 	
 	public void setNode(ConnectedNode node) {
+		this.connectedNode = node;
 		for (MapWidget w : allWidgets) {
 			if (w instanceof RosMapWidget) {
 				((RosMapWidget)w).setNode(node);

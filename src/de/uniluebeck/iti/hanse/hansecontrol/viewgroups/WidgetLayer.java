@@ -65,9 +65,9 @@ public class WidgetLayer extends RelativeLayout {
 	public void removeWidget(MapWidget widget) {
 		removeView(widget);
 		LinearLayout widgetlist = (LinearLayout)((DragLayer) getParent()).findViewById(R.id.widgetLayout);
-		int insertIndex = Math.min(widgetlist.getChildCount(),widget.getId());
+//		int insertIndex = Math.min(widgetlist.getChildCount(),widget.getId());
 //		insertIndex = Math.max(0, insertIndex);
-		widgetlist.addView(widget, insertIndex);
+		widgetlist.addView(widget, 0);
 		widget.setMode(MapWidget.ICON_MODE);
 	}
 	

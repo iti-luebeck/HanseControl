@@ -5,6 +5,7 @@ import java.util.HashMap;
 import org.ros.node.ConnectedNode;
 
 import de.uniluebeck.iti.hanse.hansecontrol.MapManager.Map;
+import de.uniluebeck.iti.hanse.hansecontrol.MapWidgetRegistry.WidgetType;
 import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.DragLayer;
 import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.MapLayer;
 import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.WidgetLayer;
@@ -12,11 +13,17 @@ import de.uniluebeck.iti.hanse.hansecontrol.views.MapWidget;
 import de.uniluebeck.iti.hanse.hansecontrol.views.RosMapWidget;
 import de.uniluebeck.iti.hanse.hansecontrol.views.roswidgets.RosTextWidget;
 import android.app.ActionBar;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.DialogFragment;
 import android.app.Fragment;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -26,10 +33,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.webkit.WebView.FindListener;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.Spinner;
+import android.widget.TextView;
 
 /**
  * This class represents a tab in the main activity (MainScreen)
@@ -151,12 +161,32 @@ public class MainScreenFragment extends Fragment {
 		//setup add widget button
 		Button addWidgetButton = new Button(view.getContext());
 		addWidgetButton.setText("+");
+		addWidgetButton.setTextSize(30);
 		widgetbarLayout.addView(addWidgetButton);
+		
+		float pixSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 85, getResources().getDisplayMetrics());
+		float pixMargin = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 5, getResources().getDisplayMetrics());
+		LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) addWidgetButton.getLayoutParams();
+		params.width = (int) pixSize / 2;
+		params.height = (int) pixSize;
+		params.setMargins((int)pixMargin, 0, (int)pixMargin, (int)pixMargin);
+		addWidgetButton.setLayoutParams(params);
+		
 		addWidgetButton.setOnClickListener(new View.OnClickListener() {
 			
 			@Override
 			public void onClick(View v) {
-				opendialog
+				new AddWidgetDialog(){
+					
+					@Override
+					public void onAdd(WidgetType widgetType, String topic) {
+						Log.d("addwidget", widgetType.name() + ": " + topic);
+						RosMapWidget widget = widgetRegistry.createWidget(widgetType, topic);
+						widgetbarLayout.addView(widget, 0);
+						widget.setMode(MapWidget.ICON_MODE);
+//						widgetbarLayout.invalidate();
+					}			
+				}.show(getFragmentManager(), "Add Widget");
 			}
 		});
 		
@@ -282,6 +312,7 @@ public class MainScreenFragment extends Fragment {
 		for (MapWidget w : widgetRegistry.getAllWidgets()) {
 			w.savePrefs(TAB_PREFIX + tabID, ed);
 		}
+		widgetRegistry.savePrefs(ed);
 		ed.putBoolean(TAB_PREFIX + tabID + "_widgetbarisvisible", widgetbar_isvisible);
 		((MapLayer)getView().findViewById(R.id.mapLayer1)).savePrefs(TAB_PREFIX + tabID, ed);
 		ed.commit();
@@ -317,5 +348,69 @@ public class MainScreenFragment extends Fragment {
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
 		//do nothing here, preventing android from saving the state (this is done in onPause())
+	}
+	
+	public abstract static class AddWidgetDialog extends DialogFragment {
+		
+		@Override
+		public Dialog onCreateDialog(Bundle savedInstanceState) {
+			AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+			
+			// Get the layout inflater
+		    LayoutInflater inflater = getActivity().getLayoutInflater();
+			
+//			builder.setMessage("testmessage!");
+			
+			builder.setTitle(getResources().getString(R.string.add_widget_title));
+
+			final View view = inflater.inflate(R.layout.dialog_addwidget, null);
+			builder.setView(view);
+	
+			//fill spinner with widget types
+			ArrayAdapter<WidgetType> adapter = new ArrayAdapter<MapWidgetRegistry.WidgetType>(getActivity(), android.R.layout.simple_spinner_item);
+			adapter.addAll(WidgetType.values());
+			final Spinner spinner = (Spinner) view.findViewById(R.id.spinner1);	
+			final TextView topicTextView = (TextView) view.findViewById(R.id.editText1);
+			spinner.setAdapter(adapter);
+			
+			builder.setNegativeButton(getResources().getString(R.string.add_widget_cancelbutton), new DialogInterface.OnClickListener() {
+				
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					AddWidgetDialog.this.getDialog().cancel();
+				}
+			});
+			
+			builder.setPositiveButton(getResources().getString(R.string.add_widget_addbutton), new DialogInterface.OnClickListener() {
+				
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					//TODO refactor IDs
+					
+					onAdd((WidgetType)spinner.getSelectedItem(), topicTextView.getText().toString());
+				}
+			});
+			
+			return builder.create();	
+			
+		}
+		
+		public abstract void onAdd(WidgetType widgetType, String topic);
+		
+//		@Override
+//		public void onResume() {
+//			super.onResume();
+////			super.onViewCreated(view, savedInstanceState);
+//			
+//			//fill spinner with widget types
+//			Spinner spinner = (Spinner) getView().findViewById(R.id.spinner1);
+//			ArrayAdapter<String> adapter = new ArrayAdapter<String>(getView().getContext(), android.R.layout.simple_spinner_item, new String[]{"a", "b"});
+////			adapter.add("WIDGET_TYPE_1");
+////			adapter.add("WIDGET_TYPE_2");
+////			adapter.add("WIDGET_TYPE_3");
+//			adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+//			spinner.setAdapter(adapter);
+////			spinner.invalidate();
+//		}
 	}
 }

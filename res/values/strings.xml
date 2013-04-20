@@ -10,6 +10,11 @@
     <string name="action_tab_create">Create tab</string>
     <string name="action_tab_close">Close tab</string>
     <string name="resetsettings">Reset all</string>
+    <string name="add_widget_title">Add Widget</string>
+    <string name="add_widget_cancelbutton">Cancel</string>
+    <string name="add_widget_addbutton">Add</string>
+    <string name="add_widget_typedescription">Widget Type:</string>
+    <string name="add_widget_topicdescription">ROS Topic:</string>
     
 
 </resources>
