@@ -7,20 +7,42 @@
 <!--         android:title="@string/action_settings"/> -->
 	
 	<item android:id="@+id/tabClose" android:title="@string/action_tab_close"
-        android:showAsAction="always"/>
+        android:showAsAction="always" android:icon="@drawable/trash_icon2"/>
     <item android:id="@+id/tabCreate" android:title="@string/action_tab_create"
-        android:showAsAction="always"/>
+        android:showAsAction="always" android:icon="@drawable/plus_icon"/>
     <item android:id="@+id/showhidewidgetbar" android:title="@string/action_showhidewidgetbar_hide"
-        android:showAsAction="always"/>
+        android:showAsAction="always" android:icon="@drawable/showhidewidgetbar_icon"/>
     <item android:id="@+id/resetsettings" android:title="@string/resetsettings"
         android:showAsAction="never"/>
+    
+    <item
+    android:id="@+id/layermenu"
+    android:icon="@drawable/layer_icon"
+    android:showAsAction="always"
+    android:title="Chooser layers">
+	    <menu>
+	        <item
+	            android:id="@+id/tmp1del"
+	            android:title="Dummy layer 1" 
+	            android:checkable="true"/>
+	        <item
+	            android:id="@+id/tmp2del"
+	            android:title="Dummy layer 2" 
+	            android:checkable="true"/>
+	        <item
+	            android:id="@+id/tmp3del"
+	            android:title="Dummy layer 3" 
+	            android:checkable="true"/>
+	    </menu>
+	</item>
+    
     
     <item
     android:id="@+id/mapmenu"
     android:icon="@drawable/mapicon"
     android:showAsAction="always"
     android:title="Choose map">
-    <menu>
+    	<menu>
 <!--         <item -->
 <!--             android:id="@+id/menuSortNewest" -->
 <!--             android:title="Sort by newest"  -->
@@ -29,7 +51,7 @@
 <!--             android:id="@+id/menuSortRating" -->
 <!--             android:title="Sort by rating"  -->
 <!--             android:checkable="true"/> -->
-    </menu>
-</item>
+   		</menu>
+	</item>
     
 </menu>

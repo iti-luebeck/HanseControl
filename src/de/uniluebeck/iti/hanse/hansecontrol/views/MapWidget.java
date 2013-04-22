@@ -10,11 +10,14 @@ import com.google.common.base.Preconditions;
 
 import de.uniluebeck.iti.hanse.hansecontrol.BitmapManager;
 import de.uniluebeck.iti.hanse.hansecontrol.MainScreen;
+import de.uniluebeck.iti.hanse.hansecontrol.MainScreenFragment;
+import de.uniluebeck.iti.hanse.hansecontrol.MapWidgetRegistry;
 import de.uniluebeck.iti.hanse.hansecontrol.R;
 import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.DragLayer;
 import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.WidgetLayer;
 
 import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.content.Context;
@@ -56,6 +59,7 @@ public class MapWidget extends BasicView {
 	Float mX, mY; //last position while dragging
 	
 	DragLayer dragLayer = null;
+	MapWidgetRegistry mapWidgetRegistry;
 	
 	private int widgetID = -1;
 	public static final String WIDGET_PREFIX = "MapWidget-";
@@ -86,11 +90,16 @@ public class MapWidget extends BasicView {
 	private boolean controlsVisible = false;
 	private ScheduledFuture autoHideFuture = null;
 	
-	//TODO find better place for this
+	RemoveWidgetButton removeWidgetButton;
+	boolean removeWidgetButtonVisible = false;	
+	
+	
+	//TODO use bitmapmanager!
 	Bitmap bitmap_closeButton, bitmap_resizer;
 	
-	public MapWidget(int defaultWidth, int defaultHeight, int widgetID, Context context, DragLayer dragLayer) {
+	public MapWidget(int defaultWidth, int defaultHeight, int widgetID, Context context, DragLayer dragLayer, MapWidgetRegistry mapWidgetRegistry) {
 		super(context);
+		this.mapWidgetRegistry = mapWidgetRegistry;
 		this.widgetID = widgetID;
 		this.defaultWidth = defaultWidth;
 		this.defaultHeight = defaultHeight;
@@ -117,12 +126,24 @@ public class MapWidget extends BasicView {
 		}
 		initCloseButton();
 		initCornerResizer();
+		initRemoveWidgetButton();
 		
 //		bitmap_closeButton = BitmapFactory.decodeResource(getResources(), R.drawable.trashbin);
 		bitmap_closeButton = BitmapManager.getInstance().getBitmap(getResources(), R.drawable.trashbin);
 //		bitmap_resizer = BitmapFactory.decodeResource(getResources(), R.drawable.resize);
 		bitmap_resizer = BitmapManager.getInstance().getBitmap(getResources(), R.drawable.resize);
 		
+	}
+	
+	private void initRemoveWidgetButton() {
+		removeWidgetButton = new RemoveWidgetButton(getContext(), this);
+		addView(removeWidgetButton);
+		int removeWidgetButtonWidth = (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 30, getResources().getDisplayMetrics());
+		RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(removeWidgetButtonWidth, removeWidgetButtonWidth);
+		params.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+		params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+		removeWidgetButton.setLayoutParams(params);
+		removeWidgetButton.setVisibility(View.INVISIBLE);
 	}
 	
 	private void initCloseButton() {
@@ -180,7 +201,7 @@ public class MapWidget extends BasicView {
 				break;
 		}
 		
-		//single tap on "empty space" in MapWidget
+		//single tap on "empty space" in MapWidget in Fullsize-Mode
 		if (getMode() == FULLSIZE_MODE && event.getActionMasked() == MotionEvent.ACTION_UP) {
 			//play animation to make closebutton and cornerresizers visible
 			Log.d("animator", "animation started");
@@ -192,6 +213,42 @@ public class MapWidget extends BasicView {
 				hideControls();
 			} else {
 				showControls(event);
+			}
+		}
+		
+		//single tap on "empty space" in MapWidget in Icon-Mode
+		if (getMode() == ICON_MODE && event.getActionMasked() == MotionEvent.ACTION_UP) {
+			if (removeWidgetButton.getVisibility() == View.VISIBLE) {
+				removeWidgetButton.setAlpha(1);
+				fadeObjects(500, 0, removeWidgetButton).addListener(new AnimatorListenerAdapter() {
+					@Override
+					public void onAnimationEnd(Animator animation) {
+						removeWidgetButton.setVisibility(View.INVISIBLE);
+					}
+				});
+			} else {
+				removeWidgetButton.setAlpha(0);
+				fadeObjects(500, 1, removeWidgetButton);
+				removeWidgetButton.setVisibility(View.VISIBLE);
+				MainScreen.executorService.schedule(new Runnable() {
+					
+					@Override
+					public void run() {
+						removeWidgetButton.post(new Runnable() {
+							
+							@Override
+							public void run() {
+								fadeObjects(500, 0, removeWidgetButton).addListener(new AnimatorListenerAdapter() {
+									@Override
+									public void onAnimationEnd(Animator animation) {
+										removeWidgetButton.setVisibility(View.INVISIBLE);
+										removeWidgetButtonVisible = false;																		
+									}
+								});
+							}
+						});
+					}
+				}, 2000, TimeUnit.MILLISECONDS);
 			}
 		}
 		
@@ -624,6 +681,52 @@ public class MapWidget extends BasicView {
 		public int getCorner() {
 			return corner;
 		}
+	}
+	
+	public class RemoveWidgetButton extends AnimatedView {
+		Paint paint;
+		MapWidget parentWidget;
+		
+		public RemoveWidgetButton(Context context, MapWidget parentWidget) {
+			super(context);
+			paint = new Paint();
+			this.parentWidget = parentWidget;
+		}
+		
+		@Override
+		protected void onDraw(Canvas canvas) {
+			if (getMode() == ICON_MODE) {
+				super.onDraw(canvas);
+//				canvas.drawLine(0, 0, getWidth() - 1, getHeight() - 1, paint);
+//				canvas.drawLine(0, getHeight() - 1, getWidth() - 1, 0, paint);
+				
+				//TODO consider to use a async task instead!
+//				canvas.drawBitmap(bitmap_closeButton, 0, 0, null);
+				canvas.drawBitmap(BitmapManager.getInstance().getBitmap(getResources(), R.drawable.trash_icon2), null, new RectF(0, 0, getWidth(), getHeight()), null);
+			}
+		}
+		
+		@Override
+		public boolean onTouchEvent(MotionEvent event) {
+			if (getVisibility() != View.VISIBLE || getMode() != ICON_MODE) {
+				return false;
+			}
+//			Log.w("touchlog", String.format("MapWidget.CloseButton.onTouchEvent(): x: %f, y: %f, action: %d, actionmasked: %d", event.getX(), event.getY(), 
+//					event.getAction(), event.getActionMasked()));
+			LinearLayout widgetLayout = (LinearLayout) parentWidget.getParent();
+			widgetLayout.removeView(parentWidget);
+			mapWidgetRegistry.getAllWidgets().remove(parentWidget);
+			return false;
+		}
+		
+//		private void layoutControls
+//		
+//		@Override
+//		protected void onLayout(boolean changed, int left, int top, int right,
+//				int bottom) {
+//			super.onLayout(changed, left, top, right, bottom);
+//			
+//		}
 	}
 	
 //	@Override

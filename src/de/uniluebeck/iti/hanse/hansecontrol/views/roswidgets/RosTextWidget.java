@@ -21,6 +21,7 @@ import android.widget.TextView;
 import android.widget.RelativeLayout.LayoutParams;
 
 import de.uniluebeck.iti.hanse.hansecontrol.BitmapManager;
+import de.uniluebeck.iti.hanse.hansecontrol.MapWidgetRegistry;
 import de.uniluebeck.iti.hanse.hansecontrol.R;
 import de.uniluebeck.iti.hanse.hansecontrol.MapWidgetRegistry.WidgetType;
 import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.DragLayer;
@@ -37,8 +38,9 @@ public class RosTextWidget extends RosMapWidget implements MessageListener<std_m
 	
 	LinearLayout linearLayout;
 	
-	public RosTextWidget(int widgetID,	Context context, final String rosTopic, DragLayer dragLayer) {
-		super(300, 200, widgetID, context, dragLayer);
+	public RosTextWidget(int widgetID,	Context context, final String rosTopic, 
+			DragLayer dragLayer, MapWidgetRegistry mapWidgetRegistry) {
+		super(300, 200, widgetID, context, dragLayer, mapWidgetRegistry);
 		this.rosTopic = rosTopic;
 		textView = new TextView(context);
 //		removeAllViews();

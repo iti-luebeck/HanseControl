@@ -413,4 +413,8 @@ public class MainScreenFragment extends Fragment {
 ////			spinner.invalidate();
 //		}
 	}
+	
+	public MapWidgetRegistry getWidgetRegistry() {
+		return widgetRegistry;
+	}
 }

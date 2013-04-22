@@ -97,7 +97,7 @@ public class MapWidgetRegistry {
 			MapWidget widget = new MapWidget(
 					(int)(Math.random() * (maxSize - minSize) + minSize), 
 					(int)(Math.random() * (maxSize - minSize) + minSize), 
-					currentIDforWidget++, context, dragLayer);
+					currentIDforWidget++, context, dragLayer, this);
 			widget.getDebugPaint().setColor(color);
 						
 			allWidgets.add(widget);
@@ -110,7 +110,7 @@ public class MapWidgetRegistry {
 	public RosMapWidget createWidget(WidgetType widgetType, String topic) {
 		RosMapWidget widget = null;
 		if (widgetType == WidgetType.ROS_TEXT_WIDGET) {
-			widget = new RosTextWidget(currentIDforWidget++, context, topic, dragLayer);
+			widget = new RosTextWidget(currentIDforWidget++, context, topic, dragLayer, this);
 			allWidgets.add(widget);
 			widget.setNode(connectedNode);
 		}
