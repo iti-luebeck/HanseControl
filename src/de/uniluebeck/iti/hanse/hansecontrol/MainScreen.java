@@ -14,6 +14,8 @@ import org.ros.node.ConnectedNode;
 import org.ros.node.NodeConfiguration;
 import org.ros.node.NodeMainExecutor;
 
+import de.uniluebeck.iti.hanse.hansecontrol.MainScreenFragment.AddWidgetDialog;
+import de.uniluebeck.iti.hanse.hansecontrol.MapWidgetRegistry.WidgetType;
 import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.DragLayer;
 import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.WidgetLayer;
 import de.uniluebeck.iti.hanse.hansecontrol.views.MapWidget;
@@ -22,10 +24,14 @@ import android.os.Bundle;
 import android.provider.ContactsContract.CommonDataKinds.Relation;
 import android.app.ActionBar.Tab;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.DialogFragment;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.TransitionDrawable;
@@ -38,10 +44,13 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.ViewGroup.LayoutParams;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.Spinner;
+import android.widget.TextView;
 import android.app.ActionBar;
 
 /**
@@ -66,6 +75,9 @@ public class MainScreen extends RosActivity {
 	ConnectedNode node;
 	List<NodeConnectedListener> nodeConnectedListeners = new LinkedList<NodeConnectedListener>();
 	
+	//workaround: onTabReselected() is called at startup for unknown reason, so rename is started on doubletap
+	private static long lastOnTabReselected = 0;
+	
 	public MainScreen() {
 		super("HanseControl", "HanseControl");
 		//start executor service
@@ -88,9 +100,6 @@ public class MainScreen extends RosActivity {
 		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 		actionBar.setDisplayShowTitleEnabled(true);
 		
-		//TODO remove this
-		MapManager.getInstance();
-		
 		//restore tabs
 		String openTabs = mPrefs.getString("global_opentabs", "");
 		if (!openTabs.isEmpty()) {
@@ -100,7 +109,9 @@ public class MainScreen extends RosActivity {
 				for (int i = 0; i < d.length; i++) {
 					//TODO names for tabs
 					int id = Integer.parseInt(d[i]);
-					Tab tab = actionBar.newTab().setText("Tab " + id).setTabListener(
+					Tab tab = actionBar.newTab().setText(mPrefs.getString(
+							MainScreenFragment.TAB_PREFIX + id + "-tabname", "Tab " + id))
+							.setTabListener(
 					new TabListener<MainScreenFragment>(this, "tag" + id, MainScreenFragment.class, id));
 					actionBar.addTab(tab);
 					tabIDs.put(tab, id);
@@ -118,7 +129,7 @@ public class MainScreen extends RosActivity {
 		if (actionBar.getTabCount() == 0) {
 			addNewTab();
 		}
-		
+		Log.d("statemanagement", "MainScreen.onCreate() finished");
 	}
 	
 	@Override
@@ -208,11 +219,22 @@ public class MainScreen extends RosActivity {
 		}
 	}
 	
+	private Tab getTabFromId(int tabID) {
+		for (Tab t : tabIDs.keySet()) {
+			if (tabIDs.get(t) == tabID) {
+				return t;
+			}
+		}
+		return null;
+	}
+	
 	@Override
 	protected void onPause() {
 		super.onPause();
 		ActionBar actionBar = getActionBar();
 		String openTabs = "";
+		SharedPreferences.Editor ed = mPrefs.edit();
+
 		//save tabs
 		for (int i = 0; i < actionBar.getTabCount(); i++) {
 			int tabID = tabIDs.get(actionBar.getTabAt(i));
@@ -220,9 +242,11 @@ public class MainScreen extends RosActivity {
 			if (i != actionBar.getTabCount()-1) {
 				openTabs += ",";
 			}
+			//save tab name
+			ed.putString(MainScreenFragment.TAB_PREFIX + tabID + "-tabname", getTabFromId(tabID).getText().toString());
 		}
-		SharedPreferences.Editor ed = mPrefs.edit();
 		ed.putString("global_opentabs", openTabs);
+		
 		if (actionBar.getSelectedTab() != null) {
 			//should never be null though
 			ed.putInt("global_selectedTab", tabIDs.get(actionBar.getSelectedTab()));
@@ -279,8 +303,18 @@ public class MainScreen extends RosActivity {
 	        }
 	    }
 
-	    public void onTabReselected(Tab tab, FragmentTransaction ft) {
-	        // User selected the already selected tab. Usually do nothing.
+	    public void onTabReselected(final Tab tab, FragmentTransaction ft) {
+	        if (mFragment instanceof MainScreenFragment
+	        		&& System.currentTimeMillis() - MainScreen.lastOnTabReselected < 1000) {
+	        	new RenameTabDialog() {
+					
+					@Override
+					public void onRename(String newName) {
+						tab.setText(newName);
+					}
+				}.show(mFragment.getFragmentManager(), "rename_tab");
+	        }
+	        MainScreen.lastOnTabReselected = System.currentTimeMillis();
 	    }
 	}
 	
@@ -357,6 +391,43 @@ public class MainScreen extends RosActivity {
 				nodeConnectedListeners.add(listener);				
 			}
 		}
+	}
+	
+	public abstract static class RenameTabDialog extends DialogFragment {
+		
+		@Override
+		public Dialog onCreateDialog(Bundle savedInstanceState) {
+			AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+			
+		    LayoutInflater inflater = getActivity().getLayoutInflater();
+			
+			builder.setTitle(getResources().getString(R.string.renamedialog_title));
+
+			final View view = inflater.inflate(R.layout.dialog_renametab, null);
+			builder.setView(view);
+	
+			final TextView textView = (TextView) view.findViewById(R.id.editText1);
+			
+			builder.setNegativeButton(getResources().getString(R.string.renamedialog_cancelbutton), new DialogInterface.OnClickListener() {
+				
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					RenameTabDialog.this.getDialog().cancel();
+				}
+			});
+			
+			builder.setPositiveButton(getResources().getString(R.string.renamedialog_renamebutton), new DialogInterface.OnClickListener() {
+				
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					onRename(textView.getText().toString());
+				}
+			});
+			
+			return builder.create();	
+		}
+		
+		public abstract void onRename(String newName);
 	}
 	
 }

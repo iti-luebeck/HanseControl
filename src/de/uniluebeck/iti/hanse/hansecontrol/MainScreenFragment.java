@@ -186,7 +186,7 @@ public class MainScreenFragment extends Fragment {
 						widget.setMode(MapWidget.ICON_MODE);
 //						widgetbarLayout.invalidate();
 					}			
-				}.show(getFragmentManager(), "Add Widget");
+				}.show(getFragmentManager(), "add_widget");
 			}
 		});
 		

@@ -15,6 +15,9 @@
     <string name="add_widget_addbutton">Add</string>
     <string name="add_widget_typedescription">Widget Type:</string>
     <string name="add_widget_topicdescription">ROS Topic:</string>
-    
+    <string name="renamedialog_text">New tab name:</string>
+    <string name="renamedialog_title">Rename tab</string>
+    <string name="renamedialog_cancelbutton">Cancel</string>
+    <string name="renamedialog_renamebutton">Rename</string>
 
 </resources>
