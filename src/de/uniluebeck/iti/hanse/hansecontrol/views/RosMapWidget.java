@@ -3,6 +3,7 @@ package de.uniluebeck.iti.hanse.hansecontrol.views;
 import org.ros.node.ConnectedNode;
 
 import de.uniluebeck.iti.hanse.hansecontrol.HanseControlNode;
+import de.uniluebeck.iti.hanse.hansecontrol.MainScreenFragment;
 import de.uniluebeck.iti.hanse.hansecontrol.MapWidgetRegistry;
 import de.uniluebeck.iti.hanse.hansecontrol.MapWidgetRegistry.WidgetType;
 import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.DragLayer;
@@ -14,8 +15,9 @@ public abstract class RosMapWidget extends MapWidget {
 	private ConnectedNode node;
 	
 	public RosMapWidget(int defaultWidth, int defaultHeight, int widgetID,
-			Context context, DragLayer dragLayer, MapWidgetRegistry mapWidgetRegistry) {
-		super(defaultWidth, defaultHeight, widgetID, context, dragLayer, mapWidgetRegistry);	
+			Context context, DragLayer dragLayer, 
+			MapWidgetRegistry mapWidgetRegistry, MainScreenFragment mainScreenFragment) {
+		super(defaultWidth, defaultHeight, widgetID, context, dragLayer, mapWidgetRegistry, mainScreenFragment);	
 	}
 	
 	public void setNode(ConnectedNode node) {

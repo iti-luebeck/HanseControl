@@ -22,6 +22,7 @@ import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.ClipData.Item;
 import android.database.Observable;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -34,8 +35,11 @@ import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.ContextMenu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.webkit.WebView.FindListener;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -60,6 +64,7 @@ public class MapWidget extends BasicView {
 	
 	DragLayer dragLayer = null;
 	MapWidgetRegistry mapWidgetRegistry;
+	MainScreenFragment mainScreenFragment;
 	
 	private int widgetID = -1;
 	public static final String WIDGET_PREFIX = "MapWidget-";
@@ -82,6 +87,8 @@ public class MapWidget extends BasicView {
 
 	CloseButton closeButton;
 	
+	ShowContextMenuButton showContextMenuButton;
+	
 	CornerResizer cornerResizerTopLeft;
 	CornerResizer cornerResizerTopRight;
 	CornerResizer cornerResizerBottomLeft;
@@ -95,11 +102,12 @@ public class MapWidget extends BasicView {
 	
 	
 	//TODO use bitmapmanager!
-	Bitmap bitmap_closeButton, bitmap_resizer;
+//	Bitmap bitmap_closeButton, bitmap_resizer;
 	
-	public MapWidget(int defaultWidth, int defaultHeight, int widgetID, Context context, DragLayer dragLayer, MapWidgetRegistry mapWidgetRegistry) {
+	public MapWidget(int defaultWidth, int defaultHeight, int widgetID, Context context, DragLayer dragLayer, MapWidgetRegistry mapWidgetRegistry, MainScreenFragment mainScreenFragment) {
 		super(context);
 		this.mapWidgetRegistry = mapWidgetRegistry;
+		this.mainScreenFragment = mainScreenFragment;
 		this.widgetID = widgetID;
 		this.defaultWidth = defaultWidth;
 		this.defaultHeight = defaultHeight;
@@ -127,12 +135,22 @@ public class MapWidget extends BasicView {
 		initCloseButton();
 		initCornerResizer();
 		initRemoveWidgetButton();
+		initShowContextMenuButton();
 		
 //		bitmap_closeButton = BitmapFactory.decodeResource(getResources(), R.drawable.trashbin);
-		bitmap_closeButton = BitmapManager.getInstance().getBitmap(getResources(), R.drawable.trashbin);
+//		bitmap_closeButton = BitmapManager.getInstance().getBitmap(getResources(), R.drawable.trashbin);
 //		bitmap_resizer = BitmapFactory.decodeResource(getResources(), R.drawable.resize);
-		bitmap_resizer = BitmapManager.getInstance().getBitmap(getResources(), R.drawable.resize);
+//		bitmap_resizer = BitmapManager.getInstance().getBitmap(getResources(), R.drawable.resize);
 		
+	}
+	
+	private void initShowContextMenuButton() {
+		showContextMenuButton = new ShowContextMenuButton(getContext(), this);
+		addView(showContextMenuButton);
+		int width = (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 30, getResources().getDisplayMetrics());
+		RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(width, width);
+		showContextMenuButton.setLayoutParams(params);
+		showContextMenuButton.setVisibility(View.INVISIBLE);
 	}
 	
 	private void initRemoveWidgetButton() {
@@ -182,6 +200,9 @@ public class MapWidget extends BasicView {
 		cornerResizerBottomRight.setVisibility(View.INVISIBLE);
 	}
 	
+	public MainScreenFragment getMainScreenFragment() {
+		return mainScreenFragment;
+	}
 	
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
@@ -297,9 +318,11 @@ public class MapWidget extends BasicView {
 		((RelativeLayout.LayoutParams) cornerResizerBottomRight.getLayoutParams()).addRule(RelativeLayout.ALIGN_PARENT_RIGHT, 0);
 		((RelativeLayout.LayoutParams) closeButton.getLayoutParams()).addRule(RelativeLayout.CENTER_HORIZONTAL, 0);
 		((RelativeLayout.LayoutParams) closeButton.getLayoutParams()).addRule(RelativeLayout.ALIGN_PARENT_TOP, 0);
+		((RelativeLayout.LayoutParams) showContextMenuButton.getLayoutParams()).addRule(RelativeLayout.CENTER_HORIZONTAL, 0);
+		((RelativeLayout.LayoutParams) showContextMenuButton.getLayoutParams()).addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, 0);
 		
-		fadeObjects(1, 0, cornerResizerTopLeft, cornerResizerTopRight, cornerResizerBottomLeft, cornerResizerBottomRight, closeButton);
-		fadeObjects(200, 1, cornerResizerTopLeft, cornerResizerTopRight, cornerResizerBottomLeft, cornerResizerBottomRight, closeButton);
+		fadeObjects(1, 0, cornerResizerTopLeft, cornerResizerTopRight, cornerResizerBottomLeft, cornerResizerBottomRight, closeButton, showContextMenuButton);
+		fadeObjects(200, 1, cornerResizerTopLeft, cornerResizerTopRight, cornerResizerBottomLeft, cornerResizerBottomRight, closeButton, showContextMenuButton);
 		
 		int duration = 400;
 		
@@ -328,10 +351,17 @@ public class MapWidget extends BasicView {
 		cornerResizerBottomRight_y.setDuration(duration);
 		
 		closeButton.setVisibility(View.VISIBLE);
-		ObjectAnimator closeButton_x = ObjectAnimator.ofFloat(closeButton, "xPos", event.getX(), (getWidth() - 1) / 2 - (cornerResizerBottomRight.getWidth() - 1) / 2);
+		ObjectAnimator closeButton_x = ObjectAnimator.ofFloat(closeButton, "xPos", event.getX(), (getWidth() - 1) / 2 - (closeButton.getWidth() - 1) / 2);
 		closeButton_x.setDuration(duration);
 		ObjectAnimator closeButton_y = ObjectAnimator.ofFloat(closeButton, "yPos", event.getY(), 0);
 		closeButton_y.setDuration(duration);
+		
+		showContextMenuButton.setVisibility(View.VISIBLE);
+		ObjectAnimator showContextMenuButton_x = ObjectAnimator.ofFloat(showContextMenuButton, "xPos", event.getX(), (getWidth() - 1) / 2 - (showContextMenuButton.getWidth() - 1) / 2);
+		showContextMenuButton_x.setDuration(duration);
+		ObjectAnimator showContextMenuButton_y = ObjectAnimator.ofFloat(showContextMenuButton, "yPos", event.getY(), getHeight() - showContextMenuButton.getHeight());
+		showContextMenuButton_y.setDuration(duration);
+		
 		
 		AnimatorSet showControls = new AnimatorSet();
 		showControls
@@ -344,7 +374,9 @@ public class MapWidget extends BasicView {
 			.with(cornerResizerBottomRight_x)
 			.with(cornerResizerBottomRight_y)
 			.with(closeButton_x)
-			.with(closeButton_y);
+			.with(closeButton_y)
+			.with(showContextMenuButton_x)
+			.with(showContextMenuButton_y);
 		
 		showControls.start();
 		
@@ -369,6 +401,8 @@ public class MapWidget extends BasicView {
 				((RelativeLayout.LayoutParams) cornerResizerBottomRight.getLayoutParams()).topMargin = 0;
 				((RelativeLayout.LayoutParams) closeButton.getLayoutParams()).leftMargin = 0;
 				((RelativeLayout.LayoutParams) closeButton.getLayoutParams()).topMargin = 0;
+				((RelativeLayout.LayoutParams) showContextMenuButton.getLayoutParams()).leftMargin = 0;
+				((RelativeLayout.LayoutParams) showContextMenuButton.getLayoutParams()).topMargin = 0;
 				
 				((RelativeLayout.LayoutParams) cornerResizerTopLeft.getLayoutParams()).addRule(RelativeLayout.ALIGN_PARENT_TOP);
 				((RelativeLayout.LayoutParams) cornerResizerTopLeft.getLayoutParams()).addRule(RelativeLayout.ALIGN_PARENT_LEFT);
@@ -380,6 +414,9 @@ public class MapWidget extends BasicView {
 				((RelativeLayout.LayoutParams) cornerResizerBottomRight.getLayoutParams()).addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
 				((RelativeLayout.LayoutParams) closeButton.getLayoutParams()).addRule(RelativeLayout.CENTER_HORIZONTAL);
 				((RelativeLayout.LayoutParams) closeButton.getLayoutParams()).addRule(RelativeLayout.ALIGN_PARENT_TOP);
+				((RelativeLayout.LayoutParams) showContextMenuButton.getLayoutParams()).addRule(RelativeLayout.CENTER_HORIZONTAL);
+				((RelativeLayout.LayoutParams) showContextMenuButton.getLayoutParams()).addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+				
 				controlsVisible = true;
 			}
 			
@@ -419,7 +456,7 @@ public class MapWidget extends BasicView {
 		if (!controlsVisible) {
 			return;
 		}
-		fadeObjects(500, 0, cornerResizerTopLeft, cornerResizerTopRight, cornerResizerBottomLeft, cornerResizerBottomRight, closeButton).addListener(new Animator.AnimatorListener() {
+		fadeObjects(500, 0, cornerResizerTopLeft, cornerResizerTopRight, cornerResizerBottomLeft, cornerResizerBottomRight, closeButton, showContextMenuButton).addListener(new Animator.AnimatorListener() {
 			
 			@Override
 			public void onAnimationStart(Animator animation) {}
@@ -584,6 +621,7 @@ public class MapWidget extends BasicView {
 			super(context);
 			paint = new Paint();
 			this.parentWidget = parentWidget;
+//			parentWidget.getMainScreenFragment().getActivity().registerForContextMenu(this);
 		}
 		
 		@Override
@@ -595,7 +633,7 @@ public class MapWidget extends BasicView {
 				
 				//TODO consider to use a async task instead!
 //				canvas.drawBitmap(bitmap_closeButton, 0, 0, null);
-				canvas.drawBitmap(bitmap_closeButton, null, new RectF(0, 0, getWidth(), getHeight()), null);
+				canvas.drawBitmap(BitmapManager.getInstance().getBitmap(getResources(), R.drawable.trashbin), null, new RectF(0, 0, getWidth(), getHeight()), null);
 			}
 		}
 		
@@ -607,6 +645,9 @@ public class MapWidget extends BasicView {
 			Log.w("touchlog", String.format("MapWidget.CloseButton.onTouchEvent(): x: %f, y: %f, action: %d, actionmasked: %d", event.getX(), event.getY(), 
 					event.getAction(), event.getActionMasked()));
 			if (getMode() == FULLSIZE_MODE) {
+				//TODO remove test
+//				parentWidget.getMainScreenFragment().getActivity().openContextMenu(this);
+				//TODO uncomment
 				hideControls();
 				WidgetLayer widgetLayer = (WidgetLayer) parentWidget.getParent();
 				widgetLayer.removeWidget(parentWidget);
@@ -614,7 +655,6 @@ public class MapWidget extends BasicView {
 			}
 			return false;
 		}
-		
 //		private void layoutControls
 //		
 //		@Override
@@ -647,7 +687,7 @@ public class MapWidget extends BasicView {
 		protected void onDraw(Canvas canvas) {
 //			canvas.drawLine(0, 0, getWidth() - 1, getHeight() - 1, paint);
 //			canvas.drawLine(0, getHeight() - 1, getWidth() - 1, 0, paint);
-			canvas.drawBitmap(bitmap_resizer, null, new RectF(0, 0, getWidth(), getHeight()), null);
+			canvas.drawBitmap(BitmapManager.getInstance().getBitmap(getResources(), R.drawable.resize), null, new RectF(0, 0, getWidth(), getHeight()), null);
 		}
 		
 		@Override
@@ -728,6 +768,61 @@ public class MapWidget extends BasicView {
 //			
 //		}
 	}
+	
+	public class ShowContextMenuButton extends AnimatedView {
+		Paint paint;
+		MapWidget parentWidget;
+		
+		public ShowContextMenuButton(Context context, MapWidget parentWidget) {
+			super(context);
+			paint = new Paint();
+			this.parentWidget = parentWidget;
+			parentWidget.getMainScreenFragment().getActivity().registerForContextMenu(this);
+		}
+		
+		@Override
+		protected void onDraw(Canvas canvas) {
+			if (getMode() == FULLSIZE_MODE) {
+				super.onDraw(canvas);
+//				canvas.drawLine(0, 0, getWidth() - 1, getHeight() - 1, paint);
+//				canvas.drawLine(0, getHeight() - 1, getWidth() - 1, 0, paint);
+				
+				//TODO consider to use a async task instead!
+//				canvas.drawBitmap(bitmap_closeButton, 0, 0, null);
+				canvas.drawBitmap(BitmapManager.getInstance().getBitmap(getResources(), R.drawable.gears_icon), null, new RectF(0, 0, getWidth(), getHeight()), null);
+			}
+		}
+		
+		@Override
+		public boolean onTouchEvent(MotionEvent event) {
+			if (!controlsVisible) {
+				return false;
+			}
+			Log.w("touchlog", String.format("MapWidget.CloseButton.onTouchEvent(): x: %f, y: %f, action: %d, actionmasked: %d", event.getX(), event.getY(), 
+					event.getAction(), event.getActionMasked()));
+			if (getMode() == FULLSIZE_MODE && event.getActionMasked() == MotionEvent.ACTION_UP) {
+				parentWidget.getMainScreenFragment().getActivity().openContextMenu(this);
+				//TODO uncomment
+//				hideControls();
+//				WidgetLayer widgetLayer = (WidgetLayer) parentWidget.getParent();
+//				widgetLayer.removeWidget(parentWidget);
+			}
+			return true;
+		}
+		
+		public MapWidget getParentWidget() {
+			return parentWidget;
+		}
+		
+		public void performAction(MenuItem item) {
+			if (item.getItemId() == R.id.close_other) {
+				parentWidget.getMainScreenFragment().closeAllOtherMapWidgets(parentWidget);
+			} else if (item.getItemId() == R.id.move_to_new_tab && parentWidget instanceof RosMapWidget) {
+				parentWidget.getMainScreenFragment().closeMapWidgetAndMoveToNewTab((RosMapWidget)parentWidget);
+			}
+		}
+	}
+	
 	
 //	@Override
 //	public void forceLayout() {

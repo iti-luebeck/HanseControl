@@ -1,7 +1,9 @@
 package de.uniluebeck.iti.hanse.hansecontrol;
 
 import java.util.HashMap;
+import java.util.List;
 
+import org.apache.commons.net.smtp.RelayPath;
 import org.ros.node.ConnectedNode;
 
 import de.uniluebeck.iti.hanse.hansecontrol.MapManager.Map;
@@ -24,6 +26,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -32,6 +35,7 @@ import android.view.SubMenu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.webkit.WebView.FindListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -81,6 +85,8 @@ public class MainScreenFragment extends Fragment {
 	//map of menu item to MapManager.Map
 	HashMap<MenuItem, Map> maps = new HashMap<MenuItem, Map>();
 	
+	PostConfigurationListener postConfigurationListener = null;
+	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		Log.d("statemanagement", "MainScreenFragment" + tabID + ".onCreate() called.");
@@ -126,7 +132,7 @@ public class MainScreenFragment extends Fragment {
 		final HorizontalScrollView widgetbarLayoutScroll = (HorizontalScrollView) view.findViewById(R.id.horizontalScrollView1);
 		final DragLayer dragLayer = (DragLayer) view.findViewById(R.id.dragLayer1);
 		
-		widgetRegistry = new MapWidgetRegistry(view.getContext(), dragLayer, mPrefs);
+		widgetRegistry = new MapWidgetRegistry(view.getContext(), dragLayer, mPrefs, this);
 		((MainScreen)getActivity()).addNodeConnectedListener(new MainScreen.NodeConnectedListener() {
 			
 			@Override
@@ -239,8 +245,22 @@ public class MainScreenFragment extends Fragment {
 //			hsv[0] = (hsv[0] + hueSteps) % 360;
 //			color = Color.HSVToColor(hsv);
 //		}
+		
+		widgetLayer.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+            	if (postConfigurationListener != null) {
+        			postConfigurationListener.onPostViewCreated(MainScreenFragment.this);
+        			postConfigurationListener = null;
+        		}
+            }
+        });
 	}
 	
+	public void setPostConfigurationListener(
+			PostConfigurationListener postConfigurationListener) {
+		this.postConfigurationListener = postConfigurationListener;
+	}
 	
 	@Override
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
@@ -278,12 +298,16 @@ public class MainScreenFragment extends Fragment {
 		switch(item.getItemId()) {
 			case R.id.showhidewidgetbar:
 				setWidgetBarVisibility(!widgetbar_isvisible);
-				widgetbar_isvisible = !widgetbar_isvisible;
+//				widgetbar_isvisible = !widgetbar_isvisible;
 				return true;
 			case R.id.resetsettings:
 			case R.id.tabClose:
 				dontSaveStateFlag = true;
 				return false;
+			case R.id.tmp4del:
+				new AddLayerDialog() {
+				}.show(getFragmentManager(), "add_layer");
+				return true;
 		}
 		
 		Map map = maps.get(item);
@@ -339,6 +363,7 @@ public class MainScreenFragment extends Fragment {
 		} else {
 			widgetLayoutScroll.setLayoutParams(widgetbar_isvisible_false_params);
 		}
+		widgetbar_isvisible = isvisible;
 	}
 
 	public int getTabID() {
@@ -414,7 +439,95 @@ public class MainScreenFragment extends Fragment {
 //		}
 	}
 	
+	public abstract static class AddLayerDialog extends DialogFragment {
+		
+		@Override
+		public Dialog onCreateDialog(Bundle savedInstanceState) {
+			AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+			
+			LayoutInflater inflater = getActivity().getLayoutInflater();
+			
+			builder.setTitle(getResources().getString(R.string.add_layer_title));
+
+			final View view = inflater.inflate(R.layout.dialog_addlayer, null);
+			builder.setView(view);
+	
+//			//fill spinner with widget types
+//			ArrayAdapter<WidgetType> adapter = new ArrayAdapter<MapWidgetRegistry.WidgetType>(getActivity(), android.R.layout.simple_spinner_item);
+//			adapter.addAll(WidgetType.values());
+//			final Spinner spinner = (Spinner) view.findViewById(R.id.spinner1);	
+//			final TextView topicTextView = (TextView) view.findViewById(R.id.editText1);
+//			spinner.setAdapter(adapter);
+			
+			builder.setNegativeButton(getResources().getString(R.string.add_widget_cancelbutton), new DialogInterface.OnClickListener() {
+				
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					AddLayerDialog.this.getDialog().cancel();
+				}
+			});
+			
+			builder.setPositiveButton(getResources().getString(R.string.add_widget_addbutton), new DialogInterface.OnClickListener() {
+				
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					
+//					onAdd((WidgetType)spinner.getSelectedItem(), topicTextView.getText().toString());
+				}
+			});
+			
+			return builder.create();	
+			
+		}
+		
+//		public abstract void onAdd(LayerType layerType, String topic);
+		
+	}
+	
 	public MapWidgetRegistry getWidgetRegistry() {
 		return widgetRegistry;
+	}
+	
+	public void closeAllOtherMapWidgets(MapWidget widget) {
+		for (int i = widgetLayer.getChildCount() - 1; i >= 0; i--) {
+			if (widgetLayer.getChildAt(i) instanceof MapWidget
+					&& widgetLayer.getChildAt(i) != widget) {
+				widgetLayer.removeWidget((MapWidget)widgetLayer.getChildAt(i));
+			}
+		}
+	}
+	
+	public void closeMapWidgetAndMoveToNewTab(final RosMapWidget widget) {
+		widgetLayer.removeWidget(widget);
+		MainScreenFragment newTab = ((MainScreen)getActivity()).addNewTab();
+		newTab.setPostConfigurationListener(new PostConfigurationListener() {
+			
+			@Override
+			public void onPostViewCreated(MainScreenFragment mainScreenFragment) {
+				mainScreenFragment.openWidgetInFullscreen(widget.getRosTopic(), widget.getWidgetType());
+			}
+		});
+	}
+	
+	public void openWidgetInFullscreen(String topic, WidgetType widgetType) {
+		RosMapWidget widget = widgetRegistry.getRosMapWidget(topic, widgetType);
+//		closeAllOtherMapWidgets(widget);
+		if (widget.getParent() != widgetLayer) {
+			widgetbarLayout.removeView(widget);
+			widgetLayer.addView(widget);
+			widget.setMode(MapWidget.FULLSIZE_MODE);
+		}
+		RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) widget.getLayoutParams();
+		params.width = widgetLayer.getWidth();
+		params.height = widgetLayer.getHeight();
+		params.topMargin = 0;
+		params.leftMargin = 0;
+		widget.setLayoutParams(params);
+		
+		setWidgetBarVisibility(false);
+	}
+	
+	public static interface PostConfigurationListener {
+		public void onPostViewCreated(MainScreenFragment mainScreenFragment);
 	}
 }

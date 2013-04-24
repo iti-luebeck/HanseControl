@@ -36,9 +36,11 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.TransitionDrawable;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
@@ -66,6 +68,7 @@ public class MainScreen extends RosActivity {
 	
 	//Map of all currently open tabs and their IDs
 	HashMap<Tab, Integer> tabIDs = new HashMap<Tab, Integer>();
+	SparseArray<MainScreenFragment> fragments = new SparseArray<MainScreenFragment>();
 	
 	//global executor service which should be used to schedule tasks at any location in this Activity (and MainScreenFragment Tabs)
 	public static ScheduledExecutorService executorService;
@@ -77,6 +80,8 @@ public class MainScreen extends RosActivity {
 	
 	//workaround: onTabReselected() is called at startup for unknown reason, so rename is started on doubletap
 	private static long lastOnTabReselected = 0;
+	
+	private View activeContextMenuView = null;
 	
 	public MainScreen() {
 		super("HanseControl", "HanseControl");
@@ -133,6 +138,24 @@ public class MainScreen extends RosActivity {
 	}
 	
 	@Override
+	public void onCreateContextMenu(ContextMenu menu, View v,
+			ContextMenuInfo menuInfo) {
+		super.onCreateContextMenu(menu, v, menuInfo);
+		MenuInflater inflater = getMenuInflater();
+	    inflater.inflate(R.menu.widget_contextmenu, menu);
+	    activeContextMenuView = v;
+	}
+	
+	@Override
+	public boolean onContextItemSelected(MenuItem item) {
+		// TODO Auto-generated method stub
+		if (activeContextMenuView != null && activeContextMenuView instanceof MapWidget.ShowContextMenuButton) {
+			((MapWidget.ShowContextMenuButton) activeContextMenuView).performAction(item);
+		}
+		return super.onContextItemSelected(item);
+	}
+	
+	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		Log.d("actionbar", "MainScreen: Menu action activated! '" + item.getTitle() + "'");
 		
@@ -157,7 +180,7 @@ public class MainScreen extends RosActivity {
 		return false;
 	}
 	
-	public void addNewTab() {
+	public MainScreenFragment addNewTab() {
 		ActionBar actionBar = getActionBar();
 		
 		//find lowest free id (starting at 1)
@@ -166,13 +189,15 @@ public class MainScreen extends RosActivity {
 			id++;
 		}
 		//create new tab
-		Tab tab = actionBar.newTab().setText("Tab " + id).setTabListener(
-		new TabListener<MainScreenFragment>(this, "tag" + id, MainScreenFragment.class, id));
+		TabListener<MainScreenFragment> tabListener = new TabListener<MainScreenFragment>(this, "tag" + id, MainScreenFragment.class, id);
+		Tab tab = actionBar.newTab().setText("Tab " + id).setTabListener(tabListener);
 		actionBar.addTab(tab);
 		tabIDs.put(tab, id);
 		
 		//select new tab
 		actionBar.selectTab(tab);
+		
+		return (MainScreenFragment) tabListener.getFragment();
 	}
 	
 	public boolean closeTab(int tabID) {
@@ -266,6 +291,7 @@ public class MainScreen extends RosActivity {
 	    private final Class<T> mClass;
 	    
 	    private int tabID;
+	    private boolean isAdded = false;
 	    
 	    /** Constructor used each time a new tab is created.
 	      * @param activity  The host Activity, used to instantiate the fragment
@@ -277,21 +303,22 @@ public class MainScreen extends RosActivity {
 	        mTag = tag;
 	        mClass = clz;
 	        this.tabID = tabID;
+	        
+	        //Instantiate fragment
+	        Bundle bundle = new Bundle();
+        	bundle.putInt("tabid", tabID);
+            mFragment = Fragment.instantiate(mActivity, mClass.getName(), bundle);
 	    }
 
 	    /* The following are each of the ActionBar.TabListener callbacks */
 
 	    public void onTabSelected(Tab tab, FragmentTransaction ft) {
-	        // Check if the fragment is already initialized
-	        if (mFragment == null) {
-	            // If not, instantiate and add it to the activity
-	        	Bundle bundle = new Bundle();
-	        	bundle.putInt("tabid", tabID);
-	            mFragment = Fragment.instantiate(mActivity, mClass.getName(), bundle);
-	            ft.add(android.R.id.content, mFragment, mTag);
-	            
+	        if (!isAdded) {
+	            //fragment needs to be added
+	        	ft.add(android.R.id.content, mFragment, mTag);
+	            isAdded = true;
 	        } else {
-	            // If it exists, simply attach it in order to show it
+	            //fragment is added, attach it in order to show it
 	            ft.attach(mFragment);
 	        }
 	    }
@@ -316,6 +343,14 @@ public class MainScreen extends RosActivity {
 	        }
 	        MainScreen.lastOnTabReselected = System.currentTimeMillis();
 	    }
+	    
+	    public Fragment getFragment() {
+			return mFragment;
+		}
+	    
+	    public int getTabID() {
+			return tabID;
+		}
 	}
 	
 	@Override

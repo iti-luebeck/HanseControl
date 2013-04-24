@@ -44,12 +44,14 @@ public class MapWidgetRegistry {
 	private DragLayer dragLayer;
 	
 	private ConnectedNode connectedNode;
+	MainScreenFragment mainScreenFragment;
 	
-	public MapWidgetRegistry(Context context, DragLayer dragLayer, SharedPreferences mPrefs) {
+	public MapWidgetRegistry(Context context, DragLayer dragLayer, SharedPreferences mPrefs, MainScreenFragment mainScreenFragment) {
 		this.context = context;
 		this.mPrefs = mPrefs;
 		this.dragLayer = dragLayer;
-			
+		this.mainScreenFragment = mainScreenFragment;
+		
 		//read properties from local SharedPrefernces file
 		HashMap<String, Set<String>> widgets = readWidgetsFromSharedPrefs(mPrefs);
 		if (widgets.keySet().isEmpty()) {		
@@ -97,7 +99,7 @@ public class MapWidgetRegistry {
 			MapWidget widget = new MapWidget(
 					(int)(Math.random() * (maxSize - minSize) + minSize), 
 					(int)(Math.random() * (maxSize - minSize) + minSize), 
-					currentIDforWidget++, context, dragLayer, this);
+					currentIDforWidget++, context, dragLayer, this, mainScreenFragment);
 			widget.getDebugPaint().setColor(color);
 						
 			allWidgets.add(widget);
@@ -110,7 +112,7 @@ public class MapWidgetRegistry {
 	public RosMapWidget createWidget(WidgetType widgetType, String topic) {
 		RosMapWidget widget = null;
 		if (widgetType == WidgetType.ROS_TEXT_WIDGET) {
-			widget = new RosTextWidget(currentIDforWidget++, context, topic, dragLayer, this);
+			widget = new RosTextWidget(currentIDforWidget++, context, topic, dragLayer, this, mainScreenFragment);
 			allWidgets.add(widget);
 			widget.setNode(connectedNode);
 		}
@@ -203,4 +205,15 @@ public class MapWidgetRegistry {
 		ROS_TEXT_WIDGET
 	}
 	
+	public RosMapWidget getRosMapWidget(String topic, WidgetType widgetType) {
+		for (MapWidget w : allWidgets) {
+			if (w instanceof RosMapWidget) {
+				RosMapWidget rw = (RosMapWidget) w;
+				if (rw.getRosTopic().equals(topic) && rw.getWidgetType() == widgetType) {
+					return rw;
+				}
+			}
+		}
+		return null;
+	}
 }

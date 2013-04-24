@@ -5,7 +5,6 @@ import java.util.HashMap;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.util.Log;
 
 /**
  * This class manages the loading and caching of bitmaps.
