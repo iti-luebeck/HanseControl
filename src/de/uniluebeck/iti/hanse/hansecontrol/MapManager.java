@@ -9,6 +9,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
+import de.uniluebeck.iti.hanse.hansecontrol.MapManager.Map;
+
 import android.os.Environment;
 import android.util.Log;
 
@@ -18,6 +20,7 @@ public class MapManager {
 	private static final String MAPCONFIG_EXTENSION = ".hctrlmap";
 	
 	List<MapManager.Map> maps = new LinkedList<MapManager.Map>();
+	private Map emptyMap;
 	
 	private static MapManager instance = new MapManager();
 	
@@ -38,7 +41,7 @@ public class MapManager {
 			return;
 		}
 		
-		//find all map config files
+		//find all maps in the data dir files
 		for (File f : mapsDir.listFiles()) {
 			if (f.getName().endsWith(MAPCONFIG_EXTENSION)) {
 				Log.d("MapManager", "Found map config file: " + f.getAbsolutePath());
@@ -51,6 +54,14 @@ public class MapManager {
 					Log.e("MapManager", "Error while decoding map config file: " + f.getAbsolutePath(), e);
 				}
 			}
+		}
+		
+		//add empty map
+		try {
+			this.emptyMap = new Map(null);
+			maps.add(this.emptyMap);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 	
@@ -80,6 +91,12 @@ public class MapManager {
 		String imagePath;
 		
 		public Map(File hctrlmapFile) throws FileNotFoundException, IOException {
+			if (hctrlmapFile == null) {
+				name = "Empty map";
+				configPath = "";
+				imagePath = "";
+				return;
+			}
 			Properties prop = new Properties();
 			prop.load(new BufferedInputStream(new FileInputStream(hctrlmapFile)));
 			name = prop.getProperty("name");
@@ -98,5 +115,9 @@ public class MapManager {
 		public String getImagePath() {
 			return imagePath;
 		}
+	}
+
+	public Map getEmptyMap() {
+		return emptyMap;
 	}
 }

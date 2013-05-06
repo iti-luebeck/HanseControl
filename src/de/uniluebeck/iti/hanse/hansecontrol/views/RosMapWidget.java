@@ -2,7 +2,6 @@ package de.uniluebeck.iti.hanse.hansecontrol.views;
 
 import org.ros.node.ConnectedNode;
 
-import de.uniluebeck.iti.hanse.hansecontrol.HanseControlNode;
 import de.uniluebeck.iti.hanse.hansecontrol.MainScreenFragment;
 import de.uniluebeck.iti.hanse.hansecontrol.MapWidgetRegistry;
 import de.uniluebeck.iti.hanse.hansecontrol.MapWidgetRegistry.WidgetType;

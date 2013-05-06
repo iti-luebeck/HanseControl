@@ -303,9 +303,11 @@ class MapSurface {
 	
 	private void loadImage() {
 		image = BitmapManager.getInstance().getBitmap(map.getImagePath());
-		imgWidth = (float)image.getWidth();
-		imgHeight = (float)image.getHeight();
-		imgRatio = imgWidth / imgHeight;
+		if (image != null) {
+			imgWidth = (float)image.getWidth();
+			imgHeight = (float)image.getHeight();
+			imgRatio = imgWidth / imgHeight;
+		}
 	}
 		
 	public synchronized void scaleToViewport(float viewportWidth, float viewportHeight) {
@@ -328,10 +330,13 @@ class MapSurface {
 	}
 	
 	public synchronized void draw(Canvas canvas) {
-		if (map == null || image == null) {
+		if (map == null) {
 			canvas.drawText("No Map was found in folder " + MapManager.getInstance().getMapsDir(),
 					50, 50, textPaint);
 			return;
+		}
+		if (image == null) {
+			return; //is empty map (= no map)
 		}
 		if (image.isRecycled()) {
 			loadImage();

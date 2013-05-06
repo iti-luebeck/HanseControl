@@ -336,7 +336,8 @@ public class MainScreenFragment extends Fragment {
 		for (MapWidget w : widgetRegistry.getAllWidgets()) {
 			w.savePrefs(TAB_PREFIX + tabID, ed);
 		}
-		widgetRegistry.savePrefs(ed);
+//		widgetRegistry.savePrefs(ed);
+		widgetRegistry.saveWidgetsToFile();
 		ed.putBoolean(TAB_PREFIX + tabID + "_widgetbarisvisible", widgetbar_isvisible);
 		((MapLayer)getView().findViewById(R.id.mapLayer1)).savePrefs(TAB_PREFIX + tabID, ed);
 		ed.commit();
@@ -505,6 +506,8 @@ public class MainScreenFragment extends Fragment {
 			@Override
 			public void onPostViewCreated(MainScreenFragment mainScreenFragment) {
 				mainScreenFragment.openWidgetInFullscreen(widget.getRosTopic(), widget.getWidgetType());
+				Map emptyMap = MapManager.getInstance().getEmptyMap();
+				((MapLayer) mainScreenFragment.getView().findViewById(R.id.mapLayer1)).setMap(emptyMap);
 			}
 		});
 	}

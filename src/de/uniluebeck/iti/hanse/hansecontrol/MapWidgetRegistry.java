@@ -1,9 +1,11 @@
 package de.uniluebeck.iti.hanse.hansecontrol;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -53,25 +55,25 @@ public class MapWidgetRegistry {
 		this.mainScreenFragment = mainScreenFragment;
 		
 		//read properties from local SharedPrefernces file
-		HashMap<String, Set<String>> widgets = readWidgetsFromSharedPrefs(mPrefs);
-		if (widgets.keySet().isEmpty()) {		
+		HashMap<String, Set<String>> widgets = new HashMap<String, Set<String>>();
+//		if (widgets.keySet().isEmpty()) {		
 			//read properties from default config file
-			File preconf = new File(Environment.getExternalStorageDirectory()
-					.getAbsolutePath() + File.separator + MapManager.MAPS_DIR + File.separator + ROS_TOPICS_CONFIG_FILE);
-			if (preconf.exists()) {
-				Properties prop = new Properties();
-				try {
-					prop.load(new BufferedInputStream(new FileInputStream(preconf)));
-				} catch (FileNotFoundException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				widgets = readWidgetsFromDefaultWidgetsFile(prop);
+		File conf = new File(Environment.getExternalStorageDirectory()
+				.getAbsolutePath() + File.separator + MapManager.MAPS_DIR + File.separator + ROS_TOPICS_CONFIG_FILE);
+		if (conf.exists()) {
+			Properties prop = new Properties();
+			try {
+				prop.load(new BufferedInputStream(new FileInputStream(conf)));
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
+			widgets = readWidgetsFromFile(prop);
 		}
+//		}
 		
 		//create widgets
 		
@@ -89,24 +91,24 @@ public class MapWidgetRegistry {
 //		allWidgets.add(textWidget);
 		
 		//create colored test widgets
-		int hueSteps = 30;
-		float[] hsv = new float[] {0,1,1};
-		int color = Color.HSVToColor(hsv);
-		
-		int minSize = 100;
-		int maxSize = 250;
-		for (int i = 1; i < 20; i++) {
-			MapWidget widget = new MapWidget(
-					(int)(Math.random() * (maxSize - minSize) + minSize), 
-					(int)(Math.random() * (maxSize - minSize) + minSize), 
-					currentIDforWidget++, context, dragLayer, this, mainScreenFragment);
-			widget.getDebugPaint().setColor(color);
-						
-			allWidgets.add(widget);
-			
-			hsv[0] = (hsv[0] + hueSteps) % 360;
-			color = Color.HSVToColor(hsv);
-		}
+//		int hueSteps = 30;
+//		float[] hsv = new float[] {0,1,1};
+//		int color = Color.HSVToColor(hsv);
+//		
+//		int minSize = 100;
+//		int maxSize = 250;
+//		for (int i = 1; i < 20; i++) {
+//			MapWidget widget = new MapWidget(
+//					(int)(Math.random() * (maxSize - minSize) + minSize), 
+//					(int)(Math.random() * (maxSize - minSize) + minSize), 
+//					currentIDforWidget++, context, dragLayer, this, mainScreenFragment);
+//			widget.getDebugPaint().setColor(color);
+//						
+//			allWidgets.add(widget);
+//			
+//			hsv[0] = (hsv[0] + hueSteps) % 360;
+//			color = Color.HSVToColor(hsv);
+//		}
 	}
 	
 	public RosMapWidget createWidget(WidgetType widgetType, String topic) {
@@ -119,26 +121,50 @@ public class MapWidgetRegistry {
 		return widget;
 	}
 		
-	private HashMap<String, Set<String>> readWidgetsFromSharedPrefs(SharedPreferences pref) {
-		HashMap<String, Set<String>> res = new HashMap<String, Set<String>>();
-		
-		String topicsStr = pref.getString("rosTopics", "");
-		if (topicsStr.isEmpty()) {
-			return res;
-		}
-		
-		Set<String> topics = createStringSetFromCommaString(topicsStr);
-		for (String topic : topics) {
-			Set<String> widgets = createStringSetFromCommaString(pref.getString("rosTopics_" + topic, ""));
-			res.put(topic, widgets);
-		}
-		
-		return res;
-	}
+//	private HashMap<String, Set<String>> readWidgetsFromSharedPrefs(SharedPreferences pref) {
+//		HashMap<String, Set<String>> res = new HashMap<String, Set<String>>();
+//		
+//		String topicsStr = pref.getString("rosTopics", "");
+//		if (topicsStr.isEmpty()) {
+//			return res;
+//		}
+//		
+//		Set<String> topics = createStringSetFromCommaString(topicsStr);
+//		for (String topic : topics) {
+//			Set<String> widgets = createStringSetFromCommaString(pref.getString("rosTopics_" + topic, ""));
+//			res.put(topic, widgets);
+//		}
+//		
+//		return res;
+//	} 
 	
-	public void savePrefs(SharedPreferences.Editor ed) {
-		//Topic1 = WIDGET_TYPE1, WIDGET_TYPE2, ...
-		//Topic2 = WIDGET_TYPE2, WIDGET_TYPE3, ...
+//	public void savePrefs(SharedPreferences.Editor ed) {
+//		//Topic1 = WIDGET_TYPE1, WIDGET_TYPE2, ...
+//		//Topic2 = WIDGET_TYPE2, WIDGET_TYPE3, ...
+//		HashMap<String, Set<String>> widgets = new HashMap<String, Set<String>>();
+//		for (MapWidget w : allWidgets) {
+//			if (w instanceof RosMapWidget) {
+//				String topic = ((RosMapWidget)w).getRosTopic();
+//				Set<String> widgetTypes = widgets.get(topic);
+//				if (widgetTypes == null) {
+//					widgetTypes = new HashSet<String>();
+//					widgets.put(topic, widgetTypes);
+//				}
+//				widgetTypes.add(((RosMapWidget)w).getWidgetType().name());				
+//			}
+//		}
+//		
+//		ed.putString("rosTopics", createCommaStringFromStringSet(widgets.keySet()));
+//		for (String topic : widgets.keySet()) {
+//			Set<String> widgetSet = widgets.get(topic);
+//			ed.putString("rosTopics_" + topic, createCommaStringFromStringSet(widgetSet));
+// 		}
+//	}
+	
+	public void saveWidgetsToFile() {
+		File conf = new File(Environment.getExternalStorageDirectory()
+				.getAbsolutePath() + File.separator + MapManager.MAPS_DIR + File.separator + ROS_TOPICS_CONFIG_FILE);
+		Properties prop = new Properties();
 		HashMap<String, Set<String>> widgets = new HashMap<String, Set<String>>();
 		for (MapWidget w : allWidgets) {
 			if (w instanceof RosMapWidget) {
@@ -152,11 +178,20 @@ public class MapWidgetRegistry {
 			}
 		}
 		
-		ed.putString("rosTopics", createCommaStringFromStringSet(widgets.keySet()));
 		for (String topic : widgets.keySet()) {
 			Set<String> widgetSet = widgets.get(topic);
-			ed.putString("rosTopics_" + topic, createCommaStringFromStringSet(widgetSet));
+			prop.put(topic, createCommaStringFromStringSet(widgetSet));
  		}
+		
+		try {
+			prop.store(new BufferedOutputStream(new FileOutputStream(conf)), null);
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	private String createCommaStringFromStringSet(Set<String> stringSet) {
@@ -179,7 +214,7 @@ public class MapWidgetRegistry {
 		return res;
 	}
 	
-	private HashMap<String, Set<String>> readWidgetsFromDefaultWidgetsFile(Properties prop) {
+	private HashMap<String, Set<String>> readWidgetsFromFile(Properties prop) {
 		HashMap<String, Set<String>> res = new HashMap<String, Set<String>>();
 		for (Object o : prop.keySet()) {
 			String s = (String) o;

@@ -141,9 +141,11 @@ public class MainScreen extends RosActivity {
 	public void onCreateContextMenu(ContextMenu menu, View v,
 			ContextMenuInfo menuInfo) {
 		super.onCreateContextMenu(menu, v, menuInfo);
+		activeContextMenuView = v;
 		MenuInflater inflater = getMenuInflater();
-	    inflater.inflate(R.menu.widget_contextmenu, menu);
-	    activeContextMenuView = v;
+		if (activeContextMenuView instanceof MapWidget.ShowContextMenuButton) {
+			inflater.inflate(R.menu.widget_contextmenu, menu);
+		}
 	}
 	
 	@Override
