@@ -153,10 +153,8 @@ public class RosTextWidget extends RosMapWidget implements MessageListener<std_m
 	
 	@Override
 	public void subscribe(ConnectedNode node) {
-		if (node != null) {
-			subscriber = node.newSubscriber(rosTopic, std_msgs.String._TYPE);
-			subscriber.addMessageListener(this);
-		}
+		subscriber = node.newSubscriber(rosTopic, std_msgs.String._TYPE);
+		subscriber.addMessageListener(this);
 	}
 
 	@Override

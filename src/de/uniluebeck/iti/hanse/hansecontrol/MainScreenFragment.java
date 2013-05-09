@@ -8,9 +8,12 @@ import org.ros.node.ConnectedNode;
 
 import de.uniluebeck.iti.hanse.hansecontrol.MapManager.Map;
 import de.uniluebeck.iti.hanse.hansecontrol.MapWidgetRegistry.WidgetType;
+import de.uniluebeck.iti.hanse.hansecontrol.OverlayRegistry.OverlayType;
 import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.DragLayer;
 import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.MapLayer;
+import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.OverlayLayer;
 import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.WidgetLayer;
+import de.uniluebeck.iti.hanse.hansecontrol.views.AbstractOverlay;
 import de.uniluebeck.iti.hanse.hansecontrol.views.MapWidget;
 import de.uniluebeck.iti.hanse.hansecontrol.views.RosMapWidget;
 import de.uniluebeck.iti.hanse.hansecontrol.views.roswidgets.RosTextWidget;
@@ -69,6 +72,9 @@ public class MainScreenFragment extends Fragment {
 	//Layer on which the icon-size widgets will be shown
 	LinearLayout widgetbarLayout;
 	
+	OverlayLayer overlayLayer;
+	MapLayer mapLayer;
+	
 	//tab ID of this Tab
 	private int tabID = -1;
 	
@@ -82,8 +88,13 @@ public class MainScreenFragment extends Fragment {
 	//the menu of the action bar, used in setWidgetBarVisibility() to change text and icons
 	private Menu actionBarMenu;
 	
-	//map of menu item to MapManager.Map
+	//map: menu item --> MapManager.Map
 	HashMap<MenuItem, Map> maps = new HashMap<MenuItem, Map>();
+	
+	//map: menu item --> AbstractOverlay
+	HashMap<MenuItem, AbstractOverlay> overlaysMap = new HashMap<MenuItem, AbstractOverlay>();
+	MenuItem addNewOverlayMenuItem;
+	MenuItem overlayMenu;
 	
 	PostConfigurationListener postConfigurationListener = null;
 	
@@ -120,6 +131,7 @@ public class MainScreenFragment extends Fragment {
 	
 	public void setNode(ConnectedNode node) {
 		widgetRegistry.setNode(node);
+		overlayLayer.getOverlayRegistry().setNode(node);
 	}
 	
 	@Override
@@ -129,6 +141,22 @@ public class MainScreenFragment extends Fragment {
 				
 		widgetLayer = (WidgetLayer) view.findViewById(R.id.widgetLayer);
 		widgetbarLayout = (LinearLayout) view.findViewById(R.id.widgetLayout);	
+		overlayLayer = (OverlayLayer) view.findViewById(R.id.overlayLayer);
+		mapLayer = (MapLayer) view.findViewById(R.id.mapLayer1);
+		mapLayer.setMapLayerListener(new MapLayer.MapLayerListener() {
+			
+			@Override
+			public void onMapSurfaceCreated(MapSurface mapSurface) {
+				overlayLayer.getOverlayRegistry().setMapSurface(mapSurface);
+			}
+		});
+		
+		for (AbstractOverlay overlay : overlayLayer.getOverlayRegistry().getAllOverlays()) {
+			overlay.setMode( mPrefs.getBoolean(TAB_PREFIX + tabID 
+					+ overlay.getOverlayType().name() + ":" + overlay.getRosTopic(), true)
+					? AbstractOverlay.VISIBLE : AbstractOverlay.INVISIBLE);
+		}
+		
 		final HorizontalScrollView widgetbarLayoutScroll = (HorizontalScrollView) view.findViewById(R.id.horizontalScrollView1);
 		final DragLayer dragLayer = (DragLayer) view.findViewById(R.id.dragLayer1);
 		
@@ -137,7 +165,7 @@ public class MainScreenFragment extends Fragment {
 			
 			@Override
 			public void onNodeConnected(ConnectedNode node) {
-				widgetRegistry.setNode(node);				
+				setNode(node);			
 			}
 		});
 		
@@ -287,6 +315,28 @@ public class MainScreenFragment extends Fragment {
         	}
         	maps.put(mapItem, map);
         }
+        
+        overlayMenu = actionBarMenu.findItem(R.id.overlayMenu);
+        
+        for (AbstractOverlay overlay : overlayLayer.getOverlayRegistry().getAllOverlays()) {
+        	MenuItem overlayItem = overlayMenu.getSubMenu().add(
+        			overlay.getOverlayType().name() + ": " + overlay.getRosTopic()).setCheckable(true);
+        	Log.d("menutest", "loading: " + TAB_PREFIX + tabID + overlay.getOverlayType().name() + ":" + overlay.getRosTopic());
+        	Log.d("menutest", "entry exists: " + mPrefs.contains(TAB_PREFIX + tabID + overlay.getOverlayType().name() + ":" + overlay.getRosTopic()));
+        	Log.d("menutest", "entry value: " + mPrefs.getBoolean(TAB_PREFIX + tabID + overlay.getOverlayType().name() + ":" + overlay.getRosTopic(), true));
+        	
+        	
+        	if (overlay.isVisible()) {
+        		overlayItem.setChecked(true);
+        		Log.d("menutest", overlayItem.getTitle().toString());
+        	} else {
+        		overlayItem.setChecked(false);
+        	}
+        	overlaysMap.put(overlayItem, overlay);
+        }
+        
+        addNewOverlayMenuItem = overlayMenu.getSubMenu().add("Add overlay...");
+        
 	}
 	
 //	public void externalOnViewCreated
@@ -304,10 +354,31 @@ public class MainScreenFragment extends Fragment {
 			case R.id.tabClose:
 				dontSaveStateFlag = true;
 				return false;
-			case R.id.tmp4del:
-				new AddLayerDialog() {
-				}.show(getFragmentManager(), "add_layer");
-				return true;
+		}
+		
+		if (item == addNewOverlayMenuItem) {
+			new AddOverlayDialog() {
+				@Override
+				public void onAdd(OverlayType overlayType, String topic) {
+					AbstractOverlay overlay = overlayLayer.getOverlayRegistry().createOverlay(overlayType, topic);
+					MenuItem item = overlayMenu.getSubMenu().add(overlayType.name() + ": " + topic).setCheckable(true).setChecked(true);
+					overlayLayer.addOverlay(overlay);
+					overlaysMap.put(item, overlay);
+					overlay.setMode(AbstractOverlay.VISIBLE);
+					
+					//workaround to position the "add overlay" item at be bottom
+					addNewOverlayMenuItem.setVisible(false);
+					addNewOverlayMenuItem = overlayMenu.getSubMenu().add("Add overlay...");
+				}
+			}.show(getFragmentManager(), "add_layer");
+			return true;
+		}
+		
+		AbstractOverlay overlay = overlaysMap.get(item);
+		if (overlay != null) {
+			overlay.setMode(overlay.isVisible() ? AbstractOverlay.INVISIBLE : AbstractOverlay.VISIBLE);
+			item.setChecked(overlay.isVisible());
+			return true;
 		}
 		
 		Map map = maps.get(item);
@@ -323,7 +394,6 @@ public class MainScreenFragment extends Fragment {
 		return false;
 	}
 		
-		
 	@Override
 	public void onPause() {
 		Log.d("statemanagement", "MainScreenFragment" + tabID + ".onPause() called.");
@@ -338,6 +408,13 @@ public class MainScreenFragment extends Fragment {
 		}
 //		widgetRegistry.savePrefs(ed);
 		widgetRegistry.saveWidgetsToFile();
+		overlayLayer.getOverlayRegistry().saveOverlaysToFile();
+		
+		for (AbstractOverlay overlay : overlayLayer.getOverlayRegistry().getAllOverlays()) {
+			Log.d("menutest", "saving: " + TAB_PREFIX + tabID + overlay.getOverlayType().name() + ":" + overlay.getRosTopic() + " value:"+ overlay.isVisible());
+			ed.putBoolean(TAB_PREFIX + tabID + overlay.getOverlayType().name() + ":" + overlay.getRosTopic(), overlay.isVisible());
+		}
+		
 		ed.putBoolean(TAB_PREFIX + tabID + "_widgetbarisvisible", widgetbar_isvisible);
 		((MapLayer)getView().findViewById(R.id.mapLayer1)).savePrefs(TAB_PREFIX + tabID, ed);
 		ed.commit();
@@ -440,7 +517,7 @@ public class MainScreenFragment extends Fragment {
 //		}
 	}
 	
-	public abstract static class AddLayerDialog extends DialogFragment {
+	public abstract static class AddOverlayDialog extends DialogFragment {
 		
 		@Override
 		public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -453,18 +530,19 @@ public class MainScreenFragment extends Fragment {
 			final View view = inflater.inflate(R.layout.dialog_addlayer, null);
 			builder.setView(view);
 	
-//			//fill spinner with widget types
-//			ArrayAdapter<WidgetType> adapter = new ArrayAdapter<MapWidgetRegistry.WidgetType>(getActivity(), android.R.layout.simple_spinner_item);
-//			adapter.addAll(WidgetType.values());
-//			final Spinner spinner = (Spinner) view.findViewById(R.id.spinner1);	
-//			final TextView topicTextView = (TextView) view.findViewById(R.id.editText1);
-//			spinner.setAdapter(adapter);
+			//fill spinner with widget types
+			ArrayAdapter<OverlayType> adapter = new ArrayAdapter<OverlayType>(getActivity(), 
+					android.R.layout.simple_spinner_item);
+			adapter.addAll(OverlayType.values());
+			final Spinner spinner = (Spinner) view.findViewById(R.id.spinner1);	
+			final TextView topicTextView = (TextView) view.findViewById(R.id.editText1);
+			spinner.setAdapter(adapter);
 			
 			builder.setNegativeButton(getResources().getString(R.string.add_widget_cancelbutton), new DialogInterface.OnClickListener() {
 				
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
-					AddLayerDialog.this.getDialog().cancel();
+					AddOverlayDialog.this.getDialog().cancel();
 				}
 			});
 			
@@ -473,7 +551,7 @@ public class MainScreenFragment extends Fragment {
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
 					
-//					onAdd((WidgetType)spinner.getSelectedItem(), topicTextView.getText().toString());
+					onAdd((OverlayType)spinner.getSelectedItem(), topicTextView.getText().toString());
 				}
 			});
 			
@@ -481,7 +559,7 @@ public class MainScreenFragment extends Fragment {
 			
 		}
 		
-//		public abstract void onAdd(LayerType layerType, String topic);
+		public abstract void onAdd(OverlayType overlayType, String topic);
 		
 	}
 	

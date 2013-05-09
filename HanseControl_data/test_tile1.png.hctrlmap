@@ -1,3 +1,14 @@
 # This will be read as Java-Properties file
 name = Test Tile 1
 filepath = test_tile1.png
+
+x1_OnPose = 50
+y1_OnPose = 50
+x1_OnImage = 687
+y1_OnImage = 640
+
+x2_OnPose = 150
+y2_OnPose = 100
+x2_OnImage = 1453
+y2_OnImage = 257
+

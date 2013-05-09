@@ -90,6 +90,17 @@ public class MapManager {
 		String configPath;
 		String imagePath;
 		
+		//two points on the map and the pose to convert coordinates between them
+		float x1_OnPose;
+		float y1_OnPose;
+		int x1_OnImage;
+		int y1_OnImage;
+		
+		float x2_OnPose;
+		float y2_OnPose;
+		int x2_OnImage;
+		int y2_OnImage;
+		
 		public Map(File hctrlmapFile) throws FileNotFoundException, IOException {
 			if (hctrlmapFile == null) {
 				name = "Empty map";
@@ -102,6 +113,21 @@ public class MapManager {
 			name = prop.getProperty("name");
 			imagePath = hctrlmapFile.getParent() + File.separator + prop.getProperty("filepath");
 			configPath = hctrlmapFile.getAbsolutePath();
+			
+			try {
+				x1_OnPose= Float.parseFloat(prop.getProperty("x1_OnPose"));
+				y1_OnPose= Float.parseFloat(prop.getProperty("y1_OnPose"));
+				x1_OnImage = Integer.parseInt(prop.getProperty("x1_OnImage"));
+				y1_OnImage = Integer.parseInt(prop.getProperty("y1_OnImage"));
+				
+				x2_OnPose= Float.parseFloat(prop.getProperty("x2_OnPose"));
+				y2_OnPose= Float.parseFloat(prop.getProperty("y2_OnPose"));
+				x2_OnImage = Integer.parseInt(prop.getProperty("x2_OnImage"));
+				y2_OnImage = Integer.parseInt(prop.getProperty("y2_OnImage"));				
+			} catch (Exception e) {
+				Log.e("MapManager.Map", "Error while parsing map-pose translation data!", e);
+			}
+			
 		}
 		
 		public String getName() {
@@ -114,6 +140,38 @@ public class MapManager {
 		
 		public String getImagePath() {
 			return imagePath;
+		}
+
+		public float getX1_OnPose() {
+			return x1_OnPose;
+		}
+
+		public float getY1_OnPose() {
+			return y1_OnPose;
+		}
+
+		public int getX1_OnImage() {
+			return x1_OnImage;
+		}
+
+		public int getY1_OnImage() {
+			return y1_OnImage;
+		}
+
+		public float getX2_OnPose() {
+			return x2_OnPose;
+		}
+
+		public float getY2_OnPose() {
+			return y2_OnPose;
+		}
+
+		public int getX2_OnImage() {
+			return x2_OnImage;
+		}
+
+		public int getY2_OnImage() {
+			return y2_OnImage;
 		}
 	}
 

@@ -3,23 +3,22 @@ package de.uniluebeck.iti.hanse.hansecontrol.viewgroups;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import de.uniluebeck.iti.hanse.hansecontrol.BitmapManager;
 import de.uniluebeck.iti.hanse.hansecontrol.MainScreen;
 import de.uniluebeck.iti.hanse.hansecontrol.MainScreenFragment;
 import de.uniluebeck.iti.hanse.hansecontrol.MapManager;
+import de.uniluebeck.iti.hanse.hansecontrol.MapSurface;
 import de.uniluebeck.iti.hanse.hansecontrol.MapManager.Map;
 import de.uniluebeck.iti.hanse.hansecontrol.R;
 import android.app.FragmentManager;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.PointF;
 import android.graphics.Rect;
-import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -57,6 +56,8 @@ public class MapLayer extends SurfaceView implements SurfaceHolder.Callback{
 //	Runnable loadMapSurfacePrefsRunnable;
 	
 	private boolean mapPositionRestoredFlag = true;
+	
+	private MapLayerListener mapLayerListener;
 	
 	public MapLayer(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
@@ -167,6 +168,16 @@ public class MapLayer extends SurfaceView implements SurfaceHolder.Callback{
 		}
 		scheduleSurfaceDrawing();
 		
+		if (mapLayerListener != null) {
+			MainScreen.executorService.execute(new Runnable() {
+				
+				@Override
+				public void run() {
+					mapLayerListener.onMapSurfaceCreated(mapSurface);
+				}
+			});
+		}
+		
 //		MainScreen.executorService.execute(loadMapSurfacePrefsRunnable);
 		
 		//TODO try to replace this with scheduling task
@@ -194,6 +205,7 @@ public class MapLayer extends SurfaceView implements SurfaceHolder.Callback{
 //				}
 //			}
 //		}.start();
+		
 	}
 
 	@Override
@@ -206,6 +218,11 @@ public class MapLayer extends SurfaceView implements SurfaceHolder.Callback{
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 		// TODO Auto-generated method stub
+		
+		//TODO remove this
+//		PointF p2 = mapSurface.getPosOnPose(event.getX(), event.getY());
+//		Log.e("testttt", event.getX() + " / " + event.getY() + " is " + p2.x + " / " + p2.y);
+		
 		scaleGestureDetector.onTouchEvent(event);
 		return gestureDetector.onTouchEvent(event);
 	}
@@ -265,138 +282,21 @@ public class MapLayer extends SurfaceView implements SurfaceHolder.Callback{
 	public MapSurface getMapSurface() {
 		return mapSurface;
 	}
-}
-
-class MapSurface {
 	
-	private Map map;
-	private Bitmap image;
-	
-	private float x,y;
-	private float zoom = 1;
-	
-	private float imgWidth, imgHeight;
-	private float imgRatio; //  width / height
-	
-//	private float initViewPortX;
-	private float initViewPortX_relativeToMap; // (x+lx) / w
-//	private float initViewPortY;
-	private float initViewPortY_relativeToMap; // (y+ly) / h
-	
-	private Paint textPaint;
-	
-	public MapSurface() {
-		textPaint = new Paint();
-		textPaint.setTextSize(20);
+	public static interface MapLayerListener {
+		public void onMapSurfaceCreated(MapSurface mapSurface);
 	}
 	
-	public synchronized void setMap(Map map) {
-		this.map = map;
-		if (map != null) {
-			loadImage();
+	public void setMapLayerListener(final MapLayerListener mapLayerListener) {
+		this.mapLayerListener = mapLayerListener;
+		if (mapSurface != null) {
+			MainScreen.executorService.execute(new Runnable() {
+				
+				@Override
+				public void run() {
+					mapLayerListener.onMapSurfaceCreated(mapSurface);
+				}
+			});
 		}
-	}
-	
-	public Map getMap() {
-		return map;
-	}
-	
-	private void loadImage() {
-		image = BitmapManager.getInstance().getBitmap(map.getImagePath());
-		if (image != null) {
-			imgWidth = (float)image.getWidth();
-			imgHeight = (float)image.getHeight();
-			imgRatio = imgWidth / imgHeight;
-		}
-	}
-		
-	public synchronized void scaleToViewport(float viewportWidth, float viewportHeight) {
-		if (viewportWidth / viewportHeight < imgRatio) {
-			zoom = viewportWidth / imgWidth;
-			x = 0;
-			y = viewportHeight / 2 - getHeight() / 2; 
-		} else {
-			zoom = viewportHeight / imgHeight;
-			y = 0;
-			x = viewportWidth / 2 - getWidth() / 2;
-		}
-		Log.d("mapsurface", String.format("scaleToViewport(%f, %f): x=%f, y=%f, zoom=%f, imgWidth=%f, imgHeight=%f", 
-				viewportWidth, viewportHeight, x, y, zoom, imgWidth, imgHeight));
-	}
-	
-	public synchronized void translate(float dx, float dy) {
-		x += dx;
-		y += dy;
-	}
-	
-	public synchronized void draw(Canvas canvas) {
-		if (map == null) {
-			canvas.drawText("No Map was found in folder " + MapManager.getInstance().getMapsDir(),
-					50, 50, textPaint);
-			return;
-		}
-		if (image == null) {
-			return; //is empty map (= no map)
-		}
-		if (image.isRecycled()) {
-			loadImage();
-		}
-		canvas.drawBitmap(image, null, new RectF(x, y, x + getWidth(), y + getHeight()), null);
-	}
-	
-	public synchronized void startPinchToZoom(float initViewPortX, float initViewPortY) {
-//		this.initViewPortX = initViewPortX;
-//		this.initViewPortY = initViewPortY;
-		initViewPortX_relativeToMap = (initViewPortX - x) / getWidth();
-		initViewPortY_relativeToMap = (initViewPortY - y) / getHeight();
-	}
-	
-	public synchronized void zoom(float viewportX, float viewportY,float factor) {
-//		x -= (initViewPortX + x) * factor - viewportX;
-//		y -= (initViewPortY + y) * factor - viewportY;
-//		x += viewportX - initViewPortX;
-//		y += viewportY - initViewPortY;
-		zoom *= factor;
-		x = viewportX - initViewPortX_relativeToMap * getWidth();
-		y = viewportY - 
-				initViewPortY_relativeToMap * getHeight();
-		Log.d("multitouch", String.format("initViewPortX_relativeToMap=%f, viewportX=%f, getWidth=%f", 
-				initViewPortX_relativeToMap, viewportX, getWidth()));
-	}
-
-	public float getX() {
-		return x;
-	}
-
-	public synchronized void setX(float x) {
-		this.x = x;
-	}
-
-	public float getY() {
-		return y;
-	}
-
-	public synchronized void setY(float y) {
-		this.y = y;
-	}
-
-	public float getWidth() {
-		return imgWidth * zoom;
-	}
-
-	public float getHeight() {
-		return imgHeight * zoom;
-	}
-	
-	public float getZoom() {
-		return zoom;
-	}
-	
-	public Bitmap getImage() {
-		return image;
-	}
-	
-	public synchronized void setZoom(float zoom) {
-		this.zoom = zoom;
 	}
 }

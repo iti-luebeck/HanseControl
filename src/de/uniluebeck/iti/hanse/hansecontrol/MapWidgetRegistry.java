@@ -26,6 +26,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Environment;
+import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 
@@ -41,7 +42,7 @@ public class MapWidgetRegistry {
 	SharedPreferences mPrefs;
 	
 	
-	public final String ROS_TOPICS_CONFIG_FILE = "ros_topics.hctrlconf";
+	public static final String WIDGETS_CONFIG_FILE = "widgets.hctrlconf";
 	private int currentIDforWidget = 0;
 	private DragLayer dragLayer;
 	
@@ -59,19 +60,15 @@ public class MapWidgetRegistry {
 //		if (widgets.keySet().isEmpty()) {		
 			//read properties from default config file
 		File conf = new File(Environment.getExternalStorageDirectory()
-				.getAbsolutePath() + File.separator + MapManager.MAPS_DIR + File.separator + ROS_TOPICS_CONFIG_FILE);
+				.getAbsolutePath() + File.separator + MapManager.MAPS_DIR + File.separator + WIDGETS_CONFIG_FILE);
 		if (conf.exists()) {
 			Properties prop = new Properties();
 			try {
 				prop.load(new BufferedInputStream(new FileInputStream(conf)));
-			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				widgets = readWidgetsFromFile(prop);
+			} catch (Exception e) {
+				Log.e("mapwidgetregistry", "Error while loading widgets from file!", e);
 			}
-			widgets = readWidgetsFromFile(prop);
 		}
 //		}
 		
@@ -115,9 +112,9 @@ public class MapWidgetRegistry {
 		RosMapWidget widget = null;
 		if (widgetType == WidgetType.ROS_TEXT_WIDGET) {
 			widget = new RosTextWidget(currentIDforWidget++, context, topic, dragLayer, this, mainScreenFragment);
-			allWidgets.add(widget);
-			widget.setNode(connectedNode);
 		}
+		allWidgets.add(widget);
+		widget.setNode(connectedNode);
 		return widget;
 	}
 		
@@ -163,7 +160,7 @@ public class MapWidgetRegistry {
 	
 	public void saveWidgetsToFile() {
 		File conf = new File(Environment.getExternalStorageDirectory()
-				.getAbsolutePath() + File.separator + MapManager.MAPS_DIR + File.separator + ROS_TOPICS_CONFIG_FILE);
+				.getAbsolutePath() + File.separator + MapManager.MAPS_DIR + File.separator + WIDGETS_CONFIG_FILE);
 		Properties prop = new Properties();
 		HashMap<String, Set<String>> widgets = new HashMap<String, Set<String>>();
 		for (MapWidget w : allWidgets) {
@@ -185,12 +182,8 @@ public class MapWidgetRegistry {
 		
 		try {
 			prop.store(new BufferedOutputStream(new FileOutputStream(conf)), null);
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} catch (Exception e) {
+			Log.e("mapwidgetregistry", "Error while saving widgets to file!", e);
 		}
 	}
 	

@@ -22,6 +22,15 @@
 	        android:layout_alignParentRight="true"
 	        android:layout_alignParentTop="true" />
 
+		<de.uniluebeck.iti.hanse.hansecontrol.viewgroups.OverlayLayer
+            android:id="@+id/overlayLayer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" 
+            android:layout_alignParentBottom="true"
+	        android:layout_alignParentLeft="true"
+	        android:layout_alignParentRight="true"
+	        android:layout_alignParentTop="true" />
+        
 		<de.uniluebeck.iti.hanse.hansecontrol.viewgroups.WidgetLayer
 	        android:id="@+id/widgetLayer"
 	        android:layout_width="wrap_content"

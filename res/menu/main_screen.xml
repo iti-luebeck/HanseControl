@@ -16,27 +16,27 @@
         android:showAsAction="never"/>
     
     <item
-    android:id="@+id/layermenu"
+    android:id="@+id/overlayMenu"
     android:icon="@drawable/layer_icon"
     android:showAsAction="always"
     android:title="Chooser layers">
 	    <menu>
-	        <item
-	            android:id="@+id/tmp1del"
-	            android:title="Dummy layer 1" 
-	            android:checkable="true"/>
-	        <item
-	            android:id="@+id/tmp2del"
-	            android:title="Dummy layer 2" 
-	            android:checkable="true"/>
-	        <item
-	            android:id="@+id/tmp3del"
-	            android:title="Dummy layer 3" 
-	            android:checkable="true"/>
-	        <item
-	            android:id="@+id/tmp4del"
-	            android:title="Add layer..." 
-	            android:checkable="false"/>
+<!-- 	        <item -->
+<!-- 	            android:id="@+id/tmp1del" -->
+<!-- 	            android:title="Dummy layer 1"  -->
+<!-- 	            android:checkable="true"/> -->
+<!-- 	        <item -->
+<!-- 	            android:id="@+id/tmp2del" -->
+<!-- 	            android:title="Dummy layer 2"  -->
+<!-- 	            android:checkable="true"/> -->
+<!-- 	        <item -->
+<!-- 	            android:id="@+id/tmp3del" -->
+<!-- 	            android:title="Dummy layer 3"  -->
+<!-- 	            android:checkable="true"/> -->
+<!-- 	        <item -->
+<!-- 	            android:id="@+id/tmp4del" -->
+<!-- 	            android:title="Add layer..."  -->
+<!-- 	            android:checkable="false"/> -->
 	    </menu>
 	</item>
     
