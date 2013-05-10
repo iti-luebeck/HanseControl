@@ -157,4 +157,9 @@ public class OverlayRegistry {
 		}
 		return res;
 	}
+
+	public synchronized void deleteOverlay(AbstractOverlay overlay) {
+		allOverlays.remove(overlay);
+	}
+
 }

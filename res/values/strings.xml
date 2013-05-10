@@ -24,10 +24,10 @@
     <string name="renamedialog_cancelbutton">Cancel</string>
     <string name="renamedialog_renamebutton">Rename</string>
 
-    <string name="add_layer_title">Add Layer</string>
+    <string name="add_layer_title">Add Overlay</string>
     <string name="add_layer_cancelbutton">Cancel</string>
     <string name="add_layer_addbutton">Add</string>
-    <string name="add_layer_typedescription">Layer Type:</string>
+    <string name="add_layer_typedescription">Overlay Type:</string>
     <string name="add_layer_topicdescription">ROS Topic:</string>
     
 </resources>

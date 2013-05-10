@@ -47,9 +47,11 @@ public class OverlayLayer extends RelativeLayout {
 		overlay.setLayoutParams(params);
     }  
 
-//    public void removeOverlay(AbstractOverlay overlay) {
-//        removeView(overlay);
-//    }
+    public void deleteOverlay(AbstractOverlay overlay) {
+    	overlay.setMode(AbstractOverlay.INVISIBLE);
+        removeView(overlay);
+        overlayRegistry.deleteOverlay(overlay);
+    }
     
     public OverlayRegistry getOverlayRegistry() {
 		return overlayRegistry;

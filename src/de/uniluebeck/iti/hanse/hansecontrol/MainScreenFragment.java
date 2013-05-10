@@ -1,6 +1,8 @@
 package de.uniluebeck.iti.hanse.hansecontrol;
 
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.commons.net.smtp.RelayPath;
@@ -44,6 +46,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -94,6 +97,7 @@ public class MainScreenFragment extends Fragment {
 	//map: menu item --> AbstractOverlay
 	HashMap<MenuItem, AbstractOverlay> overlaysMap = new HashMap<MenuItem, AbstractOverlay>();
 	MenuItem addNewOverlayMenuItem;
+	MenuItem removeOverlayMenuItem;
 	MenuItem overlayMenu;
 	
 	PostConfigurationListener postConfigurationListener = null;
@@ -335,6 +339,7 @@ public class MainScreenFragment extends Fragment {
         	overlaysMap.put(overlayItem, overlay);
         }
         
+        removeOverlayMenuItem = overlayMenu.getSubMenu().add("Remove overlay...");
         addNewOverlayMenuItem = overlayMenu.getSubMenu().add("Add overlay...");
         
 	}
@@ -366,11 +371,18 @@ public class MainScreenFragment extends Fragment {
 					overlaysMap.put(item, overlay);
 					overlay.setMode(AbstractOverlay.VISIBLE);
 					
-					//workaround to position the "add overlay" item at be bottom
+					//a bit dirty workaround to position the remove- and add overlay items at be bottom
+					removeOverlayMenuItem.setVisible(false);
+					removeOverlayMenuItem = overlayMenu.getSubMenu().add("Remove overlay...");
 					addNewOverlayMenuItem.setVisible(false);
 					addNewOverlayMenuItem = overlayMenu.getSubMenu().add("Add overlay...");
 				}
 			}.show(getFragmentManager(), "add_layer");
+			return true;
+		}
+		
+		if (item == removeOverlayMenuItem) {
+			showRemoveWidgetLayerDialog();
 			return true;
 		}
 		
@@ -393,7 +405,58 @@ public class MainScreenFragment extends Fragment {
 		}
 		return false;
 	}
+	
+	private void showRemoveWidgetLayerDialog() {
+		final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+		final CharSequence[] items = new CharSequence[overlayLayer.getOverlayRegistry().getAllOverlays().size()];
+		final boolean[] itemsChecked = new boolean[items.length]; //default value is false for all entries
+		int i = 0;
+		for (AbstractOverlay overlay : overlayLayer.getOverlayRegistry().getAllOverlays()) {
+			items[i++] = overlay.getOverlayType().name() + ": " + overlay.getRosTopic();
+		}
+		builder.setTitle("Remove Overlay");
+		builder.setMultiChoiceItems(items, null, new DialogInterface.OnMultiChoiceClickListener() {
+			
+			@Override
+			public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+				itemsChecked[which] = isChecked;
+			}
+		});
+		builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+			
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				dialog.cancel();
+			}
+		});
+		builder.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+			
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				for (int i = items.length - 1; i >= 0; i--) {
+					if (itemsChecked[i]) {
+						AbstractOverlay overlay = overlayLayer.getOverlayRegistry().getAllOverlays().get(i);
+						overlayLayer.deleteOverlay(overlay);
+						//remove item from optionsmenu
+						MenuItem itemToDelete = null;
+						for (MenuItem item : overlaysMap.keySet()) {
+							if (overlaysMap.get(item) == overlay) {
+								item.setVisible(false);
+								itemToDelete = item;
+								break;
+							}
+						}
+						overlaysMap.remove(itemToDelete);
+					}
+				}
+				
+				
+			}
+		});
+		builder.create().show();
 		
+	}
+	
 	@Override
 	public void onPause() {
 		Log.d("statemanagement", "MainScreenFragment" + tabID + ".onPause() called.");
