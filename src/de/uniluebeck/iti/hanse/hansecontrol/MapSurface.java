@@ -129,10 +129,10 @@ public class MapSurface {
 		canvas.drawBitmap(image, null, new RectF(x, y, x + getWidth(), y + getHeight()), null);
 		
 		//TODO remove
-		drawMarker(getX(), getY(), canvas);
-		drawMarker(x + getWidth()-1, y + getHeight()-1, canvas);
-		PointF p1 = getPosOnViewport(50, 50);
-		drawMarker(p1.x, p1.y, canvas);
+//		drawMarker(getX(), getY(), canvas);
+//		drawMarker(x + getWidth()-1, y + getHeight()-1, canvas);
+//		PointF p1 = getPosOnViewport(50, 50);
+//		drawMarker(p1.x, p1.y, canvas);
 		
 		synchronized (listeners) {
 			for (final MapSurfaceListener listener : listeners) {
