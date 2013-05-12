@@ -1,5 +1,6 @@
 package de.uniluebeck.iti.hanse.hansecontrol.viewgroups;
 
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -122,30 +123,36 @@ public class MapLayer extends SurfaceView implements SurfaceHolder.Callback{
 		if (surfaceDrawingFuture != null) {
 			surfaceDrawingFuture.cancel(true);
 		}
-		surfaceDrawingFuture = MainScreen.executorService.schedule(new Runnable() {
-			
-			@Override
-			public void run() {
-				try{
-//					Log.d("tt", "drawing!");
-					Canvas canvas = getHolder().lockCanvas();
-//					canvas.drawBitmap(testimage, null, new Rect(0, 0, 300, 300), null);
-//					mapSurface.scaleToViewport(getWidth(), getHeight());
-					canvas.drawRect(new Rect(0,0,getWidth(), getHeight()), surfaceBackgroundPaint);
-					mapSurface.draw(canvas);
-//										canvas.drawLine(0, 0, 300, 300, paint);
-					
-					getHolder().unlockCanvasAndPost(canvas);
-					
-					Thread.sleep(0);
-					
-				} catch (InterruptedException e) {
-				} catch (Exception e) {
-					Log.d("MapSurface", "Scheduled drawing throwed exception! ", e);
-				}
+		try {
+			surfaceDrawingFuture = MainScreen.getExecutorService().schedule(new Runnable() {
 				
-			}
-		}, 0, TimeUnit.MILLISECONDS);
+				@Override
+				public void run() {
+					try{
+	//					Log.d("tt", "drawing!");
+						Canvas canvas = getHolder().lockCanvas();
+	//					canvas.drawBitmap(testimage, null, new Rect(0, 0, 300, 300), null);
+	//					mapSurface.scaleToViewport(getWidth(), getHeight());
+						canvas.drawRect(new Rect(0,0,getWidth(), getHeight()), surfaceBackgroundPaint);
+						mapSurface.draw(canvas);
+	//										canvas.drawLine(0, 0, 300, 300, paint);
+						
+						getHolder().unlockCanvasAndPost(canvas);
+						
+						Thread.sleep(0);
+						
+					} catch (InterruptedException e) {
+					} catch (Exception e) {
+						Log.d("MapSurface", "Scheduled drawing throwed exception! ", e);
+					} finally {
+						getHolder().unlockCanvasAndPost(null);
+					}
+					
+				}
+			}, 0, TimeUnit.MILLISECONDS);
+		} catch (RejectedExecutionException e) {
+			Log.e("MapLayer", "scheduleSurfaceDrawing() execution was rejected by static executor service");
+		}
 	}
 	
 	@Override
@@ -169,7 +176,7 @@ public class MapLayer extends SurfaceView implements SurfaceHolder.Callback{
 		scheduleSurfaceDrawing();
 		
 		if (mapLayerListener != null) {
-			MainScreen.executorService.execute(new Runnable() {
+			MainScreen.getExecutorService().execute(new Runnable() {
 				
 				@Override
 				public void run() {
@@ -290,7 +297,7 @@ public class MapLayer extends SurfaceView implements SurfaceHolder.Callback{
 	public void setMapLayerListener(final MapLayerListener mapLayerListener) {
 		this.mapLayerListener = mapLayerListener;
 		if (mapSurface != null) {
-			MainScreen.executorService.execute(new Runnable() {
+			MainScreen.getExecutorService().execute(new Runnable() {
 				
 				@Override
 				public void run() {
@@ -298,5 +305,9 @@ public class MapLayer extends SurfaceView implements SurfaceHolder.Callback{
 				}
 			});
 		}
+	}
+
+	public Map getMap() {
+		return mapSurface.getMap();
 	}
 }

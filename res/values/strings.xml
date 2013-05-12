@@ -5,29 +5,26 @@
     <string name="action_settings">Settings</string>
     <string name="hello_world">Hello world!</string>
     <string name="title_activity_main_screen">Hanse Control</string>
-    
     <string name="action_showhidewidgetbar_hide">Hide Widget Chooser</string>
     <string name="action_showhidewidgetbar_show">Show Widget Chooser</string>
     <string name="action_tab_create">Create tab</string>
     <string name="action_tab_close">Close tab</string>
-    
     <string name="resetsettings">Reset all</string>
-    
     <string name="add_widget_title">Add Widget</string>
     <string name="add_widget_cancelbutton">Cancel</string>
     <string name="add_widget_addbutton">Add</string>
     <string name="add_widget_typedescription">Widget Type:</string>
     <string name="add_widget_topicdescription">ROS Topic:</string>
-    
     <string name="renamedialog_text">New tab name:</string>
     <string name="renamedialog_title">Rename tab</string>
     <string name="renamedialog_cancelbutton">Cancel</string>
     <string name="renamedialog_renamebutton">Rename</string>
-
     <string name="add_layer_title">Add Overlay</string>
     <string name="add_layer_cancelbutton">Cancel</string>
     <string name="add_layer_addbutton">Add</string>
     <string name="add_layer_typedescription">Overlay Type:</string>
     <string name="add_layer_topicdescription">ROS Topic:</string>
-    
+    <string name="title_activity_image_editor">Image Editor</string>
+    <string name="title_activity_map_editor">Map Editor</string>
+
 </resources>

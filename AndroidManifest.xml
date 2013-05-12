@@ -10,29 +10,41 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
+        
         <activity android:name="org.ros.android.MasterChooser" />
-        <activity android:name="de.uniluebeck.iti.hanse.hansecontrol.MainScreen" android:label="@string/title_activity_main_screen" android:screenOrientation="landscape">
-        <intent-filter>
+        
+        <activity android:name="group.pals.android.lib.ui.filechooser.FileChooserActivity" />
+        <service android:name="group.pals.android.lib.ui.filechooser.services.LocalFileProvider" />
+        
+        <activity
+            android:name="de.uniluebeck.iti.hanse.hansecontrol.MainScreen"
+            android:label="@string/title_activity_main_screen"
+            android:screenOrientation="landscape" >
+            <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
-        </intent-filter>
+            </intent-filter>
         </activity>
         <activity
             android:name="de.uniluebeck.iti.hanse.hansecontrol.ChatterActivity"
             android:label="@string/app_name" >
-         
         </activity>
+
         <service android:name="org.ros.android.NodeMainExecutorService" />
 
-        
+        <activity
+            android:name="de.uniluebeck.iti.hanse.hansecontrol.mapeditor.MapEditor"
+            android:label="@string/title_activity_image_editor"
+            android:windowSoftInputMode="stateHidden" android:screenOrientation="landscape">
+        </activity>
     </application>
 
 </manifest>

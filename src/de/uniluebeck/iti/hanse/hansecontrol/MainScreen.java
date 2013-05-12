@@ -71,7 +71,7 @@ public class MainScreen extends RosActivity {
 	SparseArray<MainScreenFragment> fragments = new SparseArray<MainScreenFragment>();
 	
 	//global executor service which should be used to schedule tasks at any location in this Activity (and MainScreenFragment Tabs)
-	public static ScheduledExecutorService executorService;
+	private static ScheduledExecutorService executorService;
 	//TODO make sure to shutdown executorService when the app stops
 	
 	Node mainNode = new Node();
@@ -85,10 +85,6 @@ public class MainScreen extends RosActivity {
 	
 	public MainScreen() {
 		super("HanseControl", "HanseControl");
-		//start executor service
-		if (executorService == null || executorService.isShutdown()) {
-			executorService = Executors.newScheduledThreadPool(2);
-		}
 	}
 	
 	@Override
@@ -443,7 +439,7 @@ public class MainScreen extends RosActivity {
 			final View view = inflater.inflate(R.layout.dialog_renametab, null);
 			builder.setView(view);
 	
-			final TextView textView = (TextView) view.findViewById(R.id.editText1);
+			final TextView textView = (TextView) view.findViewById(R.id.mapName);
 			
 			builder.setNegativeButton(getResources().getString(R.string.renamedialog_cancelbutton), new DialogInterface.OnClickListener() {
 				
@@ -465,6 +461,13 @@ public class MainScreen extends RosActivity {
 		}
 		
 		public abstract void onRename(String newName);
+	}
+	
+	public synchronized static ScheduledExecutorService getExecutorService() {
+		if (executorService == null || executorService.isShutdown()) {
+			executorService = Executors.newScheduledThreadPool(2);
+		}
+		return executorService;
 	}
 	
 }

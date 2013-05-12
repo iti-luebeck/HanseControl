@@ -11,6 +11,7 @@ import org.ros.node.ConnectedNode;
 import de.uniluebeck.iti.hanse.hansecontrol.MapManager.Map;
 import de.uniluebeck.iti.hanse.hansecontrol.MapWidgetRegistry.WidgetType;
 import de.uniluebeck.iti.hanse.hansecontrol.OverlayRegistry.OverlayType;
+import de.uniluebeck.iti.hanse.hansecontrol.mapeditor.MapEditor;
 import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.DragLayer;
 import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.MapLayer;
 import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.OverlayLayer;
@@ -26,6 +27,7 @@ import android.app.DialogFragment;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -101,6 +103,11 @@ public class MainScreenFragment extends Fragment {
 	MenuItem overlayMenu;
 	
 	PostConfigurationListener postConfigurationListener = null;
+	
+	public static final String MAP_TO_EDIT_MESSAGE = "de.uniluebeck.iti.hanse.hansecontrol.MAP_TO_EDIT_MESSAGE";
+	
+	MenuItem editCurrentMapMenuItem;
+	MenuItem addNewMapMenuItem;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -320,6 +327,10 @@ public class MainScreenFragment extends Fragment {
         	maps.put(mapItem, map);
         }
         
+        editCurrentMapMenuItem = mapMenu.getSubMenu().add("Edit current map...");
+        addNewMapMenuItem = mapMenu.getSubMenu().add("Add new map...");
+        
+        
         overlayMenu = actionBarMenu.findItem(R.id.overlayMenu);
         
         for (AbstractOverlay overlay : overlayLayer.getOverlayRegistry().getAllOverlays()) {
@@ -359,6 +370,23 @@ public class MainScreenFragment extends Fragment {
 			case R.id.tabClose:
 				dontSaveStateFlag = true;
 				return false;
+		}
+		
+		if (item == editCurrentMapMenuItem) {
+			Intent intent = new Intent(getActivity(), MapEditor.class);
+			intent.putExtra(MAP_TO_EDIT_MESSAGE, mapLayer.getMap().getConfigPath());
+			startActivity(intent);
+		}
+		
+		if (item == addNewMapMenuItem) {
+			Intent intent = new Intent(getActivity(), MapEditor.class);
+			
+			Intent thisIntent = getActivity().getIntent();
+			getActivity().finish();
+			startActivity(thisIntent);
+			
+			
+			startActivity(intent);
 		}
 		
 		if (item == addNewOverlayMenuItem) {
@@ -536,7 +564,7 @@ public class MainScreenFragment extends Fragment {
 			ArrayAdapter<WidgetType> adapter = new ArrayAdapter<MapWidgetRegistry.WidgetType>(getActivity(), android.R.layout.simple_spinner_item);
 			adapter.addAll(WidgetType.values());
 			final Spinner spinner = (Spinner) view.findViewById(R.id.spinner1);	
-			final TextView topicTextView = (TextView) view.findViewById(R.id.editText1);
+			final TextView topicTextView = (TextView) view.findViewById(R.id.mapName);
 			spinner.setAdapter(adapter);
 			
 			builder.setNegativeButton(getResources().getString(R.string.add_widget_cancelbutton), new DialogInterface.OnClickListener() {
@@ -598,7 +626,7 @@ public class MainScreenFragment extends Fragment {
 					android.R.layout.simple_spinner_item);
 			adapter.addAll(OverlayType.values());
 			final Spinner spinner = (Spinner) view.findViewById(R.id.spinner1);	
-			final TextView topicTextView = (TextView) view.findViewById(R.id.editText1);
+			final TextView topicTextView = (TextView) view.findViewById(R.id.mapName);
 			spinner.setAdapter(adapter);
 			
 			builder.setNegativeButton(getResources().getString(R.string.add_widget_cancelbutton), new DialogInterface.OnClickListener() {

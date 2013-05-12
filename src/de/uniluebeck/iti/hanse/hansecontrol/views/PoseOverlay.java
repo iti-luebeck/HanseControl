@@ -48,7 +48,7 @@ public class PoseOverlay extends AbstractOverlay implements MessageListener<geom
 //					MapSurface.drawMarker(pos.x, pos.y, canvas);
 					Bitmap img = BitmapManager.getInstance().getBitmap(getResources(), 
 							R.drawable.position_mapicon);
-					PointF pos = getMapSurface().getPosOnViewport((float)lastPos.getX(), (float)lastPos.getY());
+					PointF pos = getMapSurface().getViewportPosFromPose((float)lastPos.getX(), (float)lastPos.getY());
 					RectF dstRect = new RectF(pos.x - img.getWidth() / 2, pos.y - img.getHeight() / 2,
 							pos.x + img.getWidth() / 2, pos.y + img.getHeight() / 2);
 					canvas.drawBitmap(img, null, dstRect, null);

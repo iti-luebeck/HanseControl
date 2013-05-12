@@ -37,6 +37,8 @@ public class MapSurface {
 	boolean poseAxisXinvert = false;
 	boolean poseAxisYinvert = false;
 	
+	String noMapHintText;
+	
 	List<MapSurfaceListener> listeners = new LinkedList<MapSurface.MapSurfaceListener>();
 	
 	public MapSurface() {
@@ -81,6 +83,10 @@ public class MapSurface {
 	
 	private void loadImage() {
 		image = BitmapManager.getInstance().getBitmap(map.getImagePath());
+		if (image == null && !map.getImagePath().isEmpty()) {
+			setNoMapHintText("The map image was not found on path: " + map.getImagePath());
+			map = null;
+		}
 		if (image != null) {
 			imgWidth = (float)image.getWidth();
 			imgHeight = (float)image.getHeight();
@@ -116,7 +122,8 @@ public class MapSurface {
 	
 	public synchronized void draw(Canvas canvas) {
 		if (map == null) {
-			canvas.drawText("No Map was found in folder " + MapManager.getInstance().getMapsDir(),
+			canvas.drawText(noMapHintText == null ? ("No Map was found in folder " 
+					+ MapManager.getInstance().getMapsDir()) : noMapHintText,
 					50, 50, textPaint);
 			return;
 		}
@@ -136,18 +143,31 @@ public class MapSurface {
 		
 		synchronized (listeners) {
 			for (final MapSurfaceListener listener : listeners) {
-				MainScreen.executorService.execute(new Runnable() {
-					
-					@Override
-					public void run() {
-						listener.mapSurfaceRedraw();
-					}
-				});
+				listener.mapSurfaceRedraw();
+//				MainScreen.getExecutorService().execute(new Runnable() {
+//					
+//					@Override
+//					public void run() {
+//						listener.mapSurfaceRedraw();
+//					}
+//				});
 			}
 		}
 	}
 	
-	public PointF getPosOnViewport(float x_onPose, float y_onPose) {
+	public PointF getViewportPosFromImagePos(float x_onImage, float y_onImage) {
+		float xRes = x_onImage * zoom + x;
+		float yRes = y_onImage * zoom + y;
+		return new PointF(xRes, yRes);
+	}
+	
+	public PointF getImagePosFromViewportPos(float x_onViewport, float y_onViewport) {
+		float xRes = (x_onViewport - x) / zoom;
+		float yRes = (y_onViewport - y) / zoom;
+		return new PointF(xRes, yRes);
+	}
+	
+	public PointF getViewportPosFromPose(float x_onPose, float y_onPose) {
 		float xRes = x + ((poseAxisXinvert ? -1 : 1) * (x_onPose / imagePoseScale) + x_PoseOriginOnImage) * zoom;
 		float yRes = y + ((poseAxisYinvert ? -1 : 1) * (y_onPose / imagePoseScale) + y_PoseOriginOnImage) * zoom;
 		return new PointF(xRes, yRes);
@@ -155,14 +175,12 @@ public class MapSurface {
 	
 	//TODO consider renaming pose to ros ?
 	
-	public PointF getPosOnPose(float x_OnViewport, float y_OnViewport) {
-		float xOnImage = (x_OnViewport - x) / zoom;
-		float yOnImage = (y_OnViewport - y) / zoom;
+	public PointF getPoseFromViewportPos(float x_onViewport, float y_onViewport) {
+		float xOnImage = (x_onViewport - x) / zoom;
+		float yOnImage = (y_onViewport - y) / zoom;
 		
-		
-		
-		float xRes = ((((x_OnViewport - x) / zoom) - x_PoseOriginOnImage) / (poseAxisXinvert ? -1 : 1)) * imagePoseScale;
-		float yRes = ((((y_OnViewport - y) / zoom) - y_PoseOriginOnImage) / (poseAxisYinvert ? -1 : 1)) * imagePoseScale;
+		float xRes = ((((x_onViewport - x) / zoom) - x_PoseOriginOnImage) / (poseAxisXinvert ? -1 : 1)) * imagePoseScale;
+		float yRes = ((((y_onViewport - y) / zoom) - y_PoseOriginOnImage) / (poseAxisYinvert ? -1 : 1)) * imagePoseScale;
 		return new PointF(xRes, yRes);
 	}
 	
@@ -173,7 +191,7 @@ public class MapSurface {
 		initViewPortY_relativeToMap = (initViewPortY - y) / getHeight();
 	}
 	
-	public synchronized void zoom(float viewportX, float viewportY,float factor) {
+	public synchronized void zoom(float viewportX, float viewportY, float factor) {
 //		x -= (initViewPortX + x) * factor - viewportX;
 //		y -= (initViewPortY + y) * factor - viewportY;
 //		x += viewportX - initViewPortX;
@@ -230,5 +248,9 @@ public class MapSurface {
 		synchronized (listeners) {
 			listeners.add(listener);
 		}
+	}
+	
+	public void setNoMapHintText(String noMapHintText) {
+		this.noMapHintText = noMapHintText;
 	}
 }

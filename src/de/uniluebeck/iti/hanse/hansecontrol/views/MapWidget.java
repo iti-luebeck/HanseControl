@@ -251,7 +251,7 @@ public class MapWidget extends BasicView {
 				removeWidgetButton.setAlpha(0);
 				fadeObjects(500, 1, removeWidgetButton);
 				removeWidgetButton.setVisibility(View.VISIBLE);
-				MainScreen.executorService.schedule(new Runnable() {
+				MainScreen.getExecutorService().schedule(new Runnable() {
 					
 					@Override
 					public void run() {
@@ -435,7 +435,7 @@ public class MapWidget extends BasicView {
 	
 	public void delayHideControls() {
 		cancelDelayedHideControls();
-		autoHideFuture = MainScreen.executorService.schedule(new Runnable() {
+		autoHideFuture = MainScreen.getExecutorService().schedule(new Runnable() {
 			
 			@Override
 			public void run() {
