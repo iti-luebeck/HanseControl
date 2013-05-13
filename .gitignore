@@ -2,6 +2,8 @@ bin/*
 android_*_mr?/
 gen/
 
+android-filechooser/code/bin/*
+
 local.properties
 build.xml
 

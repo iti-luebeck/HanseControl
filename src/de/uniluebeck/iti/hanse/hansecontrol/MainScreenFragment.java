@@ -153,6 +153,7 @@ public class MainScreenFragment extends Fragment {
 		widgetLayer = (WidgetLayer) view.findViewById(R.id.widgetLayer);
 		widgetbarLayout = (LinearLayout) view.findViewById(R.id.widgetLayout);	
 		overlayLayer = (OverlayLayer) view.findViewById(R.id.overlayLayer);
+		Log.d("statemanagement", "overLayer is " + (overlayLayer == null ? "NULL" : "not null"));
 		mapLayer = (MapLayer) view.findViewById(R.id.mapLayer1);
 		mapLayer.setMapLayerListener(new MapLayer.MapLayerListener() {
 			
@@ -294,6 +295,16 @@ public class MainScreenFragment extends Fragment {
         		}
             }
         });
+		
+		/*
+		 * This is a workaround for the following error:
+		 * The order in which onViewCreated() and onCreateOptionsMenu() is called is undetermined.
+		 * To create the overlay menu, a instance of overlayLayer is needed.
+		 * If actionBarMenu is not null the Menu instance is available, so onViewCreated was called last.
+		 */
+		if(actionBarMenu != null) {
+			initOverlayMenu();
+		}
 	}
 	
 	public void setPostConfigurationListener(
@@ -304,6 +315,7 @@ public class MainScreenFragment extends Fragment {
 	@Override
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
+        Log.d("statemanagement", "MainScreenFragment" + tabID + ".onCreateOptionsMenu");
         inflater.inflate(R.menu.main_screen, menu);
     	actionBarMenu = menu;
     	MenuItem item = actionBarMenu.findItem(R.id.showhidewidgetbar);
@@ -313,7 +325,6 @@ public class MainScreenFragment extends Fragment {
 			item.setTitle(getResources().getString(R.string.action_showhidewidgetbar_show));
 		}
 	    
-        Log.d("statemanagement", "MainScreenFragment" + tabID + ".onCreateOptionsMenu");
         
         //create maps menu        
         MenuItem mapMenu = actionBarMenu.findItem(R.id.mapmenu);
@@ -331,9 +342,23 @@ public class MainScreenFragment extends Fragment {
         addNewMapMenuItem = mapMenu.getSubMenu().add("Add new map...");
         
         
-        overlayMenu = actionBarMenu.findItem(R.id.overlayMenu);
         
-        for (AbstractOverlay overlay : overlayLayer.getOverlayRegistry().getAllOverlays()) {
+        /*
+		 * This is a workaround for the following error:
+		 * The order in which onViewCreated() and onCreateOptionsMenu() is called is undetermined.
+		 * To create the overlay menu, a instance of overlayLayer is needed.
+		 * If overlayLayer is not null the overlayLayer instance is available, so onCreateOptionsMenu() was called last.
+		 */
+		if (overlayLayer != null) {
+        	initOverlayMenu();
+        }
+        
+	}
+
+	private void initOverlayMenu() {
+		overlayMenu = actionBarMenu.findItem(R.id.overlayMenu);
+		
+		for (AbstractOverlay overlay : overlayLayer.getOverlayRegistry().getAllOverlays()) {
         	MenuItem overlayItem = overlayMenu.getSubMenu().add(
         			overlay.getOverlayType().name() + ": " + overlay.getRosTopic()).setCheckable(true);
         	Log.d("menutest", "loading: " + TAB_PREFIX + tabID + overlay.getOverlayType().name() + ":" + overlay.getRosTopic());
@@ -352,7 +377,6 @@ public class MainScreenFragment extends Fragment {
         
         removeOverlayMenuItem = overlayMenu.getSubMenu().add("Remove overlay...");
         addNewOverlayMenuItem = overlayMenu.getSubMenu().add("Add overlay...");
-        
 	}
 	
 //	public void externalOnViewCreated
