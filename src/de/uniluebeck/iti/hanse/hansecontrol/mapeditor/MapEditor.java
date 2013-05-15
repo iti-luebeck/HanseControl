@@ -87,6 +87,7 @@ public class MapEditor extends Activity {
 			@Override
 			public void onClick(View v) {
 				Intent intent = new Intent(MapEditor.this, FileChooserActivity.class);
+				intent.putExtra(FileChooserActivity._RegexFilenameFilter, "(?si).*\\.(jpg|png|jpeg)$");
 				startActivityForResult(intent, _ReqChooseFile); //see flags in android-filechooser
 			}
 		});
@@ -136,6 +137,8 @@ public class MapEditor extends Activity {
 			@Override
 			public void onClick(View v) {
 				if (saveMapData()) {
+					setResult(Activity.RESULT_OK);
+					MapManager.getInstance().reloadMapData();
 					finish();
 				}
 			}

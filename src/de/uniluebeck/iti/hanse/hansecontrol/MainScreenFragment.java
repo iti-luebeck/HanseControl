@@ -21,6 +21,7 @@ import de.uniluebeck.iti.hanse.hansecontrol.views.MapWidget;
 import de.uniluebeck.iti.hanse.hansecontrol.views.RosMapWidget;
 import de.uniluebeck.iti.hanse.hansecontrol.views.roswidgets.RosTextWidget;
 import android.app.ActionBar;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
@@ -104,10 +105,14 @@ public class MainScreenFragment extends Fragment {
 	
 	PostConfigurationListener postConfigurationListener = null;
 	
+	//request code to associate a response with its request
+	public static final int MAP_EDITOR_REQUEST = 1;
+	
 	public static final String MAP_TO_EDIT_MESSAGE = "de.uniluebeck.iti.hanse.hansecontrol.MAP_TO_EDIT_MESSAGE";
 	
 	MenuItem editCurrentMapMenuItem;
 	MenuItem addNewMapMenuItem;
+	MenuItem removeMapMenuItem;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -327,21 +332,7 @@ public class MainScreenFragment extends Fragment {
 	    
         
         //create maps menu        
-        MenuItem mapMenu = actionBarMenu.findItem(R.id.mapmenu);
-        
-        for (Map map : MapManager.getInstance().getMaps()) {
-        	MenuItem mapItem = mapMenu.getSubMenu().add(map.getName()).setCheckable(true);
-        	if (map.getConfigPath().equals(mPrefs.getString(TAB_PREFIX + tabID
-        			+ MapLayer.MAP_LAYER_PREFIX + "-currentmap", ""))) {
-        		 mapItem.setChecked(true);
-        	}
-        	maps.put(mapItem, map);
-        }
-        
-        editCurrentMapMenuItem = mapMenu.getSubMenu().add("Edit current map...");
-        addNewMapMenuItem = mapMenu.getSubMenu().add("Add new map...");
-        
-        
+        initMapMenu();
         
         /*
 		 * This is a workaround for the following error:
@@ -355,6 +346,23 @@ public class MainScreenFragment extends Fragment {
         
 	}
 
+	private void initMapMenu() {
+		MenuItem mapMenu = actionBarMenu.findItem(R.id.mapmenu);
+        
+        for (Map map : MapManager.getInstance().getMaps()) {
+        	MenuItem mapItem = mapMenu.getSubMenu().add(map.getName()).setCheckable(true);
+        	if (map.getConfigPath().equals(mPrefs.getString(TAB_PREFIX + tabID
+        			+ MapLayer.MAP_LAYER_PREFIX + "-currentmap", ""))) {
+        		 mapItem.setChecked(true);
+        	}
+        	maps.put(mapItem, map);
+        }
+        
+        editCurrentMapMenuItem = mapMenu.getSubMenu().add("Edit current map...");
+        removeMapMenuItem = mapMenu.getSubMenu().add("Remove map...");
+        addNewMapMenuItem = mapMenu.getSubMenu().add("Add new map...");
+	}
+
 	private void initOverlayMenu() {
 		overlayMenu = actionBarMenu.findItem(R.id.overlayMenu);
 		
@@ -364,7 +372,6 @@ public class MainScreenFragment extends Fragment {
         	Log.d("menutest", "loading: " + TAB_PREFIX + tabID + overlay.getOverlayType().name() + ":" + overlay.getRosTopic());
         	Log.d("menutest", "entry exists: " + mPrefs.contains(TAB_PREFIX + tabID + overlay.getOverlayType().name() + ":" + overlay.getRosTopic()));
         	Log.d("menutest", "entry value: " + mPrefs.getBoolean(TAB_PREFIX + tabID + overlay.getOverlayType().name() + ":" + overlay.getRosTopic(), true));
-        	
         	
         	if (overlay.isVisible()) {
         		overlayItem.setChecked(true);
@@ -399,18 +406,12 @@ public class MainScreenFragment extends Fragment {
 		if (item == editCurrentMapMenuItem) {
 			Intent intent = new Intent(getActivity(), MapEditor.class);
 			intent.putExtra(MAP_TO_EDIT_MESSAGE, mapLayer.getMap().getConfigPath());
-			startActivity(intent);
+			startActivityForResult(intent, MAP_EDITOR_REQUEST);
 		}
 		
 		if (item == addNewMapMenuItem) {
 			Intent intent = new Intent(getActivity(), MapEditor.class);
-			
-			Intent thisIntent = getActivity().getIntent();
-			getActivity().finish();
-			startActivity(thisIntent);
-			
-			
-			startActivity(intent);
+			startActivityForResult(intent, MAP_EDITOR_REQUEST);
 		}
 		
 		if (item == addNewOverlayMenuItem) {
@@ -432,6 +433,11 @@ public class MainScreenFragment extends Fragment {
 			}.show(getFragmentManager(), "add_layer");
 			return true;
 		}
+
+		if (item == removeMapMenuItem) {
+			showRemoveMapDialog();
+			return true;
+		}
 		
 		if (item == removeOverlayMenuItem) {
 			showRemoveWidgetLayerDialog();
@@ -451,11 +457,92 @@ public class MainScreenFragment extends Fragment {
 				i.setChecked(false);
 			}
 			item.setChecked(true);
-			MapManager.getInstance().recycleAllMapImages();
-			((MapLayer) getView().findViewById(R.id.mapLayer1)).setMap(map);
+			MapManager.getInstance().recycleAllMapImages();	
+			mapLayer.setMap(map);
+			editCurrentMapMenuItem.setVisible(true);
+			//if empty map, disable the edit map item
+			if (map.getConfigPath().isEmpty()) {
+				editCurrentMapMenuItem.setVisible(false);
+			}
 			return true;
 		}
 		return false;
+	}
+	
+	private void showRemoveMapDialog() {
+		final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+		//empty map cannot be deleted, therefore -1
+		final CharSequence[] items = new CharSequence[maps.size() - 1];
+		final Map[] mapArr = new Map[items.length];
+		final MenuItem[] menuItems = new MenuItem[items.length];
+		final boolean[] itemsChecked = new boolean[items.length]; //default value is false for all entries
+		int i = 0;
+		for (MenuItem item : maps.keySet()) {
+			Map map = maps.get(item);
+			if (!map.getConfigPath().isEmpty()) {
+				items[i] = map.getName();
+				mapArr[i] = map;
+				menuItems[i] = item;
+				i += 1;
+			}
+		}
+		builder.setTitle("Remove Map");
+		builder.setMultiChoiceItems(items, null, new DialogInterface.OnMultiChoiceClickListener() {
+			
+			@Override
+			public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+				itemsChecked[which] = isChecked;
+			}
+		});
+		builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+			
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				dialog.cancel();
+			}
+		});
+		builder.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+			
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				for (int i = items.length - 1; i >= 0; i--) {
+					if (itemsChecked[i]) {
+						Map mapToDelete = mapArr[i];
+						if (mapToDelete == mapLayer.getMap()) {
+							mapLayer.setMap(MapManager.getInstance().getEmptyMap());
+							editCurrentMapMenuItem.setVisible(false);
+							for (MenuItem item : maps.keySet()) {
+								if (maps.get(item) == MapManager.getInstance().getEmptyMap()) {
+									item.setChecked(true);
+									break;
+								}
+							}
+						}
+						MapManager.getInstance().deleteMap(mapToDelete);
+						menuItems[i].setVisible(false);
+						maps.remove(menuItems[i]);
+					}
+				}
+			}
+		});
+		builder.create().show();
+		
+	}
+
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+		if (requestCode == MAP_EDITOR_REQUEST && resultCode == Activity.RESULT_OK) {
+			//refresh all items in the maps menu
+			for (MenuItem item : maps.keySet()) {
+				item.setVisible(false);
+			}
+			editCurrentMapMenuItem.setVisible(false);
+			addNewMapMenuItem.setVisible(false);
+			removeMapMenuItem.setVisible(false);
+			maps.clear();
+			initMapMenu();
+			mapLayer.setMap(mapLayer.getMap()); //forces a refresh of the map image
+		}
 	}
 	
 	private void showRemoveWidgetLayerDialog() {

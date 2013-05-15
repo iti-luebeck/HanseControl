@@ -259,4 +259,17 @@ public class MapManager {
 	public Map getEmptyMap() {
 		return emptyMap;
 	}
+
+	public void deleteMap(Map mapToDelete) {
+		//remove instance from list
+		maps.remove(mapToDelete);
+		//remove .hctrlmap config file
+		String fileToDelete = mapToDelete.getConfigPath();
+		if (fileToDelete.endsWith(MAPCONFIG_EXTENSION)) {
+			//file is a .hctrlmap
+			new File(fileToDelete).delete();
+		} else {
+			Log.e("MapManager", "Internal error: map config path did not end with " + MAPCONFIG_EXTENSION);
+		}
+	}
 }
