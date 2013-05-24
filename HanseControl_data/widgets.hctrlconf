@@ -5,7 +5,11 @@
 #Topic2 = WIDGET_TYPE2, OVERLAY_TYPE2, WIDGET_TYPE3, ...
 
 #Currently available widgets and overlays are:
-#ROS_TEXT_WIDGET - a widget to display plain text
+#TODO
 
-chatter = ROS_TEXT_WIDGET
-/hanse/langer/topic/name = ROS_TEXT_WIDGET
+/hanse/pressure/depth = ROS_PLOT_WIDGET__PRESSURE
+/hanse/motors/left = ROS_PLOT_WIDGET__SOLLSPEED
+/hanse/motors/right = ROS_PLOT_WIDGET__SOLLSPEED
+/hanse/motors/up = ROS_PLOT_WIDGET__SOLLSPEED
+/hanse/pid/depth/input = ROS_PLOT_WIDGET__FLOAT64
+

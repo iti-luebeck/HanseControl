@@ -24,6 +24,8 @@ import de.uniluebeck.iti.hanse.hansecontrol.views.AbstractOverlay;
 import de.uniluebeck.iti.hanse.hansecontrol.views.MapWidget;
 import de.uniluebeck.iti.hanse.hansecontrol.views.PoseOverlay;
 import de.uniluebeck.iti.hanse.hansecontrol.views.RosMapWidget;
+//import de.uniluebeck.iti.hanse.hansecontrol.views.WallDetectionOverlay;
+import de.uniluebeck.iti.hanse.hansecontrol.views.WallDetectionOverlay;
 
 
 public class OverlayRegistry {
@@ -69,7 +71,7 @@ public class OverlayRegistry {
     }
     
     public static enum OverlayType {
-		POSE_OVERLAY
+		POSE_OVERLAY, WALL_DETECTION_OVERLAY
 	}
     
     public synchronized void setNode(ConnectedNode node) {
@@ -90,6 +92,8 @@ public class OverlayRegistry {
     	AbstractOverlay overlay = null;
     	if (overlayType == OverlayType.POSE_OVERLAY) {
     		overlay = new PoseOverlay(context, topic);
+    	} else if (overlayType == OverlayType.WALL_DETECTION_OVERLAY) {
+    		overlay = new WallDetectionOverlay(context, topic);
     	}
     	allOverlays.add(overlay);
 		if (connectedNode != null) {

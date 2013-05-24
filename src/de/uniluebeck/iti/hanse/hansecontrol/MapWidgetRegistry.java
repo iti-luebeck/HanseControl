@@ -1,5 +1,8 @@
 package de.uniluebeck.iti.hanse.hansecontrol;
 
+import hanse_msgs.pressure;
+import hanse_msgs.sollSpeed;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -16,10 +19,14 @@ import java.util.Set;
 
 import org.ros.node.ConnectedNode;
 
+import std_msgs.Float64;
+
 import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.DragLayer;
 import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.WidgetLayer;
 import de.uniluebeck.iti.hanse.hansecontrol.views.MapWidget;
 import de.uniluebeck.iti.hanse.hansecontrol.views.RosMapWidget;
+import de.uniluebeck.iti.hanse.hansecontrol.views.roswidgets.RosImageWidget;
+import de.uniluebeck.iti.hanse.hansecontrol.views.roswidgets.RosPlotWidget;
 import de.uniluebeck.iti.hanse.hansecontrol.views.roswidgets.RosTextWidget;
 
 import android.content.Context;
@@ -76,7 +83,11 @@ public class MapWidgetRegistry {
 		
 		for (String topic : widgets.keySet()) {
 			for (String widgetType : widgets.get(topic)) {
-				createWidget(WidgetType.valueOf(widgetType), topic);
+				try {
+					createWidget(WidgetType.valueOf(widgetType), topic);
+				} catch (Exception e) {
+					Log.e("mapwidgetregistry", "Error while creating widget type " + widgetType + " with topic " + topic);
+				}
 			}
 		}
 		
@@ -112,7 +123,63 @@ public class MapWidgetRegistry {
 		RosMapWidget widget = null;
 		if (widgetType == WidgetType.ROS_TEXT_WIDGET) {
 			widget = new RosTextWidget(currentIDforWidget++, context, topic, dragLayer, this, mainScreenFragment);
-		}
+		} else if (widgetType == WidgetType.ROS_IMAGE_WIDGET) {
+			widget = new RosImageWidget(currentIDforWidget++, context, topic, dragLayer, this, mainScreenFragment);
+		} else if (widgetType == WidgetType.ROS_PLOT_WIDGET__PRESSURE) {
+			widget = new RosPlotWidget<hanse_msgs.pressure>(currentIDforWidget++, context, topic, dragLayer, this, mainScreenFragment) {
+
+				@Override
+				public String getDataTypeString() {
+					return hanse_msgs.pressure._TYPE;
+				}
+
+				@Override
+				public float getValue(pressure msg) {
+					return msg.getData();
+				}
+				
+				@Override
+				public WidgetType getWidgetType() {
+					return WidgetType.ROS_PLOT_WIDGET__PRESSURE;
+				}
+			};
+		} else if (widgetType == WidgetType.ROS_PLOT_WIDGET__SOLLSPEED) {
+			widget = new RosPlotWidget<hanse_msgs.sollSpeed>(currentIDforWidget++, context, topic, dragLayer, this, mainScreenFragment) {
+
+				@Override
+				public String getDataTypeString() {
+					return hanse_msgs.sollSpeed._TYPE;
+				}
+
+				@Override
+				public float getValue(sollSpeed msg) {
+					return msg.getData();
+				}
+				
+				@Override
+				public WidgetType getWidgetType() {
+					return WidgetType.ROS_PLOT_WIDGET__SOLLSPEED;
+				}
+			};
+		} else if (widgetType == WidgetType.ROS_PLOT_WIDGET__FLOAT64) {
+			widget = new RosPlotWidget<std_msgs.Float64>(currentIDforWidget++, context, topic, dragLayer, this, mainScreenFragment) {
+
+				@Override
+				public String getDataTypeString() {
+					return std_msgs.Float64._TYPE;
+				}
+
+				@Override
+				public float getValue(Float64 msg) {
+					return (float) msg.getData();
+				}
+				
+				@Override
+				public WidgetType getWidgetType() {
+					return WidgetType.ROS_PLOT_WIDGET__FLOAT64;
+				}
+			};
+		} 
 		allWidgets.add(widget);
 		widget.setNode(connectedNode);
 		return widget;
@@ -217,6 +284,7 @@ public class MapWidgetRegistry {
 	}
 	
 	public List<MapWidget> getAllWidgets() {
+		
 		return allWidgets;
 	}
 	
@@ -230,7 +298,11 @@ public class MapWidgetRegistry {
 	}
 	
 	public static enum WidgetType {
-		ROS_TEXT_WIDGET
+		ROS_TEXT_WIDGET, 
+		ROS_IMAGE_WIDGET, 
+		ROS_PLOT_WIDGET__PRESSURE, 
+		ROS_PLOT_WIDGET__SOLLSPEED, 
+		ROS_PLOT_WIDGET__FLOAT64
 	}
 	
 	public RosMapWidget getRosMapWidget(String topic, WidgetType widgetType) {

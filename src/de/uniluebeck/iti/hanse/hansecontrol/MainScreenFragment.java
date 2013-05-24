@@ -114,6 +114,8 @@ public class MainScreenFragment extends Fragment {
 	MenuItem addNewMapMenuItem;
 	MenuItem removeMapMenuItem;
 	
+	RosRobot rosRobot;	
+	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		Log.d("statemanagement", "MainScreenFragment" + tabID + ".onCreate() called.");
@@ -148,6 +150,7 @@ public class MainScreenFragment extends Fragment {
 	public void setNode(ConnectedNode node) {
 		widgetRegistry.setNode(node);
 		overlayLayer.getOverlayRegistry().setNode(node);
+		RosRobot.getInstance().setNode(node);
 	}
 	
 	@Override
@@ -177,14 +180,18 @@ public class MainScreenFragment extends Fragment {
 		final HorizontalScrollView widgetbarLayoutScroll = (HorizontalScrollView) view.findViewById(R.id.horizontalScrollView1);
 		final DragLayer dragLayer = (DragLayer) view.findViewById(R.id.dragLayer1);
 		
+		//TODO change static topic!
+		
 		widgetRegistry = new MapWidgetRegistry(view.getContext(), dragLayer, mPrefs, this);
 		((MainScreen)getActivity()).addNodeConnectedListener(new MainScreen.NodeConnectedListener() {
 			
 			@Override
 			public void onNodeConnected(ConnectedNode node) {
-				setNode(node);			
+				setNode(node);
 			}
 		});
+		
+		
 		
 		//add widgets
 		for (int i = 0; i < widgetRegistry.getAllWidgets().size(); i++) {

@@ -20,6 +20,7 @@ import de.uniluebeck.iti.hanse.hansecontrol.MapSurface;
 import de.uniluebeck.iti.hanse.hansecontrol.R;
 import de.uniluebeck.iti.hanse.hansecontrol.OverlayRegistry.OverlayType;
 
+
 public class PoseOverlay extends AbstractOverlay implements MessageListener<geometry_msgs.PoseStamped> {
 
 	String topic;
@@ -91,7 +92,7 @@ public class PoseOverlay extends AbstractOverlay implements MessageListener<geom
 	@Override
 	public void onNewMessage(PoseStamped pose) {
 		// TODO Auto-generated method stub
-		Log.d("poseoverlay", "Pose reveiced: x:" + pose.getPose().getPosition().getX() + " y:" + pose.getPose().getPosition().getY());
+//		Log.d("poseoverlay", "Pose reveiced: x:" + pose.getPose().getPosition().getX() + " y:" + pose.getPose().getPosition().getY());
 		lastPos = pose.getPose().getPosition();
 		redraw();
 	}
