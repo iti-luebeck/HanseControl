@@ -60,6 +60,8 @@ public class MapLayer extends SurfaceView implements SurfaceHolder.Callback{
 	
 	private MapLayerListener mapLayerListener;
 	
+	private OnLongPressListener onLongPressListener;
+	
 	public MapLayer(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
 		init();
@@ -92,7 +94,15 @@ public class MapLayer extends SurfaceView implements SurfaceHolder.Callback{
 				scheduleSurfaceDrawing();
 				return true;
 			}
+			
+			@Override
+			public void onLongPress(MotionEvent e) {
+				if (onLongPressListener != null) {
+					onLongPressListener.onLongPress(e);
+				}
+			}
 		});
+		
 		scaleGestureDetector = new ScaleGestureDetector(getContext(), new ScaleGestureDetector.SimpleOnScaleGestureListener() {
 			@Override
 			public boolean onScaleBegin(ScaleGestureDetector detector) {
@@ -232,6 +242,7 @@ public class MapLayer extends SurfaceView implements SurfaceHolder.Callback{
 		
 		scaleGestureDetector.onTouchEvent(event);
 		return gestureDetector.onTouchEvent(event);
+		
 	}
 	
 	public void setMap(Map map) {
@@ -309,5 +320,13 @@ public class MapLayer extends SurfaceView implements SurfaceHolder.Callback{
 
 	public Map getMap() {
 		return mapSurface.getMap();
+	}
+	
+	public interface OnLongPressListener {
+		public void onLongPress(MotionEvent event);
+	}
+	
+	public void setOnLongPressListener(OnLongPressListener onLongPressListener) {
+		this.onLongPressListener = onLongPressListener;
 	}
 }

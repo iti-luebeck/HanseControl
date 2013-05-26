@@ -15,6 +15,7 @@ import de.uniluebeck.iti.hanse.hansecontrol.mapeditor.MapEditor;
 import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.DragLayer;
 import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.MapLayer;
 import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.OverlayLayer;
+import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.PathLayer;
 import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.WidgetLayer;
 import de.uniluebeck.iti.hanse.hansecontrol.views.AbstractOverlay;
 import de.uniluebeck.iti.hanse.hansecontrol.views.MapWidget;
@@ -39,6 +40,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.SubMenu;
 import android.view.View;
 import android.view.ViewGroup;
@@ -80,6 +82,7 @@ public class MainScreenFragment extends Fragment {
 	
 	OverlayLayer overlayLayer;
 	MapLayer mapLayer;
+	PathLayer pathLayer;
 	
 	//tab ID of this Tab
 	private int tabID = -1;
@@ -113,9 +116,7 @@ public class MainScreenFragment extends Fragment {
 	MenuItem editCurrentMapMenuItem;
 	MenuItem addNewMapMenuItem;
 	MenuItem removeMapMenuItem;
-	
-	RosRobot rosRobot;	
-	
+		
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		Log.d("statemanagement", "MainScreenFragment" + tabID + ".onCreate() called.");
@@ -168,8 +169,11 @@ public class MainScreenFragment extends Fragment {
 			@Override
 			public void onMapSurfaceCreated(MapSurface mapSurface) {
 				overlayLayer.getOverlayRegistry().setMapSurface(mapSurface);
+				pathLayer.setMapSurface(mapLayer.getMapSurface());
 			}
 		});
+		pathLayer = (PathLayer) view.findViewById(R.id.pathLayer);
+		
 		
 		for (AbstractOverlay overlay : overlayLayer.getOverlayRegistry().getAllOverlays()) {
 			overlay.setMode( mPrefs.getBoolean(TAB_PREFIX + tabID 
@@ -317,6 +321,15 @@ public class MainScreenFragment extends Fragment {
 		if(actionBarMenu != null) {
 			initOverlayMenu();
 		}
+		
+		//direct onLongPress from MapLayer to PathLayer
+		mapLayer.setOnLongPressListener(new MapLayer.OnLongPressListener() {
+			
+			@Override
+			public void onLongPress(MotionEvent event) {
+				pathLayer.onLongPress(event);
+			}
+		});
 	}
 	
 	public void setPostConfigurationListener(
@@ -617,7 +630,9 @@ public class MainScreenFragment extends Fragment {
 		}
 //		widgetRegistry.savePrefs(ed);
 		widgetRegistry.saveWidgetsToFile();
+		widgetRegistry.unsubscribeAll();
 		overlayLayer.getOverlayRegistry().saveOverlaysToFile();
+		overlayLayer.getOverlayRegistry().unsubscribeAll();
 		
 		for (AbstractOverlay overlay : overlayLayer.getOverlayRegistry().getAllOverlays()) {
 			Log.d("menutest", "saving: " + TAB_PREFIX + tabID + overlay.getOverlayType().name() + ":" + overlay.getRosTopic() + " value:"+ overlay.isVisible());

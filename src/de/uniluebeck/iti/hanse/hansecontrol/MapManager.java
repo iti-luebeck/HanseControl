@@ -58,7 +58,7 @@ public class MapManager {
 					Log.d("MapManager", String.format("New Map added! Name: %s, Image: %s", 
 							map.getName(), map.getConfigPath()));
 				} catch(Exception e) {
-					Log.e("MapManager", "Error while decoding map config file: " + f.getAbsolutePath(), e);
+					Log.e("MapManager", "Error while decoding map config file: " + f.getAbsolutePath());
 				}
 			}
 		}
@@ -144,7 +144,7 @@ public class MapManager {
 				x2_OnImage = Integer.parseInt(prop.getProperty("x2_OnImage"));
 				y2_OnImage = Integer.parseInt(prop.getProperty("y2_OnImage"));				
 			} catch (Exception e) {
-				Log.e("MapManager.Map", "Error while parsing map-pose translation data!", e);
+				Log.e("MapManager.Map", "Error while parsing map-pose translation data!");
 			}
 		}
 

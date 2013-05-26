@@ -316,4 +316,13 @@ public class MapWidgetRegistry {
 		}
 		return null;
 	}
+
+	public void unsubscribeAll() {
+		for (MapWidget w : allWidgets) {
+			if (w instanceof RosMapWidget) {
+				RosMapWidget rw = (RosMapWidget) w;
+				rw.unsubscribe(connectedNode);
+			}
+		}
+	}
 }

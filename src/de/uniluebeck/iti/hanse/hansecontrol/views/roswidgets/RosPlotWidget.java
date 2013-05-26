@@ -181,12 +181,21 @@ public abstract class RosPlotWidget<T> extends RosMapWidget implements MessageLi
 
 	//TODO change this
 	boolean decodingInProgress = false;
+	long lastdraw = System.currentTimeMillis();
 
 	@Override
 	public void onNewMessage(final T msg) {
-		Log.d("plotwidget", getValue(msg) + "");
-		plotView.addValue(getValue(msg));
-		redraw();
+//		Log.d("plotwidget", getValue(msg) + "");
+		MainScreen.getExecutorService().execute(new Runnable() {
+			@Override
+			public void run() {
+				plotView.addValue(getValue(msg));				
+				if (System.currentTimeMillis() - lastdraw > 500) { //TODO schedule drawing instead
+					redraw();
+					lastdraw = System.currentTimeMillis();
+				}
+			}
+		});
 	}
 	
 //	@Override
@@ -269,13 +278,16 @@ class PlotView extends View {
 					//value constants
 					int topBottomPadding = 20;
 					float valueRange = maxValue - minValue;
-					int vHeight = 720; //estimated maximum display size
+					int vHeight = getHeight() - topBottomPadding * 2;
 					float valueFactor = vHeight / (float) valueRange;
 					
 					//time constants
 					long timeRange = maxTime - minTime;
-					int vWidth = 1280; //estimated maximum display size
+					int vWidth = getWidth();
 					float timeFactor = vWidth / (float) timeRange;
+					
+					//minimum distance for two points to be merged
+					float distance = 4;
 					
 					//iterate over data
 					for (int i = values.size() - 1; i >= 1 ; i--) {
@@ -284,7 +296,7 @@ class PlotView extends View {
 						float x2 = ((times.get(i-1) - minTime) * timeFactor); 
 						float y2 = vHeight - ((values.get(i-1) - minValue) * valueFactor) + topBottomPadding;
 						
-						if (Math.abs(x1 - x2) < 5 && Math.abs(y1 - y2) < 5) {
+						if (Math.abs(x1 - x2) < distance && Math.abs(y1 - y2) < distance) {
 							//merge data points
 							times.set(i, (times.get(i) + times.get(i-1)) / 2);
 							values.set(i, ((values.get(i) + values.get(i-1)) / 2));
@@ -347,13 +359,17 @@ class PlotView extends View {
 				drawText(0 + 3, getHeight() - 3, text, BOTTOM_LEFT, canvas);
 			}
 		}
-		Log.d("plotwidget", "Datapoints: " + values.size());
+//		Log.d("plotwidget", "Datapoints: " + values.size());
 		//draw max value text
 		String text = "max: " + maxValue;
 		drawText(getWidth() - 1 - 3, 3, text, TOP_RIGHT, canvas);
 		//draw max time / min value text		
 		text = dateFormatter.format(new Date(maxTime)) + " / min: " + minValue;
 		drawText(getWidth() - 1 - 3, getHeight() - 3, text, BOTTOM_RIGHT, canvas);
+		
+		//draw debug info (values count)
+		text = "values: " + values.size();
+		drawText(3, 3, text, TOP_LEFT, canvas);
 	}
 	
 	private void drawText(float x, float y, String text, int alignTo, Canvas canvas) {

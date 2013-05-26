@@ -166,4 +166,10 @@ public class OverlayRegistry {
 		allOverlays.remove(overlay);
 	}
 
+	public void unsubscribeAll() {
+		for (AbstractOverlay overlay : allOverlays) {
+			overlay.unsubscribe(connectedNode);
+		}
+	}
+
 }
