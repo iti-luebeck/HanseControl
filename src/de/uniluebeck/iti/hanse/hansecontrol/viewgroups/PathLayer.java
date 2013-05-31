@@ -5,7 +5,9 @@ import geometry_msgs.Point;
 import java.util.LinkedList;
 import java.util.List;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -46,7 +48,7 @@ public class PathLayer extends RelativeLayout {
 	RosRobot rosRobot;
 	MapSurface mapSurface;
 	
-	boolean drawLastLineFlag = true;
+	
 //	boolean firstrun = true;
 	
 	public PathLayer(Context context, AttributeSet attrs, int defStyle) {
@@ -72,13 +74,17 @@ public class PathLayer extends RelativeLayout {
     		@Override
     		protected void onDraw(Canvas canvas) {
     			if (rosRobot.getPosition() != null && mapSurface != null && !targetPath.isEmpty()
-    					&& !(!drawLastLineFlag && targetPath.size() == 1)) {
+    					&& !targetPath.get(0).getAnimationInProgress()) {
 					PointF rosRp = rosRobot.getPosition();
 					PointF rp = mapSurface.getViewportPosFromPose(rosRp.x, rosRp.y);
 					PointF tp = targetPath.get(0).getPos();
 					canvas.drawLine(rp.x, rp.y, tp.x, tp.y, linePaint);
 				}
-				for (int i = 0; i < targetPath.size() + (drawLastLineFlag ? -1 : -2); i++) {
+				for (int i = 0; i < targetPath.size() - 1; i++) {
+					if (targetPath.get(i).getAnimationInProgress()
+							|| targetPath.get(i + 1).getAnimationInProgress()) {
+						continue;
+					}
 					PointF from = targetPath.get(i).getPos();
 					PointF to = targetPath.get(i + 1).getPos();
 					canvas.drawLine(from.x, from.y, to.x, to.y, linePaint);
@@ -107,7 +113,22 @@ public class PathLayer extends RelativeLayout {
 				drawView.invalidate();
 			}
 		});
+//		MainScreen.getExecutorService().execute(new Runnable() {
+//			
+//			@Override
+//			public void run() {
+//				try {
+//					Thread.sleep(2000);
+//				} catch (InterruptedException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
+//			}
+//		});
+		Log.d("err", "before loading");
 		loadTargets();
+		Log.d("err", "after loading");
+		
     }
  
 //    private void loadTargetPositions(List<Target> tl) {
@@ -122,11 +143,35 @@ public class PathLayer extends RelativeLayout {
 
 	private void loadTargets() {
 		//load targets
-		for (Target t : targetPath) {
-			if (t.getParent() != null) {
-				((PathLayer) t.getParent()).removeView(t);
-			}
-			addView(t);
+		List<Target> oldTargetPath = targetPath;
+		targetPath = new LinkedList<Target>();
+		for (final Target t : oldTargetPath) {
+			final Target target = createNewTargetInstance();
+			targetPath.add(target);
+			target.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener()
+	        {
+	            @Override
+	            public void onGlobalLayout()
+	            {
+	            	Log.d("err", "layoutlistener start, mapsuface == null is " + (mapSurface == null));
+	            	target.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+	            	if (mapSurface != null && t.getRosPos() != null) {
+	            		try {
+	            		PointF pos = mapSurface.getViewportPosFromPose(t.getRosPos().x, t.getRosPos().y);
+	            		target.setRosPos(t.getRosPos());
+	            		setTargetPos(target, pos.x, pos.y);
+	            		} catch (Exception e) {
+							Log.d("err", "" + (t.getRosPos() == null));
+						}
+	            	} else {
+	            		target.setRosPos(t.getRosPos());
+	            		target.setWaitForMapSurfaceFlag(true);
+	            	}
+	            	target.setAnimationInProgress(false);
+	            	Log.d("err", "layoutlistener end");
+	            }
+	        });
+			
 		}
 		invalidate();
 	}
@@ -181,15 +226,20 @@ public class PathLayer extends RelativeLayout {
     	addTarget(event.getX(), event.getY());
     }
     
-    public synchronized Target addTarget(final float x, final float y) {
-		Bitmap image = BitmapManager.getInstance().getBitmap(getResources(), R.drawable.target_mapicon);
-		final Target target = new Target(getContext(), image);
-		addView(target);
+    private Target createNewTargetInstance() {
+    	Bitmap image = BitmapManager.getInstance().getBitmap(getResources(), R.drawable.target_mapicon);
+    	Target target = new Target(getContext(), image);
+    	addView(target);
 		target.setVisibility(View.INVISIBLE);
 		RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) target.getLayoutParams();
 		params.width = image.getWidth();
 		params.height = image.getHeight();
 		target.setLayoutParams(params);
+    	return target;
+    }
+    
+    public synchronized Target addTarget(final float x, final float y) {
+    	final Target target = createNewTargetInstance();
 //		if (target.getWidth() == 0) {
 			//addTarget was called before layout finished
 			target.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener()
@@ -199,7 +249,7 @@ public class PathLayer extends RelativeLayout {
 	            {
 	            	target.getViewTreeObserver().removeGlobalOnLayoutListener(this);
 	            	setTargetPos(target, x, y);
-	            	drawLastLineFlag = false;
+	            	target.setAnimationInProgress(true);
             		target.post(new Runnable() {
 	    				@Override
 	    				public void run() {
@@ -213,15 +263,17 @@ public class PathLayer extends RelativeLayout {
 								
 								@Override
 								public void onAnimationEnd(Animation animation) {
-									drawLastLineFlag = true;
+									target.setAnimationInProgress(false);
 									drawView.invalidate();
 								}
 							});
-	    					
 	    				}
 	    			});
+            		Log.d("err", "addtarget after posting runnable, mapsuface == null is " + (mapSurface == null));
             		if (mapSurface != null) {
+            			Log.d("err", "setting ros pos start");
     					target.setRosPos(mapSurface.getPoseFromViewportPos(x, y));
+    					Log.d("err", "setting ros pos end");
     				}
 	            }
 	        });
@@ -252,8 +304,14 @@ public class PathLayer extends RelativeLayout {
     	return targetPath;
     }	
     
-    public void setTargetPos(final Target target, final float x, final float y) {
-		final float left = x - target.getWidth() / 2;
+    public void setTargetPos(final Target target, float x, float y) {
+		Log.d("err", "setting target pos x=" + x + " y=" + y);
+    	if (x == Float.NaN || y == Float.NaN) {
+			x = -100;
+			y = -100;
+		}
+    	
+    	final float left = x - target.getWidth() / 2;
 		final float top = y - target.getHeight() / 2;
 		final float right = x + target.getWidth() / 2;
 		final float bottom = y + target.getHeight() / 2;		
@@ -274,7 +332,15 @@ public class PathLayer extends RelativeLayout {
 				drawView.invalidate();
 			}
 		});	
-	}
+    }
+    
+    private class TargetAction {
+    	String name;
+    	
+    	public TargetAction(String name) {
+			this.name = name;
+		}
+    }
     
     private class Target extends View {
 		Bitmap image;
@@ -286,11 +352,24 @@ public class PathLayer extends RelativeLayout {
 		
 		private PointF rosPos;
 		
+		private boolean isAnimationInProgress = false;
+		private boolean waitForMapSurfaceFlag = false;
+		
+		private List<TargetAction> actions;
+		
 		public Target(Context context, Bitmap image) {
 			super(context);
 			this.image = image;
 		}
 		
+		public void setWaitForMapSurfaceFlag(boolean isWaiting) {
+			waitForMapSurfaceFlag = isWaiting;
+		}
+		
+		public boolean getWaitForMapSurfaceFlag() {
+			return waitForMapSurfaceFlag;
+		}
+
 		public ScaleAnimation playScaleAnimation(float from, float to, long duration) {
 			ScaleAnimation animation = new ScaleAnimation(from, to, from, to, 
 					Animation.RELATIVE_TO_SELF, (float)0.5, Animation.RELATIVE_TO_SELF, (float)0.5);
@@ -347,6 +426,7 @@ public class PathLayer extends RelativeLayout {
 				}
 				if (Math.abs(mx - event.getX()) < 4 || Math.abs(my - event.getY()) < 4) {
 					//single tap on target
+					showTargetOptions(this);
 //					playScaleAnimation(10, 1, 100000);
 					return true;
 				} else {
@@ -367,6 +447,22 @@ public class PathLayer extends RelativeLayout {
 		
 		public void setRosPos(PointF rosPos) {
 			this.rosPos = rosPos;
+		}
+		
+		public void setAnimationInProgress(boolean isAnimationInProgress) {
+			this.isAnimationInProgress = isAnimationInProgress;
+		}
+		
+		public boolean getAnimationInProgress() {
+			return this.isAnimationInProgress;
+		}
+		
+		public List<TargetAction> getActions() {
+			return actions;
+		}
+		
+		public void setActions(List<TargetAction> actions) {
+			this.actions = actions;
 		}
 	}
     
@@ -409,8 +505,8 @@ public class PathLayer extends RelativeLayout {
 	}
 	
 	public void setMapSurface(final MapSurface mapSurface) {
+		Log.d("err", "setting mapsurface!");
 		this.mapSurface = mapSurface;
-		
 		mapSurface.addListener(new MapSurface.MapSurfaceListener() {
 
 			@Override
@@ -434,8 +530,26 @@ public class PathLayer extends RelativeLayout {
 						PointF p = mapSurface.getViewportPosFromPose(ros.x, ros.y);
 						setTargetPos(t, p.x, p.y);
 					}
+					if (t.getRosPos() != null && t.getWaitForMapSurfaceFlag()) {
+						PointF pos = mapSurface.getViewportPosFromPose(t.getRosPos().x, t.getRosPos().y);	            		
+	            		setTargetPos(t, pos.x, pos.y);
+	            		t.setWaitForMapSurfaceFlag(false);
+					}
 				}
 			}
 		});
+	}
+	
+	public void showTargetOptions(Target target) {
+		AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+		CharSequence[] items = {"a", "b", "c"};
+		builder.setItems(items, new DialogInterface.OnClickListener() {
+			
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				Log.d("pathlayer", which + "");
+			}
+		});
+		builder.create().show();
 	}
 }

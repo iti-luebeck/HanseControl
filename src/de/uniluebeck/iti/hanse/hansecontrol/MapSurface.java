@@ -170,6 +170,7 @@ public class MapSurface {
 	public PointF getViewportPosFromPose(float x_onPose, float y_onPose) {
 		float xRes = x + ((poseAxisXinvert ? -1 : 1) * (x_onPose / imagePoseScale) + x_PoseOriginOnImage) * zoom;
 		float yRes = y + ((poseAxisYinvert ? -1 : 1) * (y_onPose / imagePoseScale) + y_PoseOriginOnImage) * zoom;
+//		Log.d("err", "getViewportPosFromPose x=" + xRes + " y=" + yRes);
 		return new PointF(xRes, yRes);
 	}
 	
@@ -181,6 +182,7 @@ public class MapSurface {
 		
 		float xRes = ((((x_onViewport - x) / zoom) - x_PoseOriginOnImage) / (poseAxisXinvert ? -1 : 1)) * imagePoseScale;
 		float yRes = ((((y_onViewport - y) / zoom) - y_PoseOriginOnImage) / (poseAxisYinvert ? -1 : 1)) * imagePoseScale;
+//		Log.d("err", "getPoseFromViewportPos x=" + xRes + " y=" + yRes);
 		return new PointF(xRes, yRes);
 	}
 	
