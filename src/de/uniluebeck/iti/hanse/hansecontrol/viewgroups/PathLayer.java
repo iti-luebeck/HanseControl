@@ -2,10 +2,14 @@ package de.uniluebeck.iti.hanse.hansecontrol.viewgroups;
 
 import geometry_msgs.Point;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
 import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.DialogFragment;
+import android.app.FragmentManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
@@ -14,9 +18,12 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PointF;
 import android.graphics.RectF;
+import android.os.Bundle;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.GestureDetector;
+import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -24,13 +31,18 @@ import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.animation.Animation;
 import android.view.animation.LayoutAnimationController;
 import android.view.animation.ScaleAnimation;
+import android.widget.ArrayAdapter;
 import android.widget.RelativeLayout;
+import android.widget.Spinner;
+import android.widget.TextView;
 import de.uniluebeck.iti.hanse.hansecontrol.BitmapManager;
 import de.uniluebeck.iti.hanse.hansecontrol.MainScreen;
 import de.uniluebeck.iti.hanse.hansecontrol.MapSurface;
 import de.uniluebeck.iti.hanse.hansecontrol.OverlayRegistry;
 import de.uniluebeck.iti.hanse.hansecontrol.R;
 import de.uniluebeck.iti.hanse.hansecontrol.RosRobot;
+import de.uniluebeck.iti.hanse.hansecontrol.MainScreenFragment.AddOverlayDialog;
+import de.uniluebeck.iti.hanse.hansecontrol.OverlayRegistry.OverlayType;
 import de.uniluebeck.iti.hanse.hansecontrol.mapeditor.MapEditorMarkerLayer.MarkerPositionListener;
 import de.uniluebeck.iti.hanse.hansecontrol.views.AbstractOverlay;
 
@@ -42,14 +54,22 @@ public class PathLayer extends RelativeLayout {
 	TargetPathListener targetPathListener;
 		
 	Paint linePaint = new Paint();
+	Paint actionNamePaint = new Paint();
+	Paint actionBackgroundPaint = new Paint();
 	
 	View drawView;
 	
 	RosRobot rosRobot;
 	MapSurface mapSurface;
 	
+	FragmentManager fragmentManager;
 	
-//	boolean firstrun = true;
+	//drawing parameters
+	public static final float ACTION_PADDING = 3;
+	public static final float ACTION_ICON_WIDTH = 20;
+	public static final float ACTION_ICON_HEIGHT = 18;
+	public static final float ACTION_BACKGROUND_RADIUS = 6;
+	
 	
 	public PathLayer(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
@@ -66,10 +86,110 @@ public class PathLayer extends RelativeLayout {
 		init(context);
 	}
     
+    private float getMaxTextWidth(Target target) {
+    	float res = 0;
+    	for (TargetAction a : target.getActions()) {
+    		res = Math.max(res, actionNamePaint.measureText(a.getName()));
+    	}
+    	return res;
+    }
+    
+    private RectF mergeBoundingBox(RectF r1, RectF r2) {
+    	return new RectF(Math.min(r1.left, r2.left), Math.min(r1.top, r2.top), 
+    			Math.max(r1.right, r2.right), Math.max(r1.bottom, r2.bottom));
+    }
+    
+    private boolean boundingBoxCollision(RectF r1, RectF r2) {
+    	return lineOverlap(r1.left, r1.right, r2.left, r2.right) &&
+    			lineOverlap(r1.top, r1.bottom, r2.top, r2.bottom);
+    }
+    
+    /* Returns true if a overlap was detected */
+    private boolean lineOverlap(float l1start, float l1end, float l2start, float l2end) {
+    	if ((l1start < l2start && l1end > l2start) || (l1start < l2end && l1end > l2end)) {
+    		return true;
+    	}
+    	return false;
+    }
+    
+    /* Returns false if a collision was detected */
+    private boolean checkCollision(Target target) {
+    	for (Target t : targetPath) {
+    		if (t == target) {
+    			continue;
+    		}
+    		if (boundingBoxCollision(mergeBoundingBox(target.getBoundingBox(), target.getActionListBox()), 
+    				mergeBoundingBox(t.getBoundingBox(), t.getActionListBox()))) {
+    			return false;
+    		}
+    	}
+    	return true;
+    }
+    
+    private void drawActionList(Target target, Canvas canvas) {
+    	if (target.getActions().isEmpty()) {
+    		target.setActionListBox(new RectF(Float.MAX_VALUE, Float.MAX_VALUE, Float.MIN_VALUE, Float.MIN_VALUE));
+    		return;
+    	}
+    	
+    	float itemHeight = ACTION_PADDING * 2 + Math.max(ACTION_ICON_HEIGHT, actionNamePaint.getTextSize());
+    	float listHeight = itemHeight * target.getActions().size();
+    	float listWidth = getMaxTextWidth(target) + ACTION_PADDING * 3 + ACTION_ICON_WIDTH;
+    	float r = ACTION_BACKGROUND_RADIUS;
+    	
+    	//top left pos of list
+    	float x = target.getX() + target.getWidth() + ACTION_PADDING;
+    	float y = target.getY() + target.getHeight() / 2 - listHeight / 2;
+    	RectF backgroundRect = new RectF(x - r, y - r, x + listWidth + r, y + listHeight + r);
+    	target.setActionListBox(backgroundRect);
+    	
+    	if (!checkCollision(target)) {
+    		//collision detected
+    		x = target.getX() + target.getWidth();
+    		y = target.getY();
+    		RectF rect = new RectF(x, y, x + 2 * r, y + target.getHeight());
+    		//draw folded box instead
+    		canvas.drawRoundRect(rect, r, r, actionBackgroundPaint);
+    		target.setActionListBox(rect);
+    		return;
+    	}
+    	
+    	//draw background
+    	canvas.drawRoundRect(backgroundRect, r, r, actionBackgroundPaint);
+    	
+    	//draw items
+    	for (int i = 0; i < target.getActions().size(); i++) {
+    		//y position of each item, x stays the same (vertical list)
+    		float itemY = y + i * itemHeight;
+    		drawAction(target.getActions().get(i), canvas, x, itemY);
+    	}
+    }
+    
+    private void drawAction(TargetAction action, Canvas canvas, float x, float y) {
+    	float imgX = x + ACTION_PADDING;
+    	float imgY = y + ACTION_PADDING;
+    	float textX = imgX + ACTION_ICON_WIDTH + ACTION_PADDING;    	
+    	float textY = imgY + ACTION_ICON_HEIGHT / 2 + actionNamePaint.getTextSize() / 2;
+    	
+    	//TODO ------------replace this part with actual icon
+    	Paint tmppaint = new Paint();
+    	tmppaint.setColor(Color.parseColor("#821aff00"));
+    	canvas.drawCircle(imgX + ACTION_ICON_WIDTH / 2, imgY + ACTION_ICON_HEIGHT / 2, 
+    			Math.min(ACTION_ICON_WIDTH, ACTION_ICON_HEIGHT) / 2, tmppaint);
+//    	canvas.drawRect(imgX, imgY, imgX + ACTION_ICON_WIDTH, imgY + ACTION_ICON_HEIGHT, tmppaint);
+    	//----------------------
+    	
+    	canvas.drawText(action.getName(), textX, textY, actionNamePaint);
+    }
+    
     private void init(Context context) {
     	linePaint.setColor(Color.BLACK);
     	linePaint.setAlpha(100);
     	linePaint.setStrokeWidth(6);
+    	actionNamePaint.setTextSize(13);
+    	actionNamePaint.setColor(Color.WHITE);
+    	actionBackgroundPaint.setColor(Color.BLACK);
+    	actionBackgroundPaint.setAlpha(80);
     	drawView = new View(getContext()) {
     		@Override
     		protected void onDraw(Canvas canvas) {
@@ -88,6 +208,9 @@ public class PathLayer extends RelativeLayout {
 					PointF from = targetPath.get(i).getPos();
 					PointF to = targetPath.get(i + 1).getPos();
 					canvas.drawLine(from.x, from.y, to.x, to.y, linePaint);
+				}
+				for (Target t : targetPath) {
+					drawActionList(t, canvas);
 				}
     		}
     	};
@@ -148,6 +271,7 @@ public class PathLayer extends RelativeLayout {
 		for (final Target t : oldTargetPath) {
 			final Target target = createNewTargetInstance();
 			targetPath.add(target);
+			target.setActions(t.getActions());
 			target.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener()
 	        {
 	            @Override
@@ -297,6 +421,13 @@ public class PathLayer extends RelativeLayout {
 			targetPathListener.targetPathUpdate();
 		}
 		
+		//TODO remove this
+		target.getActions().add(new TargetAction("Wallfollow"));
+		target.getActions().add(new TargetAction("Fire torpedo"));
+		target.getActions().add(new TargetAction("Self-destruction"));
+		target.getActions().add(new TargetAction("Testaction"));
+		
+		
 		return target;
 	}
     
@@ -340,6 +471,10 @@ public class PathLayer extends RelativeLayout {
     	public TargetAction(String name) {
 			this.name = name;
 		}
+    	
+    	public String getName() {
+			return name;
+		}
     }
     
     private class Target extends View {
@@ -355,7 +490,9 @@ public class PathLayer extends RelativeLayout {
 		private boolean isAnimationInProgress = false;
 		private boolean waitForMapSurfaceFlag = false;
 		
-		private List<TargetAction> actions;
+		private List<TargetAction> actions = new LinkedList<TargetAction>();
+		
+		private RectF actionListBox = new RectF(0, 0, 0, 0);
 		
 		public Target(Context context, Bitmap image) {
 			super(context);
@@ -370,6 +507,18 @@ public class PathLayer extends RelativeLayout {
 			return waitForMapSurfaceFlag;
 		}
 
+		public void setActionListBox(RectF actionListBox) {
+			this.actionListBox = actionListBox;
+		}
+		
+		public RectF getActionListBox() {
+			return actionListBox;
+		}
+		
+		public RectF getBoundingBox() {
+			return new RectF(getX(), getY(), getX() + getWidth(), getY() + getHeight());
+		}
+		
 		public ScaleAnimation playScaleAnimation(float from, float to, long duration) {
 			ScaleAnimation animation = new ScaleAnimation(from, to, from, to, 
 					Animation.RELATIVE_TO_SELF, (float)0.5, Animation.RELATIVE_TO_SELF, (float)0.5);
@@ -540,16 +689,133 @@ public class PathLayer extends RelativeLayout {
 		});
 	}
 	
-	public void showTargetOptions(Target target) {
+	public void showTargetOptions(final Target target) {
 		AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-		CharSequence[] items = {"a", "b", "c"};
+		CharSequence[] items = {"Delete this target", "Delete all targets", "Add action", "Delete action"};
 		builder.setItems(items, new DialogInterface.OnClickListener() {
 			
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
 				Log.d("pathlayer", which + "");
+				if (which == 0) {
+					targetPath.remove(target);
+					removeView(target);
+					drawView.invalidate();
+					if (targetPathListener != null) {
+						targetPathListener.targetPathUpdate();
+					}
+				} else if (which == 1) {
+					for (Target t : targetPath) {
+						removeView(t);
+					}
+					targetPath.clear();
+					drawView.invalidate();
+					if (targetPathListener != null) {
+						targetPathListener.targetPathUpdate();
+					}
+				} else if (which == 2) {
+					new AddTargetActionDialog() {
+						public void onAdd(String name) {
+							target.getActions().add(new TargetAction(name));
+							drawView.invalidate();
+						};
+					}.show(fragmentManager, "add_targetaction");
+				} else if (which == 3) {					
+					showRemoveTargetAction(target);
+				}
 			}
 		});
 		builder.create().show();
 	}
+	
+	private void showRemoveTargetAction(final Target target) {
+		final AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+		final CharSequence[] items = new CharSequence[target.getActions().size()];
+		final boolean[] itemsChecked = new boolean[items.length]; //default value is false for all entries
+		int i = 0;
+		for (TargetAction action : target.getActions()) {
+			items[i++] = action.getName();
+		}
+		builder.setTitle("Remove action");
+		builder.setMultiChoiceItems(items, null, new DialogInterface.OnMultiChoiceClickListener() {
+			
+			@Override
+			public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+				itemsChecked[which] = isChecked;
+			}
+		});
+		builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+			
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				dialog.cancel();
+			}
+		});
+		builder.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+			
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				for (int i = items.length - 1; i >= 0; i--) {
+					if (itemsChecked[i]) {
+						target.getActions().remove(i);
+					}
+				}
+				drawView.invalidate();
+			}
+		});
+		builder.create().show();
+		
+	}
+	
+	public void setFragmentManager(FragmentManager fragmentManager) {
+		this.fragmentManager = fragmentManager;
+	}
+	
+	public abstract static class AddTargetActionDialog extends DialogFragment {
+		
+		@Override
+		public Dialog onCreateDialog(Bundle savedInstanceState) {
+			AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+			
+			LayoutInflater inflater = getActivity().getLayoutInflater();
+			
+			builder.setTitle(getResources().getString(R.string.add_layer_title));
+
+			final View view = inflater.inflate(R.layout.dialog_addtargetaction, null);
+			builder.setView(view);
+	
+			//fill spinner with widget types
+			ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(), 
+					android.R.layout.simple_spinner_item);
+			adapter.addAll(Arrays.asList(new String[]{"Wallfollow", "Fire torpedo", "Self-destruction", "Testaction"}));
+			
+			final Spinner spinner = (Spinner) view.findViewById(R.id.spinner1);	
+			final TextView topicTextView = (TextView) view.findViewById(R.id.mapName);
+			spinner.setAdapter(adapter);
+			
+			builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+				
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					AddTargetActionDialog.this.getDialog().cancel();
+				}
+			});
+			
+			builder.setPositiveButton("Add action", new DialogInterface.OnClickListener() {
+				
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					
+					onAdd((String)spinner.getSelectedItem());
+				}
+			});
+			
+			return builder.create();	
+			
+		}
+		
+		public abstract void onAdd(String name);
+		
+	}
+	
 }

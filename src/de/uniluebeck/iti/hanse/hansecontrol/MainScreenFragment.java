@@ -173,7 +173,7 @@ public class MainScreenFragment extends Fragment {
 			}
 		});
 		pathLayer = (PathLayer) view.findViewById(R.id.pathLayer);
-		
+		pathLayer.setFragmentManager(getFragmentManager());
 		
 		for (AbstractOverlay overlay : overlayLayer.getOverlayRegistry().getAllOverlays()) {
 			overlay.setMode( mPrefs.getBoolean(TAB_PREFIX + tabID 
@@ -368,7 +368,7 @@ public class MainScreenFragment extends Fragment {
 
 	private void initMapMenu() {
 		MenuItem mapMenu = actionBarMenu.findItem(R.id.mapmenu);
-        
+		
         for (Map map : MapManager.getInstance().getMaps()) {
         	MenuItem mapItem = mapMenu.getSubMenu().add(map.getName()).setCheckable(true);
         	if (map.getConfigPath().equals(mPrefs.getString(TAB_PREFIX + tabID
@@ -492,17 +492,18 @@ public class MainScreenFragment extends Fragment {
 	private void showRemoveMapDialog() {
 		final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 		//empty map cannot be deleted, therefore -1
-		final CharSequence[] items = new CharSequence[maps.size() - 1];
+		List<Map> mapList = MapManager.getInstance().getMaps();
+		final CharSequence[] items = new CharSequence[mapList.size() - 1];
 		final Map[] mapArr = new Map[items.length];
-		final MenuItem[] menuItems = new MenuItem[items.length];
+//		final MenuItem[] menuItems = new MenuItem[items.length];
 		final boolean[] itemsChecked = new boolean[items.length]; //default value is false for all entries
 		int i = 0;
-		for (MenuItem item : maps.keySet()) {
-			Map map = maps.get(item);
+		for (Map map : mapList) {
+//			Map map = maps.get(item);
 			if (!map.getConfigPath().isEmpty()) {
 				items[i] = map.getName();
 				mapArr[i] = map;
-				menuItems[i] = item;
+//				menuItems[i] = item;
 				i += 1;
 			}
 		}
@@ -528,7 +529,7 @@ public class MainScreenFragment extends Fragment {
 				for (int i = items.length - 1; i >= 0; i--) {
 					if (itemsChecked[i]) {
 						Map mapToDelete = mapArr[i];
-						if (mapToDelete == mapLayer.getMap()) {
+						if (mapToDelete.getConfigPath().equals(mapLayer.getMap().getConfigPath())) {
 							mapLayer.setMap(MapManager.getInstance().getEmptyMap());
 							editCurrentMapMenuItem.setVisible(false);
 							for (MenuItem item : maps.keySet()) {
@@ -538,9 +539,16 @@ public class MainScreenFragment extends Fragment {
 								}
 							}
 						}
+						for (MenuItem item : maps.keySet()) { 
+							Log.d("ttttt", maps.get(item).getName());
+							if (mapToDelete.getConfigPath().equals(maps.get(item).getConfigPath())) {
+								Log.d("ttttt", "sel " + maps.get(item).getName());
+								item.setVisible(false);
+								maps.remove(item);
+								break;
+							}
+						}
 						MapManager.getInstance().deleteMap(mapToDelete);
-						menuItems[i].setVisible(false);
-						maps.remove(menuItems[i]);
 					}
 				}
 			}

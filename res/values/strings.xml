@@ -26,5 +26,6 @@
     <string name="add_layer_topicdescription">ROS Topic:</string>
     <string name="title_activity_image_editor">Image Editor</string>
     <string name="title_activity_map_editor">Map Editor</string>
+    <string name="add_targetaction_typedescription">Action type:</string>
 
 </resources>

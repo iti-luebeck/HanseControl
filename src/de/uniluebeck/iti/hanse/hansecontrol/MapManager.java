@@ -64,11 +64,13 @@ public class MapManager {
 		}
 		
 		//add empty map
-		try {
-			this.emptyMap = new Map(null);
-			maps.add(this.emptyMap);
-		} catch (Exception e) {
-			e.printStackTrace();
+		if (emptyMap == null) {
+			try {
+				this.emptyMap = new Map(null);
+				maps.add(this.emptyMap);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	
