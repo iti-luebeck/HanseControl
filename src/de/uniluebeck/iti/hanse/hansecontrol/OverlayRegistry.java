@@ -58,7 +58,11 @@ public class OverlayRegistry {
     	//create overlay instances
     	for (String topic : overlays.keySet()) {
     		for (String overlayType : overlays.get(topic)) {
-    			createOverlay(OverlayType.valueOf(overlayType), topic);
+    			try {
+    				createOverlay(OverlayType.valueOf(overlayType), topic);
+    			} catch (Exception e) {
+					Log.e("overlayregistry", "Could not create overlay instance for type: " + overlayType + "and topic:" + topic);
+				}
     		}
     	}
     	

@@ -53,6 +53,7 @@ import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -161,6 +162,7 @@ public class MainScreenFragment extends Fragment {
 				
 		widgetLayer = (WidgetLayer) view.findViewById(R.id.widgetLayer);
 		widgetbarLayout = (LinearLayout) view.findViewById(R.id.widgetLayout);	
+		((HorizontalScrollView) view.findViewById(R.id.widgetScrollView)).setBackgroundColor(Color.parseColor("#7907121d"));
 		overlayLayer = (OverlayLayer) view.findViewById(R.id.overlayLayer);
 		Log.d("statemanagement", "overLayer is " + (overlayLayer == null ? "NULL" : "not null"));
 		mapLayer = (MapLayer) view.findViewById(R.id.mapLayer1);
@@ -181,7 +183,7 @@ public class MainScreenFragment extends Fragment {
 					? AbstractOverlay.VISIBLE : AbstractOverlay.INVISIBLE);
 		}
 		
-		final HorizontalScrollView widgetbarLayoutScroll = (HorizontalScrollView) view.findViewById(R.id.horizontalScrollView1);
+		final HorizontalScrollView widgetbarLayoutScroll = (HorizontalScrollView) view.findViewById(R.id.widgetScrollView);
 		final DragLayer dragLayer = (DragLayer) view.findViewById(R.id.dragLayer1);
 		
 		//TODO change static topic!
@@ -653,7 +655,7 @@ public class MainScreenFragment extends Fragment {
 	}
 	
 	public void setWidgetBarVisibility(boolean isvisible) {
-		HorizontalScrollView widgetLayoutScroll = (HorizontalScrollView) getView().findViewById(R.id.horizontalScrollView1);
+		HorizontalScrollView widgetLayoutScroll = (HorizontalScrollView) getView().findViewById(R.id.widgetScrollView);
 		Log.d("statemanagement", "MainScreenFragment" + tabID + ", actionBarMenu is null = " + (actionBarMenu == null));
 		Log.d("statemanagement", "MainScreenFragment" + tabID + ", widgetandayoutScroll is null = " + (widgetLayoutScroll == null));
 		

@@ -50,7 +50,7 @@
 	        android:layout_alignParentTop="true" />
 	
 	    <HorizontalScrollView
-	        android:id="@+id/horizontalScrollView1"
+	        android:id="@+id/widgetScrollView"
 	        android:layout_width="fill_parent"
 	        android:layout_height="90dip"
 	        android:layout_alignParentLeft="true"
