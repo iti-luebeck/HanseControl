@@ -4,6 +4,7 @@ import java.util.concurrent.Future;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.ros.android.BitmapFromImage;
+import org.ros.android.view.RosImageView;
 import org.ros.message.MessageListener;
 import org.ros.node.ConnectedNode;
 import org.ros.node.topic.Subscriber;
@@ -187,39 +188,41 @@ public class RosImageWidget extends RosMapWidget implements MessageListener<sens
 				Log.d("rosimagewidget", "decoding image...");
 				// Bitmap bitmap = new BitmapFromImage().call(image);
 				sensor_msgs.Image message = image;
-				Bitmap bitmap = Bitmap.createBitmap((int) message.getWidth(),
-						(int) message.getHeight(), Bitmap.Config.ARGB_8888);
+//				Bitmap bitmap = Bitmap.createBitmap((int) message.getWidth(),
+//						(int) message.getHeight(), Bitmap.Config.ARGB_8888);
 				int opCount = 0;
 				long timesum = 0;
 				int pixelsum = 0;
 				ChannelBuffer data = message.getData();
-				for (int x = 0; x < message.getWidth(); x++) {
-					long start = System.currentTimeMillis();
-					for (int y = 0; y < message.getHeight(); y++) {
-						byte red = data.getByte((y * message.getStep() + 3 * x));
-						byte green = data.getByte((y * message.getStep()
-								+ 3 * x + 1));
-						byte blue = data.getByte((y * message.getStep()
-								+ 3 * x + 2));
-						// byte red = 0;
-						// byte green = 0;
-						// byte blue = 0;
-						
-						bitmap.setPixel(x, y, Color.argb(255, red & 0xFF,
-								green & 0xFF, blue & 0xFF));
-						opCount++;
-					}
-					Log.d("rosimagewidget", "decoding row: " + x
-							+ ", current OP-Count: " + opCount);
-					Log.d("rosimagewidget",
-							"Time per pixel (in ms): "
-									+ ((System.currentTimeMillis() - start) / (float) message
-											.getHeight())
-									+ "Avg: "
-									+ ((timesum += (System.currentTimeMillis() - start)) / (float) (pixelsum += message
-											.getHeight())));
-				}
-
+//				for (int x = 0; x < message.getWidth(); x++) {
+////					long start = System.currentTimeMillis();
+//					for (int y = 0; y < message.getHeight(); y++) {
+//						byte red = data.getByte((y * message.getStep() + 3 * x));
+//						byte green = data.getByte((y * message.getStep()
+//								+ 3 * x + 1));
+//						byte blue = data.getByte((y * message.getStep()
+//								+ 3 * x + 2));
+//						// byte red = 0;
+//						// byte green = 0;
+//						// byte blue = 0;
+//						
+//						bitmap.setPixel(x, y, Color.argb(255, red & 0xFF,
+//								green & 0xFF, blue & 0xFF));
+////						opCount++;
+//					}
+//					Log.d("rosimagewidget", "decoding row: " + x
+//							+ ", current OP-Count: " + opCount);
+//					Log.d("rosimagewidget",
+//							"Time per pixel (in ms): "
+//									+ ((System.currentTimeMillis() - start) / (float) message
+//											.getHeight())
+//									+ "Avg: "
+//									+ ((timesum += (System.currentTimeMillis() - start)) / (float) (pixelsum += message
+//											.getHeight())));
+//				}
+				
+				Bitmap bitmap = new BitmapFromImage().call(image);
+				
 				Log.d("rosimagewidget", "image received: " + bitmap.getWidth()
 						+ "x" + bitmap.getHeight());
 				decodingInProgress = false;
