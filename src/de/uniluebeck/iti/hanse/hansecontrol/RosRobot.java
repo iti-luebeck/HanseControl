@@ -15,6 +15,7 @@ import android.graphics.PointF;
 /**
  * This class provides the global position and 
  * target paths for the controlled robot.
+ * The App will be subscribed to the topics used here at all times.
  * 
  * @author Stefan Hueske
  */

@@ -141,6 +141,7 @@ public class MainScreen extends RosActivity {
 		MenuInflater inflater = getMenuInflater();
 		if (activeContextMenuView instanceof MapWidget.ShowContextMenuButton) {
 			inflater.inflate(R.menu.widget_contextmenu, menu);
+			((MapWidget) activeContextMenuView.getParent()).setConfigDialogItem(menu.add("Configure widget"));
 		}
 	}
 	
@@ -148,7 +149,7 @@ public class MainScreen extends RosActivity {
 	public boolean onContextItemSelected(MenuItem item) {
 		// TODO Auto-generated method stub
 		if (activeContextMenuView != null && activeContextMenuView instanceof MapWidget.ShowContextMenuButton) {
-			((MapWidget.ShowContextMenuButton) activeContextMenuView).performAction(item);
+			((MapWidget.ShowContextMenuButton) activeContextMenuView).performAction(item, getFragmentManager());
 		}
 		return super.onContextItemSelected(item);
 	}
@@ -356,7 +357,7 @@ public class MainScreen extends RosActivity {
 		super.onResume();
 		//start executor service
 		if (executorService == null || executorService.isShutdown()) {
-			executorService = Executors.newScheduledThreadPool(2);
+			executorService = Executors.newScheduledThreadPool(4);
 		}
 		Log.d("statemanagement", "MainScreen.onResume");
 	}
@@ -465,7 +466,7 @@ public class MainScreen extends RosActivity {
 	
 	public synchronized static ScheduledExecutorService getExecutorService() {
 		if (executorService == null || executorService.isShutdown()) {
-			executorService = Executors.newScheduledThreadPool(2);
+			executorService = Executors.newScheduledThreadPool(4);
 		}
 		return executorService;
 	}

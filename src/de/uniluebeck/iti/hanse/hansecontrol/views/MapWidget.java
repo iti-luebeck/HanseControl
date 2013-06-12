@@ -20,6 +20,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.app.FragmentManager;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.ClipData.Item;
@@ -71,6 +72,9 @@ public class MapWidget extends BasicView {
 	
 	public int defaultWidth;
 	public int defaultHeight;
+	
+	boolean hasConfigDialog = false;
+	MenuItem configDialogItem;
 	
 	//allow ratio change??
 	//public float zoom = 1; //TODO implement
@@ -143,6 +147,16 @@ public class MapWidget extends BasicView {
 //		bitmap_resizer = BitmapManager.getInstance().getBitmap(getResources(), R.drawable.resize);
 		
 	}
+	
+	public void setHasConfigDialog(boolean hasConfigDialog) {
+		this.hasConfigDialog = hasConfigDialog;
+	}
+	
+	public void setConfigDialogItem(MenuItem configDialogItem) {
+		this.configDialogItem = configDialogItem;
+	}
+	
+	public void showConfigDialog(FragmentManager fragmentManager) { }
 	
 	private void initShowContextMenuButton() {
 		showContextMenuButton = new ShowContextMenuButton(getContext(), this);
@@ -814,14 +828,17 @@ public class MapWidget extends BasicView {
 			return parentWidget;
 		}
 		
-		public void performAction(MenuItem item) {
+		public void performAction(MenuItem item, FragmentManager fragmentManager) {
 			if (item.getItemId() == R.id.close_other) {
 				parentWidget.getMainScreenFragment().closeAllOtherMapWidgets(parentWidget);
 			} else if (item.getItemId() == R.id.move_to_new_tab && parentWidget instanceof RosMapWidget) {
 				parentWidget.getMainScreenFragment().closeMapWidgetAndMoveToNewTab((RosMapWidget)parentWidget);
+			} else if (item == configDialogItem) {
+				showConfigDialog(fragmentManager);
 			}
 		}
 	}
+	
 	
 	
 //	@Override
