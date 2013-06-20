@@ -224,6 +224,7 @@ public abstract class RosPlotWidget<T> extends RosMapWidget implements MessageLi
 						public void run() {
 							redraw();
 							lastdraw = System.currentTimeMillis();
+							redrawFuture = null;
 						}
 					}, redrawInterval - (System.currentTimeMillis() - lastdraw), TimeUnit.MILLISECONDS);
 				}
@@ -351,6 +352,9 @@ public abstract class RosPlotWidget<T> extends RosMapWidget implements MessageLi
 			//load current values
 			timespanSeekBar.setProgress(Arrays.binarySearch(timespanValArr, this.timespan));
 			redrawIntervalSeekBar.setProgress(Arrays.binarySearch(redrawIntervalValArr, this.redrawInterval));
+			timespanTextView.setText(timespanStrArr[timespanSeekBar.getProgress()]);
+			redrawIntervalTextView.setText(redrawIntervalStrArr[redrawIntervalSeekBar.getProgress()]);
+			
 			connectDotsSwitch.setChecked(this.connectDots);
 			
 			builder.setNegativeButton("Cancel",
