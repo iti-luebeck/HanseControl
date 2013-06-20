@@ -1,4 +1,4 @@
-package de.uniluebeck.iti.hanse.hansecontrol.views;
+package de.uniluebeck.iti.hanse.hansecontrol.views.overlays;
 
 import geometry_msgs.PoseStamped;
 
@@ -19,6 +19,7 @@ import de.uniluebeck.iti.hanse.hansecontrol.BitmapManager;
 import de.uniluebeck.iti.hanse.hansecontrol.MapSurface;
 import de.uniluebeck.iti.hanse.hansecontrol.R;
 import de.uniluebeck.iti.hanse.hansecontrol.OverlayRegistry.OverlayType;
+import de.uniluebeck.iti.hanse.hansecontrol.views.AbstractOverlay;
 
 
 public class PoseOverlay extends AbstractOverlay implements MessageListener<geometry_msgs.PoseStamped> {

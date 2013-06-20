@@ -229,12 +229,13 @@ public class PathLayer extends RelativeLayout {
 //			}
 //		});
 		rosRobot = RosRobot.getInstance();
-		rosRobot.addRobotUpdateListener(new RosRobot.RobotUpdateListener() {
+		rosRobot.addRobotPositionListener(new RosRobot.RobotPositionListener() {
 			
 			@Override
-			public void update() {
+			public void positionUpdate() {
 				drawView.invalidate();
 			}
+			
 		});
 //		MainScreen.getExecutorService().execute(new Runnable() {
 //			

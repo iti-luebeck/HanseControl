@@ -74,6 +74,8 @@ public abstract class RosPlotWidget<T> extends RosMapWidget implements MessageLi
 	ScheduledFuture redrawFuture;
 	
 	private int redrawInterval = 500; //in ms, must be a value available in the config dialog!
+	private long lastdraw = System.currentTimeMillis();
+
 	
 	public RosPlotWidget(int widgetID,	Context context, final String rosTopic, 
 			DragLayer dragLayer, MapWidgetRegistry mapWidgetRegistry, MainScreenFragment mainScreenFragment) {
@@ -200,10 +202,7 @@ public abstract class RosPlotWidget<T> extends RosMapWidget implements MessageLi
 		plotView.clearValues();
 	}
 
-	//TODO change this
-	boolean decodingInProgress = false;
-	long lastdraw = System.currentTimeMillis();
-
+	
 	@Override
 	public void onNewMessage(final T msg) {
 //		Log.d("plotwidget", getValue(msg) + "");

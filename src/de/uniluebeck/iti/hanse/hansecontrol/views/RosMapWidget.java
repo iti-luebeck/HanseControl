@@ -30,7 +30,7 @@ public abstract class RosMapWidget extends MapWidget {
 	public void setMode(int mode) {
 		super.setMode(mode);
 		if (node == null) {
-			Log.e("ros", "RosMapWidget: setMode() called, but node is null!");
+			Log.d("ros", "RosMapWidget: setMode() called, but node is null!");
 			return;
 		}
 		if (mode == ICON_MODE) {

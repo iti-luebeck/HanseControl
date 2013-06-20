@@ -22,10 +22,10 @@ import android.util.Log;
 
 import de.uniluebeck.iti.hanse.hansecontrol.views.AbstractOverlay;
 import de.uniluebeck.iti.hanse.hansecontrol.views.MapWidget;
-import de.uniluebeck.iti.hanse.hansecontrol.views.PoseOverlay;
 import de.uniluebeck.iti.hanse.hansecontrol.views.RosMapWidget;
 //import de.uniluebeck.iti.hanse.hansecontrol.views.WallDetectionOverlay;
-import de.uniluebeck.iti.hanse.hansecontrol.views.WallDetectionOverlay;
+import de.uniluebeck.iti.hanse.hansecontrol.views.overlays.PoseOverlay;
+import de.uniluebeck.iti.hanse.hansecontrol.views.overlays.WallDetectionOverlay;
 
 
 public class OverlayRegistry {

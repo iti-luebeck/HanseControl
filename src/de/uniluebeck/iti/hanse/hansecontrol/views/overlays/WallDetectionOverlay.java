@@ -1,4 +1,4 @@
-package de.uniluebeck.iti.hanse.hansecontrol.views;
+package de.uniluebeck.iti.hanse.hansecontrol.views.overlays;
 
 import hanse_msgs.WallDetection;
 
@@ -23,6 +23,7 @@ import de.uniluebeck.iti.hanse.hansecontrol.BitmapManager;
 import de.uniluebeck.iti.hanse.hansecontrol.MapSurface;
 import de.uniluebeck.iti.hanse.hansecontrol.R;
 import de.uniluebeck.iti.hanse.hansecontrol.OverlayRegistry.OverlayType;
+import de.uniluebeck.iti.hanse.hansecontrol.views.AbstractOverlay;
 import de.uniluebeck.iti.hanse.hansecontrol.RosRobot;
 
 
@@ -30,8 +31,7 @@ public class WallDetectionOverlay extends AbstractOverlay implements MessageList
 
 	String topic;
 	Subscriber<hanse_msgs.WallDetection> subscriber;
-	List<hanse_msgs.WallDetection> lastDets = new LinkedList<WallDetection>();
-	List<PointF> lastRobPos = new LinkedList<PointF>(); //TODO change!
+	List<WallDetection> detections = new LinkedList<WallDetectionOverlay.WallDetection>();
 	
 	View view;
 	
@@ -44,7 +44,7 @@ public class WallDetectionOverlay extends AbstractOverlay implements MessageList
 		view = new View(context) {
 			@Override
 			protected void onDraw(Canvas canvas) {
-				
+//				canvas.drawLine(0, 0, getWidth(), getHeight(), new Paint());
 				//TODO remove this
 //				Bitmap img = BitmapManager.getInstance().getBitmap(getResources(), 
 //						R.drawable.position_mapicon);
@@ -75,8 +75,10 @@ public class WallDetectionOverlay extends AbstractOverlay implements MessageList
 		params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
 		view.setLayoutParams(params);
 		
-		circlePaint.setColor(Color.RED);
-		linePaint.setColor(Color.DKGRAY);
+		circlePaint.setColor(Color.WHITE);
+		circlePaint.setAlpha(100);
+		linePaint.setColor(Color.WHITE);
+		linePaint.setAlpha(40);
 	}
 	
 	@Override
@@ -85,23 +87,66 @@ public class WallDetectionOverlay extends AbstractOverlay implements MessageList
 		subscriber.addMessageListener(this);
 	}
 	
+	private void removeOldValues() {
+		while (detections.size() > 200) {
+			detections.remove(0);
+		}
+	}
+	
+	private void addWallDetection(hanse_msgs.WallDetection det) {
+		RosRobot rob = RosRobot.getInstance();
+		PointF pose = rob.getPosition();
+		Double rot = rob.getRoll();
+		if (pose == null || rot == null || det.getDistances().length == 0) {
+			return;
+		}
+		double distance = det.getDistances()[0];
+		rot += det.getHeadPosition() + Math.PI / 2;
+		
+		double dx = Math.sin(rot) * distance;
+		double dy = -Math.cos(rot) * distance;
+		
+		PointF obstaclePos = new PointF((float)(dx + pose.x), (float)(dy + pose.y));
+		
+		synchronized (detections) {			
+			detections.add(new WallDetection(pose, obstaclePos, det.getHeadPosition()));
+			removeOldValues();
+		}
+	}
+	
 	private void drawOverlay(Canvas canvas) {
 		if (getMapSurface() != null && isVisible()) {
-			synchronized (lastDets) {
-				for (WallDetection lastDet : lastDets) {
-					PointF robPos = lastRobPos.get(lastDets.indexOf(lastDet));
-					Log.d("walldetectionoverlay", String.format("Drawing... Distance: %f Angle: %f WallDet: %s", 
-							lastDet.getRange(), lastDet.getHeadPosition(), lastDet.getWallDetected() + ""));
-					for (double dist : lastDet.getDistances()) {
-						double dx = Math.sin(lastDet.getHeadPosition() - Math.PI / 2) * dist;
-						double dy = Math.cos(lastDet.getHeadPosition() - Math.PI / 2) * dist;
-						PointF vP = getMapSurface().getViewportPosFromPose(robPos.x - (float)dx, robPos.y + (float)dy);
-						PointF vRob = getMapSurface().getViewportPosFromPose(robPos.x, robPos.y);
-						canvas.drawCircle(vP.x, vP.y, 3, circlePaint);
-						canvas.drawLine(vP.x, vP.y, vRob.x, vRob.y, linePaint);
-					}
+			synchronized (detections) {
+				for (WallDetection d : detections) {
+					PointF a = getMapSurface().getViewportPosFromPose(d.getPose().x, d.getPose().y);
+					PointF b = getMapSurface().getViewportPosFromPose(d.getObstaclePos().x, d.getObstaclePos().y);
+					
+					canvas.drawLine(a.x, a.y, b.x, b.y, linePaint);
+					canvas.drawCircle(b.x, b.y, 3, circlePaint);
+					
+//					Log.d("wall", String.format("a.x = %f, a.y = %f, b.x = %f, b.y = %f", a.x, a.y, b.x, b.y));
 				}
 			}
+			
+			
+			
+//			synchronized (lastDets) {
+//				for (WallDetection lastDet : lastDets) {
+//					PointF robPos = lastRobPos.get(lastDets.indexOf(lastDet));
+//					Log.d("walldetectionoverlay", String.format("Drawing... Distance: %f Angle: %f WallDet: %s", 
+//							lastDet.getRange(), lastDet.getHeadPosition(), lastDet.getWallDetected() + ""));
+//					for (double dist : lastDet.getDistances()) {
+//						double dx = Math.sin(lastDet.getHeadPosition() - Math.PI / 2) * dist;
+//						double dy = Math.cos(lastDet.getHeadPosition() - Math.PI / 2) * dist;
+//						PointF vP = getMapSurface().getViewportPosFromPose(robPos.x - (float)dx, robPos.y + (float)dy);
+//						PointF vRob = getMapSurface().getViewportPosFromPose(robPos.x, robPos.y);
+//						canvas.drawCircle(vP.x, vP.y, 3, circlePaint);
+//						canvas.drawLine(vP.x, vP.y, vRob.x, vRob.y, linePaint);
+//					}
+//				}
+//			}
+			
+			
 		}
 	}
 	
@@ -124,6 +169,12 @@ public class WallDetectionOverlay extends AbstractOverlay implements MessageList
 
 	@Override
 	public void onNewMessage(hanse_msgs.WallDetection det) {
+		
+		addWallDetection(det);
+		redraw();
+		Log.d("wall", det.getHeadPosition() + "");
+		
+		
 		// TODO Auto-generated method stub
 //		
 //		
@@ -133,16 +184,19 @@ public class WallDetectionOverlay extends AbstractOverlay implements MessageList
 //		lastDet.getRange();
 //		lastDet.getWallDetected();
 		
-		if (det.getDistances().length > 0 && RosRobot.getInstance().getPosition() != null) {
-			synchronized (lastDets) {
-				while (lastDets.size() > 200) {
-					lastDets.remove(0);
-				}
-				lastDets.add(det);
-				lastRobPos.add(RosRobot.getInstance().getPosition());
-			}
-			redraw();	
-		}
+		
+		
+		
+//		if (det.getDistances().length > 0 && RosRobot.getInstance().getPosition() != null) {
+//			synchronized (lastDets) {
+//				while (lastDets.size() > 200) {
+//					lastDets.remove(0);
+//				}
+//				lastDets.add(det);
+//				lastRobPos.add(RosRobot.getInstance().getPosition());
+//			}
+//			redraw();	
+//		}
 	}
 	
 	@Override
@@ -154,5 +208,30 @@ public class WallDetectionOverlay extends AbstractOverlay implements MessageList
 				view.invalidate();
 			}
 		});
+	}
+	
+	class WallDetection {
+		PointF pose;
+		PointF obstaclePos;
+		double headPos;
+		
+		public WallDetection(PointF pose, PointF obstaclePos, double headPos) {
+			super();
+			this.pose = pose;
+			this.obstaclePos = obstaclePos;
+			this.headPos = headPos;
+		}
+		
+		public PointF getPose() {
+			return pose;
+		}
+		
+		public PointF getObstaclePos() {
+			return obstaclePos;
+		}
+		
+		public double getHeadPos() {
+			return headPos;
+		}
 	}
 }
