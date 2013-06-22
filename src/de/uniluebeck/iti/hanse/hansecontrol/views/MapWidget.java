@@ -76,6 +76,8 @@ public class MapWidget extends BasicView {
 	boolean hasConfigDialog = false;
 	MenuItem configDialogItem;
 	
+	Float ratio = null; //  = width / height
+	
 	//allow ratio change??
 	//public float zoom = 1; //TODO implement
 	
@@ -590,6 +592,19 @@ public class MapWidget extends BasicView {
 			params.width = prefs.getInt(id+"-params.width", defaultWidth);
 			params.height = prefs.getInt(id+"-params.height", defaultHeight);
 		}
+	}
+	
+	public Float getRatio() {
+		return ratio;
+	}
+	
+	public void setRatio(Float ratio) {
+		this.ratio = ratio;
+	}
+	
+	public void setDefaultSize(int w, int h) {
+		defaultWidth = w;
+		defaultHeight = h;
 	}
 	
 //	public void setWidgetID(int widgetID) {

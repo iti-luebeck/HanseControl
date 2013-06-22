@@ -254,6 +254,45 @@ public class DragLayer extends RelativeLayout {
 					resizeCache_y = cornerY;
 				} 
 				
+				int minWidth = 85;
+				int minHeight = 85;
+				
+				if (widget.getRatio() != null && (resizeCache_height < 0 || resizeCache_width < 0)) {
+					return;
+				}
+				
+				//force ratio, if set
+				if (widget.getRatio() != null && resizeCache_width > 0 && resizeCache_height > 0) {
+					float ratio = widget.getRatio();
+					Log.d("ratio", String.format("w: %f, h: %f", resizeCache_width, resizeCache_height));
+					
+					if (ratio > minWidth / minHeight) {
+						minWidth = (int)(ratio * minHeight);
+					} else {
+						minHeight = (int)(minWidth / ratio);
+					}
+					
+					float widthBefore = resizeCache_width;
+					float heightBefore = resizeCache_height;
+					
+					if (resizeCache_width / resizeCache_height < ratio) {
+						//shrink vertical
+						resizeCache_height = resizeCache_width / ratio;
+					} else {
+						//shrink horizontal
+						resizeCache_width = resizeCache_height * ratio;
+					}
+					
+					if (resizeInProgress.getCorner() == CornerResizer.BOTTOM_LEFT) {
+						resizeCache_x -= resizeCache_width - widthBefore;
+					} else if (resizeInProgress.getCorner() == CornerResizer.TOP_RIGHT) {
+						resizeCache_y -= resizeCache_height - heightBefore;
+					} else if (resizeInProgress.getCorner() == CornerResizer.TOP_LEFT) {
+						resizeCache_x -= resizeCache_width - widthBefore;
+						resizeCache_y -= resizeCache_height - heightBefore;
+					} 
+				}
+				
 				//force minimal size
 				//TODO use constants
 				
@@ -262,11 +301,12 @@ public class DragLayer extends RelativeLayout {
 //				resizeCache_width = Math.max(80, resizeCache_width);
 //				resizeCache_height = Math.max(80, resizeCache_height);
 				
-				if (resizeCache_width > 85) {
+				
+				if (resizeCache_width > minWidth) {
 					pWidget.width = (int)(resizeCache_width);
 					pWidget.leftMargin = (int)(resizeCache_x);
 				}
-				if (resizeCache_height > 85) {
+				if (resizeCache_height > minHeight) {
 					pWidget.height = (int)(resizeCache_height);
 					pWidget.topMargin = (int)(resizeCache_y);					
 				}
