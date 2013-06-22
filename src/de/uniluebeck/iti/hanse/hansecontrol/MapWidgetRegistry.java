@@ -27,6 +27,7 @@ import de.uniluebeck.iti.hanse.hansecontrol.views.MapWidget;
 import de.uniluebeck.iti.hanse.hansecontrol.views.RosMapWidget;
 import de.uniluebeck.iti.hanse.hansecontrol.views.roswidgets.RosImageWidget;
 import de.uniluebeck.iti.hanse.hansecontrol.views.roswidgets.RosPlotWidget;
+import de.uniluebeck.iti.hanse.hansecontrol.views.roswidgets.RosSonarWidget;
 import de.uniluebeck.iti.hanse.hansecontrol.views.roswidgets.RosTextWidget;
 
 import android.content.Context;
@@ -179,7 +180,10 @@ public class MapWidgetRegistry {
 					return WidgetType.ROS_PLOT_WIDGET__FLOAT64;
 				}
 			};
-		} 
+		} else if (widgetType == WidgetType.ROS_SONAR_WIDGET) {
+			widget = new RosSonarWidget(currentIDforWidget++, context, topic, dragLayer, this, mainScreenFragment);
+		}
+		
 		allWidgets.add(widget);
 		widget.setNode(connectedNode);
 		return widget;
@@ -298,11 +302,12 @@ public class MapWidgetRegistry {
 	}
 	
 	public static enum WidgetType {
-		ROS_TEXT_WIDGET, 
+		ROS_SONAR_WIDGET,
 		ROS_IMAGE_WIDGET, 
 		ROS_PLOT_WIDGET__PRESSURE, 
 		ROS_PLOT_WIDGET__SOLLSPEED, 
-		ROS_PLOT_WIDGET__FLOAT64
+		ROS_PLOT_WIDGET__FLOAT64,
+		ROS_TEXT_WIDGET 
 	}
 	
 	public RosMapWidget getRosMapWidget(String topic, WidgetType widgetType) {
