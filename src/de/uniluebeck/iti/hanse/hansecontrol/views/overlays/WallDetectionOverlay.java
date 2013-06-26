@@ -116,6 +116,7 @@ public class WallDetectionOverlay extends AbstractOverlay implements MessageList
 	
 	private void drawOverlay(Canvas canvas) {
 		if (getMapSurface() != null && isVisible()) {
+			circlePaint.setAlpha(30);
 			synchronized (detections) {
 				for (WallDetection d : detections) {
 					PointF a = getMapSurface().getViewportPosFromPose(d.getPose().x, d.getPose().y);
@@ -125,6 +126,7 @@ public class WallDetectionOverlay extends AbstractOverlay implements MessageList
 					canvas.drawCircle(b.x, b.y, 3, circlePaint);
 					
 //					Log.d("wall", String.format("a.x = %f, a.y = %f, b.x = %f, b.y = %f", a.x, a.y, b.x, b.y));
+					circlePaint.setAlpha(Math.min(circlePaint.getAlpha() + 5, 255));
 				}
 			}
 			

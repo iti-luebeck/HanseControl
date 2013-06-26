@@ -9,6 +9,7 @@ import org.ros.node.topic.Subscriber;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.util.Log;
@@ -19,6 +20,7 @@ import de.uniluebeck.iti.hanse.hansecontrol.BitmapManager;
 import de.uniluebeck.iti.hanse.hansecontrol.MapSurface;
 import de.uniluebeck.iti.hanse.hansecontrol.R;
 import de.uniluebeck.iti.hanse.hansecontrol.OverlayRegistry.OverlayType;
+import de.uniluebeck.iti.hanse.hansecontrol.RosRobot;
 import de.uniluebeck.iti.hanse.hansecontrol.views.AbstractOverlay;
 
 
@@ -50,9 +52,25 @@ public class PoseOverlay extends AbstractOverlay implements MessageListener<geom
 //					MapSurface.drawMarker(pos.x, pos.y, canvas);
 					Bitmap img = BitmapManager.getInstance().getBitmap(getResources(), 
 							R.drawable.position_mapicon);
+					Bitmap imgPointer = BitmapManager.getInstance().getBitmap(getResources(),
+							R.drawable.position_orientation_mapicon);
 					PointF pos = getMapSurface().getViewportPosFromPose((float)lastPos.getX(), (float)lastPos.getY());
 					RectF dstRect = new RectF(pos.x - img.getWidth() / 2, pos.y - img.getHeight() / 2,
 							pos.x + img.getWidth() / 2, pos.y + img.getHeight() / 2);
+					
+					RectF dst2Rect = new RectF(pos.x - imgPointer.getWidth() / 2, pos.y - imgPointer.getHeight() / 2,
+							pos.x + imgPointer.getWidth() / 2, pos.y + imgPointer.getHeight() / 2);
+					
+					if (RosRobot.getInstance().getRoll() != null) {
+						double rot = RosRobot.getInstance().getRoll();
+						canvas.save();
+						canvas.rotate((float)((360/(2*Math.PI))*(-rot + Math.PI * 0.75f)), pos.x, pos.y);
+						canvas.drawBitmap(imgPointer, null, dst2Rect, null);
+//						canvas.drawLine(pos.x, pos.y - 100, pos.x, pos.y + 100, new Paint());
+						
+						canvas.restore();
+					}
+					
 					canvas.drawBitmap(img, null, dstRect, null);
 					
 				}

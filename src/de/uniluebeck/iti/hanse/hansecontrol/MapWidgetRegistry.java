@@ -26,6 +26,7 @@ import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.WidgetLayer;
 import de.uniluebeck.iti.hanse.hansecontrol.views.MapWidget;
 import de.uniluebeck.iti.hanse.hansecontrol.views.RosMapWidget;
 import de.uniluebeck.iti.hanse.hansecontrol.views.roswidgets.RosImageWidget;
+import de.uniluebeck.iti.hanse.hansecontrol.views.roswidgets.RosOrientationWidget;
 import de.uniluebeck.iti.hanse.hansecontrol.views.roswidgets.RosPlotWidget;
 import de.uniluebeck.iti.hanse.hansecontrol.views.roswidgets.RosSonarWidget;
 import de.uniluebeck.iti.hanse.hansecontrol.views.roswidgets.RosTextWidget;
@@ -122,8 +123,38 @@ public class MapWidgetRegistry {
 	
 	public RosMapWidget createWidget(WidgetType widgetType, String topic) {
 		RosMapWidget widget = null;
-		if (widgetType == WidgetType.ROS_TEXT_WIDGET) {
-			widget = new RosTextWidget(currentIDforWidget++, context, topic, dragLayer, this, mainScreenFragment);
+		if (widgetType == WidgetType.ROS_TEXT_WIDGET__STRING) {
+			widget = new RosTextWidget<std_msgs.String>(currentIDforWidget++, context, topic, 
+					dragLayer, this, mainScreenFragment, std_msgs.String._TYPE){
+				@Override
+				public String getStringFromMsg(std_msgs.String msg) {
+					return msg.getData();
+				}
+			};
+		} else if (widgetType == WidgetType.ROS_TEXT_WIDGET__PRESSURE) {
+			widget = new RosTextWidget<hanse_msgs.pressure>(currentIDforWidget++, context, topic, 
+					dragLayer, this, mainScreenFragment, hanse_msgs.pressure._TYPE){
+				@Override
+				public String getStringFromMsg(pressure msg) {
+					return Short.toString(msg.getData());
+				};
+			};
+		} else if (widgetType == WidgetType.ROS_TEXT_WIDGET__SOLLSPEED) {
+			widget = new RosTextWidget<hanse_msgs.sollSpeed>(currentIDforWidget++, context, topic, 
+					dragLayer, this, mainScreenFragment, hanse_msgs.sollSpeed._TYPE){
+				@Override
+				public String getStringFromMsg(sollSpeed msg) {
+					return Byte.toString(msg.getData());
+				}
+			};
+		} else if (widgetType == WidgetType.ROS_TEXT_WIDGET__FLOAT64) {
+			widget = new RosTextWidget<std_msgs.Float64>(currentIDforWidget++, context, topic, 
+					dragLayer, this, mainScreenFragment, std_msgs.Float64._TYPE){
+				@Override
+				public String getStringFromMsg(Float64 msg) {
+					return Double.toString(msg.getData());
+				};
+			};
 		} else if (widgetType == WidgetType.ROS_IMAGE_WIDGET) {
 			widget = new RosImageWidget(currentIDforWidget++, context, topic, dragLayer, this, mainScreenFragment);
 		} else if (widgetType == WidgetType.ROS_PLOT_WIDGET__PRESSURE) {
@@ -182,6 +213,8 @@ public class MapWidgetRegistry {
 			};
 		} else if (widgetType == WidgetType.ROS_SONAR_WIDGET) {
 			widget = new RosSonarWidget(currentIDforWidget++, context, topic, dragLayer, this, mainScreenFragment);
+		} else if (widgetType == WidgetType.ROS_ORIENTATION_WIDGET) {
+			widget = new RosOrientationWidget(currentIDforWidget++, context, topic, dragLayer, this, mainScreenFragment);
 		}
 		
 		allWidgets.add(widget);
@@ -307,7 +340,11 @@ public class MapWidgetRegistry {
 		ROS_PLOT_WIDGET__PRESSURE, 
 		ROS_PLOT_WIDGET__SOLLSPEED, 
 		ROS_PLOT_WIDGET__FLOAT64,
-		ROS_TEXT_WIDGET 
+		ROS_ORIENTATION_WIDGET,
+		ROS_TEXT_WIDGET__STRING,
+		ROS_TEXT_WIDGET__PRESSURE,
+		ROS_TEXT_WIDGET__SOLLSPEED,
+		ROS_TEXT_WIDGET__FLOAT64
 	}
 	
 	public RosMapWidget getRosMapWidget(String topic, WidgetType widgetType) {
