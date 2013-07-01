@@ -336,7 +336,7 @@ class SonarView extends View {
 				
 //				canvas.drawArc(rect, toDegrees * (float)val.getHeadPosition(), toDegrees * 0.08f, true, flipPaint);
 				
-				float startangle = toDegrees * (float)val.getHeadPosition();
+				float startangle = toDegrees * ((float)(val.getHeadPosition() + Math.PI));
 				float sweep = toDegrees * angle;
 				
 				byte[] data = val.getEchoData().array();
@@ -345,9 +345,10 @@ class SonarView extends View {
 				
 				float segmentSize = (r.width() / 2f) / data.length;
 				
+//				Log.d("sonardebug", String.format("StartAngle: %f, HeadPos: %f", startangle, (float)val.getHeadPosition()));
 				
-				
-				for (byte b : data) {
+				for (int i2 = data.length - 1; i2 >= 0; i2--) {
+					byte b = data[i2];
 					if (interrupt) {
 						return;
 					}
@@ -361,6 +362,8 @@ class SonarView extends View {
 					r.bottom -= segmentSize;
 					r.left += segmentSize;
 				}
+				
+				
 				
 //				canvas.
 				
