@@ -426,7 +426,7 @@ class PlotView extends View {
 	
 	private long timeSpan = 30000; //in ms, must be a value available in the config dialog!
 	
-	boolean connectDots = false;
+	boolean connectDots = true;
 	
 	public PlotView(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
