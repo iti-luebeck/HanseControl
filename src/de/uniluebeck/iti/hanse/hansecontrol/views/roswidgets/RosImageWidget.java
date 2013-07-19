@@ -1,6 +1,11 @@
 package de.uniluebeck.iti.hanse.hansecontrol.views.roswidgets;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.ros.android.BitmapFromImage;
@@ -36,11 +41,10 @@ import de.uniluebeck.iti.hanse.hansecontrol.MapWidgetRegistry.WidgetType;
 import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.DragLayer;
 import de.uniluebeck.iti.hanse.hansecontrol.views.RosMapWidget;
 
-public class RosImageWidget extends RosMapWidget implements MessageListener<sensor_msgs.Image> {
+public class RosImageWidget extends RosMapWidget implements MessageListener<sensor_msgs.CompressedImage> {
 	
-
 	String rosTopic;
-	Subscriber<sensor_msgs.Image> subscriber;
+	Subscriber<sensor_msgs.CompressedImage> subscriber;
 	
 	TextView textView;
 	
@@ -48,14 +52,15 @@ public class RosImageWidget extends RosMapWidget implements MessageListener<sens
 	
 	LinearLayout linearLayout;
 	
-	ImageView imageView;	
+	Bitmap bitmap;	
+	View imageView;
 	
 	public RosImageWidget(int widgetID,	Context context, final String rosTopic, 
 			DragLayer dragLayer, MapWidgetRegistry mapWidgetRegistry, MainScreenFragment mainScreenFragment) {
 		super(300, 200, widgetID, context, dragLayer, mapWidgetRegistry, mainScreenFragment);
+		Log.d("compressedImageTest", "Creating widget instance");
 		this.rosTopic = rosTopic;
 		textView = new TextView(context);
-//		removeAllViews();
 		
 		textView.setTextSize(18);
 		textView.setTextColor(Color.WHITE);
@@ -70,11 +75,17 @@ public class RosImageWidget extends RosMapWidget implements MessageListener<sens
 		
 		imageView = new ImageView(getContext());
 		
-		
 		linearLayout.addView(topicHeader);
-		linearLayout.addView(imageView);
-		
-//		addView(linearLayout, 0);
+		linearLayout.addView(imageView = new View(getContext()) {
+			@Override
+			public void draw(Canvas canvas) {
+				synchronized (this) {					
+					if (bitmap != null && !bitmap.isRecycled()) {
+						canvas.drawBitmap(bitmap, null, scaleToBox(bitmap.getWidth(), bitmap.getHeight(), 0, 0, getWidth()-1, getHeight()-1) , null);
+					}
+				}
+			}
+		});
 		
 		backgroundPaint.setColor(Color.BLACK);
 		backgroundPaint.setAlpha(80);
@@ -161,7 +172,8 @@ public class RosImageWidget extends RosMapWidget implements MessageListener<sens
 	
 	@Override
 	public void subscribe(ConnectedNode node) {
-		subscriber = node.newSubscriber(rosTopic, sensor_msgs.Image._TYPE);
+		Log.d("compressedImageTest", "subscribing... " + sensor_msgs.CompressedImage._TYPE);
+		subscriber = node.newSubscriber(rosTopic, sensor_msgs.CompressedImage._TYPE);
 		subscriber.addMessageListener(this);
 	}
 
@@ -171,69 +183,57 @@ public class RosImageWidget extends RosMapWidget implements MessageListener<sens
 			subscriber.shutdown();
 		}
 	}
-
-	//TODO change this
-	boolean decodingInProgress = false;
 	
 	@Override
-	public void onNewMessage(final sensor_msgs.Image image) {
-		if (decodingInProgress) {
-			return; //skip image
-		}
-		decodingInProgress = true;
-		MainScreen.getExecutorService().execute(new Runnable() {
+	public void onNewMessage(final sensor_msgs.CompressedImage image) {
+		ChannelBuffer cb = image.getData();
+		
+		
+		//offset, jpeg image starts at bytes "FF D8", see http://de.wikipedia.org/wiki/JPEG_File_Interchange_Format
+		int byteArrayOffset = 34;
+
+		final Bitmap oldBitmap = bitmap;
+		MainScreen.getExecutorService().schedule(new Runnable() {
 			
 			@Override
 			public void run() {
-				Log.d("rosimagewidget", "decoding image...");
-				// Bitmap bitmap = new BitmapFromImage().call(image);
-				sensor_msgs.Image message = image;
-//				Bitmap bitmap = Bitmap.createBitmap((int) message.getWidth(),
-//						(int) message.getHeight(), Bitmap.Config.ARGB_8888);
-				int opCount = 0;
-				long timesum = 0;
-				int pixelsum = 0;
-				ChannelBuffer data = message.getData();
-//				for (int x = 0; x < message.getWidth(); x++) {
-////					long start = System.currentTimeMillis();
-//					for (int y = 0; y < message.getHeight(); y++) {
-//						byte red = data.getByte((y * message.getStep() + 3 * x));
-//						byte green = data.getByte((y * message.getStep()
-//								+ 3 * x + 1));
-//						byte blue = data.getByte((y * message.getStep()
-//								+ 3 * x + 2));
-//						// byte red = 0;
-//						// byte green = 0;
-//						// byte blue = 0;
-//						
-//						bitmap.setPixel(x, y, Color.argb(255, red & 0xFF,
-//								green & 0xFF, blue & 0xFF));
-////						opCount++;
-//					}
-//					Log.d("rosimagewidget", "decoding row: " + x
-//							+ ", current OP-Count: " + opCount);
-//					Log.d("rosimagewidget",
-//							"Time per pixel (in ms): "
-//									+ ((System.currentTimeMillis() - start) / (float) message
-//											.getHeight())
-//									+ "Avg: "
-//									+ ((timesum += (System.currentTimeMillis() - start)) / (float) (pixelsum += message
-//											.getHeight())));
-//				}
-				
-				Bitmap bitmap = new BitmapFromImage().call(image);
-				
-				Log.d("rosimagewidget", "image received: " + bitmap.getWidth()
-						+ "x" + bitmap.getHeight());
-				decodingInProgress = false;
+				synchronized (imageView) {
+					if (oldBitmap != null) {
+						oldBitmap.recycle();
+					}
+				}
+			}
+		}, 500, TimeUnit.MILLISECONDS);
+		
+		synchronized (imageView) {
+			bitmap = BitmapFactory.decodeByteArray(cb.array(), cb.readerIndex() + byteArrayOffset, cb.readableBytes());
+		}
+		
+		if (bitmap != null && !bitmap.isRecycled()) {
+			setRatio(bitmap.getWidth() / (float) bitmap.getHeight());
+		}
+		
+		imageView.post(new Runnable() {
+			
+			@Override
+			public void run() {
+				imageView.invalidate();
 			}
 		});
 		
-//		new Thread() {
-//			public void run() {
-//				
-//			}
-//		}.start();
+		//TODO remove debugging code
+//		try {
+//			FileOutputStream fout = new FileOutputStream(new File("/sdcard/imagefile"));
+//			fout.write(cb.array(), cb.readerIndex() + byteArrayOffset, cb.readableBytes());
+//			fout.flush();
+//			fout.close();
+//		} catch (FileNotFoundException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 	}
 	
 	@Override
