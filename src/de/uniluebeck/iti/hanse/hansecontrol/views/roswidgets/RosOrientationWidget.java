@@ -1,5 +1,7 @@
 package de.uniluebeck.iti.hanse.hansecontrol.views.roswidgets;
 
+import geometry_msgs.Quaternion;
+
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -16,6 +18,8 @@ import org.ros.message.MessageListener;
 import org.ros.node.ConnectedNode;
 import org.ros.node.topic.Subscriber;
 
+import sensor_msgs.Imu;
+
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
@@ -30,6 +34,8 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Paint.Style;
+import android.graphics.Path;
 import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
@@ -61,20 +67,24 @@ import de.uniluebeck.iti.hanse.hansecontrol.RosRobot;
 import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.DragLayer;
 import de.uniluebeck.iti.hanse.hansecontrol.views.RosMapWidget;
 
-public class RosOrientationWidget extends RosMapWidget {
+public class RosOrientationWidget extends RosMapWidget implements MessageListener<sensor_msgs.Imu> {
 	String rosTopic;
-	Subscriber<hanse_msgs.ScanningSonar> subscriber;
+	Subscriber<sensor_msgs.Imu> subscriber;
 	
 	TextView textView;
 	
 	Paint backgroundPaint = new Paint();
 	Paint linePaint = new Paint();
+	Paint polyFillPaint = new Paint();
+	Paint thinLinePaint = new Paint();
+	Paint textPaint = new Paint();
 	
 	LinearLayout linearLayout;
 	
 	View view;
 	
-//	Thread redrawThread;
+	Float roll;
+	Float pitch;
 	
 	public RosOrientationWidget(int widgetID, Context context, final String rosTopic, 
 			DragLayer dragLayer, MapWidgetRegistry mapWidgetRegistry, MainScreenFragment mainScreenFragment) {
@@ -90,24 +100,39 @@ public class RosOrientationWidget extends RosMapWidget {
 		linearLayout.setOrientation(LinearLayout.VERTICAL);
 		
 		TextView topicHeader = new TextView(context);
-		topicHeader.setText("Orientation");
+		topicHeader.setText(rosTopic);
 		topicHeader.setGravity(Gravity.CENTER);
 		topicHeader.setTextColor(Color.LTGRAY);
 		
 		view = new View(getContext()) {
 			@Override
 			protected void onDraw(Canvas canvas) {
-//				canvas.drawLine(0, 0, getWidth(), getHeight(), new Paint());
-				RosRobot r = RosRobot.getInstance();
-				if (r.getRoll() != null && r.getPitch() != null && r.getYaw() != null) {
-					double triLen = (Math.min(getHeight(), getWidth()) / 2) / Math.sin(Math.PI / 3);
-					double dx = (triLen / 2) * Math.cos(r.getPitch());
-					double dy = (triLen / 2) * Math.sin(r.getYaw());
+				float triRad = Math.min(getHeight(), getWidth()) / 2f;
+				float cx = (getWidth() - 1)  / 2f;
+				float cy = (getHeight() - 1) / 2f;
+				canvas.drawLine(cx - triRad, cy, cx + triRad, cy, thinLinePaint);
+				canvas.drawCircle(cx, cy, triRad, thinLinePaint);
+				
+				if (roll != null && pitch != null) {
+//					roll = (float) Math.PI * 0.25f;
+//					pitch = (float) Math.PI * 0.25f;
+					triRad -= 2;
+					//roll
+					float dx = triRad * (float) Math.cos(roll);
+					float dy = triRad * (float) Math.sin(roll);
+					//pitch
+					float pitchLen = triRad * (float) Math.sin(pitch);
+					float pdx = pitchLen * (float) Math.cos(roll + Math.PI / 2);
+					float pdy = pitchLen * (float) Math.sin(roll + Math.PI / 2);
 					
-					double cx = getWidth() / 2d;
-					double cy = getHeight() / 2d;
-					
-					canvas.drawLine((float)(cx - dx), (float)(cy + dy), (float)(cx + dx), (float)(cy - dy), linePaint);
+					//draw polygon
+					Path path = new Path();
+					path.moveTo(cx - dx, cy + dy);
+					path.lineTo(cx + dx, cy - dy);
+					path.lineTo(cx + pdx, cy - pdy);
+					path.lineTo(cx - dx, cy + dy);
+					canvas.drawPath(path, polyFillPaint);
+					canvas.drawPath(path, linePaint);
 					
 				}
 				
@@ -117,12 +142,19 @@ public class RosOrientationWidget extends RosMapWidget {
 		linearLayout.addView(topicHeader);
 		linearLayout.addView(view);
 		
-//		addView(linearLayout, 0);
-		
 		backgroundPaint.setColor(Color.BLACK);
 		backgroundPaint.setAlpha(80);
 		backgroundPaint.setStyle(Paint.Style.FILL);
 		
+		linePaint.setAntiAlias(true);
+		linePaint.setStrokeWidth(2f);
+		linePaint.setStyle(Style.STROKE);
+		linePaint.setStrokeCap(Paint.Cap.ROUND);
+		thinLinePaint.setAntiAlias(true);
+		thinLinePaint.setStrokeWidth(0.5f);
+		thinLinePaint.setStyle(Style.STROKE);
+		polyFillPaint.setStyle(Style.FILL);
+		polyFillPaint.setAlpha(100);
 		
 		final Paint iconTextPaint = new Paint();
 		iconTextPaint.setColor(Color.WHITE);
@@ -135,7 +167,7 @@ public class RosOrientationWidget extends RosMapWidget {
 				if (getMode() == FULLSIZE_MODE) {
 					canvas.drawRect(new Rect(0,0, getWidth(), getHeight()), backgroundPaint);
 				} else if (getMode() == ICON_MODE) {
-					String iconText = shrinkStringToWidth(iconTextPaint, getWidth(), "Orientation");
+					String iconText = shrinkStringToWidth(iconTextPaint, getWidth(), rosTopic);
 					canvas.drawText(iconText, getWidth() / 2 - iconTextPaint.measureText(iconText) / 2, textSize, iconTextPaint);
 					Bitmap bitmap = BitmapManager.getInstance().getBitmap(getResources(), 
 							R.drawable.rostextwidget);
@@ -203,46 +235,6 @@ public class RosOrientationWidget extends RosMapWidget {
 		}
 	}
 	
-//	@Override
-//	public void subscribe(ConnectedNode node) {
-////		subscriber = node.newSubscriber(rosTopic, hanse_msgs.ScanningSonar._TYPE);
-////		subscriber.addMessageListener(this);
-//		
-//		
-//		//workaround for drawing issue, apparently canvas.draw methods perform 
-//		//the actual drawing into the bitmap in background
-////		if (redrawThread == null || !redrawThread.isAlive()) {
-////			redrawThread = new Thread() {
-////				public void run() {
-////					while (!isInterrupted()) {
-////						redraw();
-////						try {
-////							Thread.sleep(500);
-////						} catch (InterruptedException e) {
-////							interrupt();
-////						}
-////					}
-////				}
-////			};
-////			redrawThread.start();
-////		}
-//	}
-
-//	@Override
-//	public void unsubscribe(ConnectedNode node) {
-//		if (subscriber != null) {
-//			subscriber.shutdown();
-//		}
-////		plotView.clearValues();
-////		if (redrawThread != null && redrawThread.isAlive()) {
-////			redrawThread.interrupt();
-////		}
-//	}
-
-	
-//	@Override
-//	public abstract WidgetType getWidgetType();
-	
 	@Override
 	public String getRosTopic() {
 		return rosTopic;
@@ -265,11 +257,41 @@ public class RosOrientationWidget extends RosMapWidget {
 
 	@Override
 	public void subscribe(ConnectedNode node) {
-		
+		subscriber = node.newSubscriber(rosTopic, sensor_msgs.Imu._TYPE);
+		subscriber.addMessageListener(this);
 	}
 
 	@Override
 	public void unsubscribe(ConnectedNode node) {
-		
+		if (subscriber != null) {
+			subscriber.shutdown();
+		}
+	}
+
+	@Override
+	public void onNewMessage(final Imu imu) {
+		MainScreen.getExecutorService().execute(new Runnable() {
+			
+			@Override
+			public void run() {
+				update(imu.getOrientation());				
+			}
+		});
 	}	
+	
+	private void update(Quaternion quaternion) {
+		double q0 = quaternion.getX();
+		double q1 = quaternion.getY();
+		double q2 = quaternion.getZ();
+		double q3 = quaternion.getW();
+		
+//		roll = Math.atan2(2*(q0*q1+q2*q3), 1 - 2*(q1*q1 + q2*q2));
+//		pitch = Math.asin(2*(q0*q2 - q3*q1));
+//		yaw = Math.atan2(2*(q0*q3+q1*q2), 1 - 2*(q2*q2 + q3*q3));
+		
+		roll = (float) Math.atan2(2*(q0*q3+q1*q2), 1 - 2*(q2*q2 + q3*q3));
+		pitch = (float) Math.asin(2*(q0*q2 - q3*q1));
+		Log.d("orientationwidget", String.format("Roll: %f, Pitch: %f", roll, pitch));
+		redraw();
+	}
 } 

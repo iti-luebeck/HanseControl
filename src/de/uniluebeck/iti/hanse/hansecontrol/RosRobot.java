@@ -117,7 +117,7 @@ public class RosRobot {
 	public Double getYaw() {
 		return yaw;
 	}
-
+	
 	private void updateOrientation(PoseStamped pose) {
 		double q0 = pose.getPose().getOrientation().getX();
 		double q1 = pose.getPose().getOrientation().getY();
@@ -159,36 +159,36 @@ public class RosRobot {
 		
 	}
 	
-	
-	public float[] toAngles(float[] angles, float x, float y, float z, float w) {
-        if (angles == null) {
-            angles = new float[3];
-        } else if (angles.length != 3) {
-            throw new IllegalArgumentException("Angles array must have three elements");
-        }
-
-        float sqw = w * w;
-        float sqx = x * x;
-        float sqy = y * y;
-        float sqz = z * z;
-        float unit = sqx + sqy + sqz + sqw; // if normalized is one, otherwise
-        // is correction factor
-        float test = x * y + z * w;
-        if (test > 0.499 * unit) { // singularity at north pole
-            angles[1] = 2 * (float)Math.atan2(x, w);
-            angles[2] = (float) Math.PI / 2;
-            angles[0] = 0;
-        } else if (test < -0.499 * unit) { // singularity at south pole
-            angles[1] = -2 * (float)Math.atan2(x, w);
-            angles[2] = -(float) Math.PI / 2;
-            angles[0] = 0;
-        } else {
-            angles[1] = (float)Math.atan2(2 * y * w - 2 * x * z, sqx - sqy - sqz + sqw); // roll or heading 
-            angles[2] = (float)Math.asin(2 * test / unit); // pitch or attitude
-            angles[0] = (float)Math.atan2(2 * x * w - 2 * y * z, -sqx + sqy - sqz + sqw); // yaw or bank
-        }
-        return angles;
-    }
+	//TODO remove toAngles
+//	public float[] toAngles(float[] angles, float x, float y, float z, float w) {
+//        if (angles == null) {
+//            angles = new float[3];
+//        } else if (angles.length != 3) {
+//            throw new IllegalArgumentException("Angles array must have three elements");
+//        }
+//
+//        float sqw = w * w;
+//        float sqx = x * x;
+//        float sqy = y * y;
+//        float sqz = z * z;
+//        float unit = sqx + sqy + sqz + sqw; // if normalized is one, otherwise
+//        // is correction factor
+//        float test = x * y + z * w;
+//        if (test > 0.499 * unit) { // singularity at north pole
+//            angles[1] = 2 * (float)Math.atan2(x, w);
+//            angles[2] = (float) Math.PI / 2;
+//            angles[0] = 0;
+//        } else if (test < -0.499 * unit) { // singularity at south pole
+//            angles[1] = -2 * (float)Math.atan2(x, w);
+//            angles[2] = -(float) Math.PI / 2;
+//            angles[0] = 0;
+//        } else {
+//            angles[1] = (float)Math.atan2(2 * y * w - 2 * x * z, sqx - sqy - sqz + sqw); // roll or heading 
+//            angles[2] = (float)Math.asin(2 * test / unit); // pitch or attitude
+//            angles[0] = (float)Math.atan2(2 * x * w - 2 * y * z, -sqx + sqy - sqz + sqw); // yaw or bank
+//        }
+//        return angles;
+//    }
 	
 	public static RosRobot getInstance() {
 		return instance;
