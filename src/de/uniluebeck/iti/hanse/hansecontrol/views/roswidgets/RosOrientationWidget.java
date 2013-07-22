@@ -115,13 +115,27 @@ public class RosOrientationWidget extends RosMapWidget implements MessageListene
 				
 				if (roll != null && pitch != null) {
 //					roll = (float) Math.PI * 0.25f;
-//					pitch = (float) Math.PI * 0.25f;
+//					pitch = (float) Math.PI * 0.03f;// + (float) Math.PI;	
+					
+					//change color
+					float pitchSin = (float) Math.sin(pitch);
+					int minVal = 20;
+					int maxVal = 255;
+					int range = maxVal - minVal;
+					if (pitchSin > 0) {
+						polyFillPaint.setColor(Color.argb(100, 0, (int)(range * pitchSin) + minVal, 0));
+						linePaint.setColor(Color.argb(180, 0, (int)(range * pitchSin) + minVal, 0));						
+					} else {
+						polyFillPaint.setColor(Color.argb(100, (int)(range * -pitchSin) + minVal, 0, 0));
+						linePaint.setColor(Color.argb(180, (int)(range * -pitchSin) + minVal, 0, 0));
+					}
+					
 					triRad -= 2;
 					//roll
 					float dx = triRad * (float) Math.cos(roll);
 					float dy = triRad * (float) Math.sin(roll);
 					//pitch
-					float pitchLen = triRad * (float) Math.sin(pitch);
+					float pitchLen = triRad * pitchSin;
 					float pdx = pitchLen * (float) Math.cos(roll + Math.PI / 2);
 					float pdy = pitchLen * (float) Math.sin(roll + Math.PI / 2);
 					
