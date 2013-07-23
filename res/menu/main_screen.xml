@@ -6,18 +6,18 @@
 <!--         android:showAsAction="never" -->
 <!--         android:title="@string/action_settings"/> -->
 	
-	<item android:id="@+id/tabClose" android:title="@string/action_tab_close"
-        android:showAsAction="always" android:icon="@drawable/trash_icon2"/>
     <item android:id="@+id/tabCreate" android:title="@string/action_tab_create"
-        android:showAsAction="always" android:icon="@drawable/plus_icon"/>
+        android:showAsAction="always" android:icon="@drawable/actionbar_add_tab"/>
+	<item android:id="@+id/tabClose" android:title="@string/action_tab_close"
+        android:showAsAction="always" android:icon="@drawable/actionbar_remove_tab"/>
     <item android:id="@+id/showhidewidgetbar" android:title="@string/action_showhidewidgetbar_hide"
-        android:showAsAction="always" android:icon="@drawable/showhidewidgetbar_icon"/>
+        android:showAsAction="always" android:icon="@drawable/actionbar_hide_widgetbar"/>
     <item android:id="@+id/resetsettings" android:title="@string/resetsettings"
         android:showAsAction="never"/>
     
     <item
     android:id="@+id/overlayMenu"
-    android:icon="@drawable/layer_icon"
+    android:icon="@drawable/actionbar_layers"
     android:showAsAction="always"
     android:title="Chooser layers">
 	    <menu>
@@ -43,7 +43,7 @@
     
     <item
     android:id="@+id/mapmenu"
-    android:icon="@drawable/mapicon"
+    android:icon="@drawable/actionbar_map"
     android:showAsAction="always"
     android:title="Choose map">
     	<menu>

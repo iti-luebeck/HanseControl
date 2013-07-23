@@ -61,6 +61,8 @@ public class MapWidget extends BasicView {
 	
 	private int currentMode = ICON_MODE;
 	
+	public static Paint imagePaint = new Paint();
+	
 	Float mX, mY; //last position while dragging
 	
 	DragLayer dragLayer = null;
@@ -138,6 +140,8 @@ public class MapWidget extends BasicView {
 			};
 			addView(view);	
 		}
+		imagePaint.setAntiAlias(true);
+		
 		initCloseButton();
 		initCornerResizer();
 		initRemoveWidgetButton();
@@ -163,7 +167,7 @@ public class MapWidget extends BasicView {
 	private void initShowContextMenuButton() {
 		showContextMenuButton = new ShowContextMenuButton(getContext(), this);
 		addView(showContextMenuButton);
-		int width = (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 30, getResources().getDisplayMetrics());
+		int width = (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 45, getResources().getDisplayMetrics());
 		RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(width, width);
 		showContextMenuButton.setLayoutParams(params);
 		showContextMenuButton.setVisibility(View.INVISIBLE);
@@ -172,7 +176,7 @@ public class MapWidget extends BasicView {
 	private void initRemoveWidgetButton() {
 		removeWidgetButton = new RemoveWidgetButton(getContext(), this);
 		addView(removeWidgetButton);
-		int removeWidgetButtonWidth = (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 30, getResources().getDisplayMetrics());
+		int removeWidgetButtonWidth = (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 45, getResources().getDisplayMetrics());
 		RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(removeWidgetButtonWidth, removeWidgetButtonWidth);
 		params.addRule(RelativeLayout.ALIGN_PARENT_TOP);
 		params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
@@ -183,7 +187,7 @@ public class MapWidget extends BasicView {
 	private void initCloseButton() {
 		closeButton = new CloseButton(getContext(), this);
 		addView(closeButton);
-		int closeButtonWidth = (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 40, getResources().getDisplayMetrics());
+		int closeButtonWidth = (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 45, getResources().getDisplayMetrics());
 		RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(closeButtonWidth, closeButtonWidth);
 //		params.addRule(RelativeLayout.ALIGN_PARENT_TOP);
 //		params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
@@ -662,7 +666,8 @@ public class MapWidget extends BasicView {
 				
 				//TODO consider to use a async task instead!
 //				canvas.drawBitmap(bitmap_closeButton, 0, 0, null);
-				canvas.drawBitmap(BitmapManager.getInstance().getBitmap(getResources(), R.drawable.trashbin), null, new RectF(0, 0, getWidth(), getHeight()), null);
+				canvas.drawBitmap(BitmapManager.getInstance().getBitmap(getResources(), R.drawable.widget_remove),
+						null, new RectF(0, 0, getWidth(), getHeight()), null);
 			}
 		}
 		
@@ -716,7 +721,13 @@ public class MapWidget extends BasicView {
 		protected void onDraw(Canvas canvas) {
 //			canvas.drawLine(0, 0, getWidth() - 1, getHeight() - 1, paint);
 //			canvas.drawLine(0, getHeight() - 1, getWidth() - 1, 0, paint);
-			canvas.drawBitmap(BitmapManager.getInstance().getBitmap(getResources(), R.drawable.resize), null, new RectF(0, 0, getWidth(), getHeight()), null);
+			if (corner == TOP_LEFT || corner == BOTTOM_RIGHT) {
+				canvas.drawBitmap(BitmapManager.getInstance().getBitmap(getResources(), R.drawable.widget_scale_nw), 
+						null, new RectF(0, 0, getWidth(), getHeight()), null);
+			} else {
+				canvas.drawBitmap(BitmapManager.getInstance().getBitmap(getResources(), R.drawable.widget_scale_ne), 
+						null, new RectF(0, 0, getWidth(), getHeight()), null);
+			}
 		}
 		
 		@Override
@@ -771,7 +782,7 @@ public class MapWidget extends BasicView {
 				
 				//TODO consider to use a async task instead!
 //				canvas.drawBitmap(bitmap_closeButton, 0, 0, null);
-				canvas.drawBitmap(BitmapManager.getInstance().getBitmap(getResources(), R.drawable.trash_icon2), null, new RectF(0, 0, getWidth(), getHeight()), null);
+				canvas.drawBitmap(BitmapManager.getInstance().getBitmap(getResources(), R.drawable.widget_remove), null, new RectF(0, 0, getWidth(), getHeight()), null);
 			}
 		}
 		
@@ -818,7 +829,8 @@ public class MapWidget extends BasicView {
 				
 				//TODO consider to use a async task instead!
 //				canvas.drawBitmap(bitmap_closeButton, 0, 0, null);
-				canvas.drawBitmap(BitmapManager.getInstance().getBitmap(getResources(), R.drawable.gears_icon), null, new RectF(0, 0, getWidth(), getHeight()), null);
+				canvas.drawBitmap(BitmapManager.getInstance().getBitmap(getResources(), R.drawable.widget_settings), 
+						null, new RectF(0, 0, getWidth(), getHeight()), null);
 			}
 		}
 		
@@ -827,7 +839,8 @@ public class MapWidget extends BasicView {
 			if (!controlsVisible) {
 				return false;
 			}
-			Log.w("touchlog", String.format("MapWidget.CloseButton.onTouchEvent(): x: %f, y: %f, action: %d, actionmasked: %d", event.getX(), event.getY(), 
+			Log.w("touchlog", String.format("MapWidget.CloseButton.onTouchEvent(): x: %f, y: %f, action: %d, actionmasked: %d", 
+					event.getX(), event.getY(), 
 					event.getAction(), event.getActionMasked()));
 			if (getMode() == FULLSIZE_MODE && event.getActionMasked() == MotionEvent.ACTION_UP) {
 				parentWidget.getMainScreenFragment().getActivity().openContextMenu(this);

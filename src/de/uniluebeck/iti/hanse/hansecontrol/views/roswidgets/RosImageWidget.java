@@ -106,7 +106,7 @@ public class RosImageWidget extends RosMapWidget implements MessageListener<sens
 					String iconText = shrinkStringToWidth(iconTextPaint, getWidth(), rosTopic);
 					canvas.drawText(iconText, getWidth() / 2 - iconTextPaint.measureText(iconText) / 2, textSize, iconTextPaint);
 					Bitmap bitmap = BitmapManager.getInstance().getBitmap(getResources(), 
-							R.drawable.rostextwidget);
+							R.drawable.widgeticon_image);
 					canvas.drawBitmap(bitmap, null, 
 							scaleToBox(bitmap.getWidth(), bitmap.getHeight(), 
 									0, textSize + 3, getWidth(), getHeight() - (textSize + 3)), null);
