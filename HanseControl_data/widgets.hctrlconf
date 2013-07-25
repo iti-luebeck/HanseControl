@@ -1,15 +1,10 @@
-#This file contains all widgets that currently exist.
-#You can change this file to add new widgets/overlays or do this within the application.
-
-#Topic1 = WIDGET_TYPE1, OVERLAY_TYPE1, WIDGET_TYPE2, ...
-#Topic2 = WIDGET_TYPE2, OVERLAY_TYPE2, WIDGET_TYPE3, ...
-
-#Currently available widgets and overlays are:
-#TODO
-
-/hanse/pressure/depth = ROS_PLOT_WIDGET__PRESSURE
-/hanse/motors/left = ROS_PLOT_WIDGET__SOLLSPEED
-/hanse/motors/right = ROS_PLOT_WIDGET__SOLLSPEED
-/hanse/motors/up = ROS_PLOT_WIDGET__SOLLSPEED
-/hanse/pid/depth/input = ROS_PLOT_WIDGET__FLOAT64
+/hanse/camera/front/compressed=ROS_IMAGE_WIDGET
+/hanse/camera/bottom/compressed=ROS_IMAGE_WIDGET
+/hanse/imu=ROS_ORIENTATION_WIDGET
+/hanse/sonar/scan=ROS_SONAR_WIDGET
+/hanse/pressure/depth=ROS_PLOT_WIDGET__PRESSURE, ROS_TEXT_WIDGET__PRESSURE
+/hanse/pid/depth/input=ROS_PLOT_WIDGET__FLOAT64, ROS_TEXT_WIDGET__FLOAT64
+/hanse/motors/up=ROS_PLOT_WIDGET__SOLLSPEED, ROS_TEXT_WIDGET__SOLLSPEED
+/hanse/motors/right=ROS_PLOT_WIDGET__SOLLSPEED, ROS_TEXT_WIDGET__SOLLSPEED
+/hanse/motors/left=ROS_PLOT_WIDGET__SOLLSPEED, ROS_TEXT_WIDGET__SOLLSPEED
 

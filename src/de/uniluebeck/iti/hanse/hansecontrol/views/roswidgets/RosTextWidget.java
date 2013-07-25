@@ -57,6 +57,8 @@ public abstract class RosTextWidget<T> extends RosMapWidget implements MessageLi
 		textView = new TextView(context);
 //		removeAllViews();
 		
+		Log.d("textwidgeterrfind", rosTopic + " : " + rosTtype);
+		
 		textView.setTextSize(18);
 		textView.setTextColor(Color.WHITE);
 		
@@ -198,11 +200,6 @@ public abstract class RosTextWidget<T> extends RosMapWidget implements MessageLi
 			}
 		});
 //		Log.d("ros", "RosTextWidget" + getWidgetID() + " received: " + msg.getData());
-	}
-	
-	@Override
-	public WidgetType getWidgetType() {
-		return WidgetType.ROS_TEXT_WIDGET__STRING;
 	}
 	
 	@Override
