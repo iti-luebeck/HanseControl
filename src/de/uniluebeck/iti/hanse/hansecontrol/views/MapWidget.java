@@ -80,6 +80,8 @@ public class MapWidget extends BasicView {
 	
 	Float ratio = null; //  = width / height
 	
+	ControlsListener controlsListener = null;
+	
 	//allow ratio change??
 	//public float zoom = 1; //TODO implement
 	
@@ -438,6 +440,9 @@ public class MapWidget extends BasicView {
 				((RelativeLayout.LayoutParams) showContextMenuButton.getLayoutParams()).addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
 				
 				controlsVisible = true;
+				if (controlsListener != null) {
+					controlsListener.onControlsVisible();
+				}
 			}
 			
 			@Override
@@ -487,6 +492,9 @@ public class MapWidget extends BasicView {
 			@Override
 			public void onAnimationEnd(Animator animation) {
 				controlsVisible = false;
+				if (controlsListener != null) {
+					controlsListener.onControlsInvisible();
+				}
 			}
 			
 			@Override
@@ -867,7 +875,18 @@ public class MapWidget extends BasicView {
 		}
 	}
 	
+	public static interface ControlsListener {
+		public void onControlsVisible();
+		public void onControlsInvisible();
+	}
 	
+	public void setControlsListener(ControlsListener controlsListener) {
+		this.controlsListener = controlsListener;
+	}
+	
+	public boolean isControlsVisible() {
+		return controlsVisible;
+	}
 	
 //	@Override
 //	public void forceLayout() {

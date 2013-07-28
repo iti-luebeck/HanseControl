@@ -202,7 +202,6 @@ public abstract class RosPlotWidget<T> extends RosMapWidget implements MessageLi
 		plotView.clearValues();
 	}
 
-	
 	@Override
 	public void onNewMessage(final T msg) {
 //		Log.d("plotwidget", getValue(msg) + "");

@@ -24,6 +24,7 @@ import android.widget.TextView;
 import android.widget.RelativeLayout.LayoutParams;
 
 import de.uniluebeck.iti.hanse.hansecontrol.BitmapManager;
+import de.uniluebeck.iti.hanse.hansecontrol.MainScreen;
 import de.uniluebeck.iti.hanse.hansecontrol.MainScreenFragment;
 import de.uniluebeck.iti.hanse.hansecontrol.MapWidgetRegistry;
 import de.uniluebeck.iti.hanse.hansecontrol.R;
@@ -181,24 +182,27 @@ public abstract class RosTextWidget<T> extends RosMapWidget implements MessageLi
 	
 	@Override
 	public void onNewMessage(final T msg) {
-		textView.post(new Runnable() {
+		MainScreen.getExecutorService().execute(new Runnable() {
 			
 			@Override
 			public void run() {
-				// TODO Auto-generated method stub
 				lines.add(getStringFromMsg(msg));
-				
-				StringBuilder s = new StringBuilder();
+				final StringBuilder s = new StringBuilder();
 				for (int i = lines.size() - 1; i >= 0; i--) {
 					s.append(lines.get(i) + "\n");
 				}
-				textView.setText(s);
-				
 				while (lines.size() > bufferedLines) {
 					lines.remove(0);
 				}
+				textView.post(new Runnable() {	
+					@Override
+					public void run() {
+						textView.setText(s);
+					}
+				});				
 			}
 		});
+		
 //		Log.d("ros", "RosTextWidget" + getWidgetID() + " received: " + msg.getData());
 	}
 	

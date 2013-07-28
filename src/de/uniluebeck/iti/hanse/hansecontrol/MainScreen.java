@@ -56,7 +56,7 @@ import android.widget.TextView;
 import android.app.ActionBar;
 
 /**
- * This is the main Activity, it shows tabs (Fragments),
+ * This is the main Activity, it displays and manages tabs (Fragments),
  * which are instances of MainScreenFragment.
  * 
  * @author Stefan Hueske

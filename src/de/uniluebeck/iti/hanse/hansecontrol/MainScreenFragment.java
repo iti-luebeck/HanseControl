@@ -639,10 +639,16 @@ public class MainScreenFragment extends Fragment {
 			w.savePrefs(TAB_PREFIX + tabID, ed);
 		}
 //		widgetRegistry.savePrefs(ed);
-		widgetRegistry.saveWidgetsToFile();
-		widgetRegistry.unsubscribeAll();
-		overlayLayer.getOverlayRegistry().saveOverlaysToFile();
-		overlayLayer.getOverlayRegistry().unsubscribeAll();
+		MainScreen.getExecutorService().execute(new Runnable() {
+			
+			@Override
+			public void run() {	
+				widgetRegistry.saveWidgetsToFile();
+				widgetRegistry.unsubscribeAll();
+				overlayLayer.getOverlayRegistry().saveOverlaysToFile();
+				overlayLayer.getOverlayRegistry().unsubscribeAll();
+			}
+		});
 		
 		for (AbstractOverlay overlay : overlayLayer.getOverlayRegistry().getAllOverlays()) {
 			Log.d("menutest", "saving: " + TAB_PREFIX + tabID + overlay.getOverlayType().name() + ":" + overlay.getRosTopic() + " value:"+ overlay.isVisible());

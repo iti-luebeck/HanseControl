@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import org.jboss.netty.buffer.ChannelBuffer;
@@ -20,10 +21,13 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -46,24 +50,23 @@ public class RosImageWidget extends RosMapWidget implements MessageListener<sens
 	String rosTopic;
 	Subscriber<sensor_msgs.CompressedImage> subscriber;
 	
-	TextView textView;
+	ImageSurface imageSurface;
+	boolean drawingInProgress = false;
 	
 	Paint backgroundPaint = new Paint();
 	
 	LinearLayout linearLayout;
 	
 	Bitmap bitmap;	
-	View imageView;
+	
+	//offset, jpeg image starts at bytes "FF D8", see http://de.wikipedia.org/wiki/JPEG_File_Interchange_Format
+	static final int byteArrayOffset = 34;
 	
 	public RosImageWidget(int widgetID,	Context context, final String rosTopic, 
 			DragLayer dragLayer, MapWidgetRegistry mapWidgetRegistry, MainScreenFragment mainScreenFragment) {
 		super(300, 200, widgetID, context, dragLayer, mapWidgetRegistry, mainScreenFragment);
 		Log.d("compressedImageTest", "Creating widget instance");
 		this.rosTopic = rosTopic;
-		textView = new TextView(context);
-		
-		textView.setTextSize(18);
-		textView.setTextColor(Color.WHITE);
 		
 		linearLayout = new LinearLayout(context);
 		linearLayout.setOrientation(LinearLayout.VERTICAL);
@@ -73,24 +76,26 @@ public class RosImageWidget extends RosMapWidget implements MessageListener<sens
 		topicHeader.setGravity(Gravity.CENTER);
 		topicHeader.setTextColor(Color.LTGRAY);
 		
-		imageView = new ImageView(getContext());
+		imageSurface = new ImageSurface(getContext());
+		
 		
 		linearLayout.addView(topicHeader);
-		linearLayout.addView(imageView = new View(getContext()) {
+		linearLayout.addView(imageSurface);
+		
+		imageSurface.setZOrderOnTop(true);
+		setControlsListener(new ControlsListener() {
+			
 			@Override
-			public void draw(Canvas canvas) {
-				synchronized (this) {					
-					if (bitmap != null && !bitmap.isRecycled()) {
-						canvas.drawBitmap(bitmap, null, scaleToBox(bitmap.getWidth(), bitmap.getHeight(), 0, 0, getWidth()-1, getHeight()-1) , null);
-					}
-				}
+			public void onControlsVisible() {
+				imageSurface.setVisibility(View.INVISIBLE);
 			}
+			@Override
+			public void onControlsInvisible() {}
 		});
 		
 		backgroundPaint.setColor(Color.BLACK);
 		backgroundPaint.setAlpha(80);
 		backgroundPaint.setStyle(Paint.Style.FILL);
-		
 		
 		final Paint iconTextPaint = new Paint();
 		iconTextPaint.setColor(Color.WHITE);
@@ -113,6 +118,32 @@ public class RosImageWidget extends RosMapWidget implements MessageListener<sens
 				}
 			}
 		}, 0);
+		
+//		imageSurface.setVisibility(View.INVISIBLE);
+		
+//		new Thread() {
+//			public void run() {
+//				while(true) {
+//					try {
+//						Thread.sleep(2000);
+//					} catch (InterruptedException e) {
+//						// TODO Auto-generated catch block
+//						e.printStackTrace();
+//					}
+//					Log.d("RosImageWidget", Thread.currentThread().getName() + " h:" + imageSurface.getHeight() + " w:" + imageSurface.getWidth() 
+//							+ " isInvisible:" + (imageSurface.getVisibility() == View.INVISIBLE));
+//					drawImage();
+//					imageSurface.post(new Runnable() {
+//						
+//						@Override
+//						public void run() {
+//							imageSurface.setVisibility(View.VISIBLE);
+//							imageSurface.invalidate();
+//						}
+//					});
+//				}
+//			};
+//		}.start();
 		
 	}
 	
@@ -175,6 +206,9 @@ public class RosImageWidget extends RosMapWidget implements MessageListener<sens
 		Log.d("compressedImageTest", "subscribing... " + sensor_msgs.CompressedImage._TYPE);
 		subscriber = node.newSubscriber(rosTopic, sensor_msgs.CompressedImage._TYPE);
 		subscriber.addMessageListener(this);
+		
+		
+		
 	}
 
 	@Override
@@ -184,42 +218,100 @@ public class RosImageWidget extends RosMapWidget implements MessageListener<sens
 		}
 	}
 	
+	private void drawImage() {
+		Log.d("RosImageWidget", Thread.currentThread().getName() + "drawImage()...");
+		try {
+//			imageSurface.getHolder().setFormat(PixelFormat.TRANSPARENT);
+			if (imageSurface.getSurfaceHolder() == null) {
+				return;
+			}
+			Canvas canvas = imageSurface.getHolder().lockCanvas(null);
+			if (canvas == null) {
+				Log.e("RosImageWidget", ".getHolder().lockCanvas() returned null!");
+				return;
+			}
+			canvas.drawBitmap(bitmap, null, scaleToBox(bitmap.getWidth(), bitmap.getHeight(), 0, 0,
+					imageSurface.getWidth()-1, imageSurface.getHeight()-1) , null);		
+//			Paint white = new Paint();
+//			white.setColor(Color.WHITE);
+//			canvas.drawRect(new Rect(0, 0, 50, 50), white);
+//			
+//			canvas.drawLine(0, 0, 50, 50, new Paint());
+			
+			imageSurface.getHolder().unlockCanvasAndPost(canvas);	
+			Log.d("RosImageWidget", Thread.currentThread().getName() + "...drawImage() finished drawing!");
+		} catch (Exception e) {
+			Log.e("RosImageWidget", "Error while drawing image", e);
+			try {
+				imageSurface.getSurfaceHolder().unlockCanvasAndPost(null);				
+			} catch (Exception e1) { }
+		}
+	}
+	
+//	@Override
+//	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+//		super.onSizeChanged(w, h, oldw, oldh);
+//		imageSurface.setVisibility(View.INVISIBLE);	
+////		MainScreen.getExecutorService().schedule(new Runnable() {
+////			
+////			@Override
+////			public void run() {
+////				drawImage();
+////			}
+////		}, 100, TimeUnit.MILLISECONDS);
+//	}
+	
 	@Override
 	public void onNewMessage(final sensor_msgs.CompressedImage image) {
-		ChannelBuffer cb = image.getData();
+//		Log.d("RosImageWidget", "OnNewMsg...");
 		
 		
-		//offset, jpeg image starts at bytes "FF D8", see http://de.wikipedia.org/wiki/JPEG_File_Interchange_Format
-		int byteArrayOffset = 34;
-
+		
+		
+		if (imageSurface.getVisibility() != View.VISIBLE && !isControlsVisible()) {
+			imageSurface.post(new Runnable() {
+				@Override
+				public void run() {
+					imageSurface.setVisibility(View.VISIBLE);					
+				}
+			});
+		} else if (isControlsVisible()) {
+			return;
+		}
+		
+		synchronized (imageSurface) {
+			if (drawingInProgress) {
+				return;
+			}
+			drawingInProgress = true;
+		}
 		final Bitmap oldBitmap = bitmap;
-		MainScreen.getExecutorService().schedule(new Runnable() {
+		MainScreen.getExecutorService().execute(new Runnable() {
 			
 			@Override
 			public void run() {
-				synchronized (imageView) {
+//				Log.d("RosImageWidget", "Drawing image...");
+				try {
+					ChannelBuffer cb = image.getData();
 					if (oldBitmap != null) {
-						oldBitmap.recycle();
+						oldBitmap.recycle();							
 					}
+					bitmap = BitmapFactory.decodeByteArray(cb.array(), cb.readerIndex() + byteArrayOffset, cb.readableBytes());
+					if (bitmap != null && !bitmap.isRecycled()) {
+						setRatio(bitmap.getWidth() / (float) bitmap.getHeight());
+					}
+					drawImage();
+				} catch (Exception e) {
+					Log.e("RosImageWidget", "Error while decoding image", e);	
+				} finally {
+					drawingInProgress = false;
 				}
 			}
-		}, 500, TimeUnit.MILLISECONDS);
-		
-		synchronized (imageView) {
-			bitmap = BitmapFactory.decodeByteArray(cb.array(), cb.readerIndex() + byteArrayOffset, cb.readableBytes());
-		}
-		
-		if (bitmap != null && !bitmap.isRecycled()) {
-			setRatio(bitmap.getWidth() / (float) bitmap.getHeight());
-		}
-		
-		imageView.post(new Runnable() {
-			
-			@Override
-			public void run() {
-				imageView.invalidate();
-			}
 		});
+		
+		
+		
+		
 		
 		//TODO remove debugging code
 //		try {
@@ -246,3 +338,39 @@ public class RosImageWidget extends RosMapWidget implements MessageListener<sens
 		return rosTopic;
 	}
 }
+
+class ImageSurface extends SurfaceView implements SurfaceHolder.Callback {
+
+	SurfaceHolder surfaceHolder = null;
+		
+	public ImageSurface(Context context) {
+		super(context);
+		getHolder().addCallback(this);
+		Log.d("RosImageWidget", "SurfaceView created...");
+	}
+	
+	public SurfaceHolder getSurfaceHolder() {
+		return surfaceHolder;
+	}
+
+	@Override
+	public void surfaceCreated(SurfaceHolder holder) {
+		surfaceHolder = holder;
+		surfaceHolder.setFormat(PixelFormat.TRANSPARENT);
+		Log.d("RosImageWidget", "SurfaceHolder ready...");
+	}
+	
+	@Override
+	public void surfaceChanged(SurfaceHolder holder, int format, int width,
+			int height) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void surfaceDestroyed(SurfaceHolder holder) {
+		surfaceHolder = null;
+	}
+	
+}
+

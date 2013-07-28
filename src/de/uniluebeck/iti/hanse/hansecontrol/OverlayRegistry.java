@@ -43,16 +43,18 @@ public class OverlayRegistry {
     	HashMap<String, Set<String>> overlays = new HashMap<String, Set<String>>();
     	
     	//read overlay types from file
-    	File conf = new File(Environment.getExternalStorageDirectory()
-				.getAbsolutePath() + File.separator + MapManager.MAPS_DIR + File.separator + OVERLAY_CONFIG_FILE);
-		if (conf.exists()) {
-			Properties prop = new Properties();
-			try {
-				prop.load(new BufferedInputStream(new FileInputStream(conf)));
-				overlays = readOverlaysFromFile(prop);
-			} catch (Exception e) {
-				Log.e("overlayregistry", "Error while loading overlays from file!", e);
-			}
+    	synchronized (OVERLAY_CONFIG_FILE) {	
+    		File conf = new File(Environment.getExternalStorageDirectory()
+    				.getAbsolutePath() + File.separator + MapManager.MAPS_DIR + File.separator + OVERLAY_CONFIG_FILE);
+    		if (conf.exists()) {
+    			Properties prop = new Properties();
+    			try {
+    				prop.load(new BufferedInputStream(new FileInputStream(conf)));
+    				overlays = readOverlaysFromFile(prop);
+    			} catch (Exception e) {
+    				Log.e("overlayregistry", "Error while loading overlays from file!", e);
+    			}
+    		}
 		}
     	 
     	//create overlay instances
@@ -119,29 +121,31 @@ public class OverlayRegistry {
 	}
     
     public synchronized void saveOverlaysToFile() {
-    	File conf = new File(Environment.getExternalStorageDirectory()
-				.getAbsolutePath() + File.separator + MapManager.MAPS_DIR + File.separator + OVERLAY_CONFIG_FILE);
-    	Properties prop = new Properties();
-    	HashMap<String, Set<String>> overlays = new HashMap<String, Set<String>>();
-    	for (AbstractOverlay overlay : allOverlays) {
-			String topic = overlay.getRosTopic();
-			Set<String> overlayTypes = overlays.get(topic);
-			if (overlayTypes == null) {
-				overlayTypes = new HashSet<String>();
-				overlays.put(topic, overlayTypes);
-			}
-			overlayTypes.add(overlay.getOverlayType().name());
-		}
-    	
-    	for (String topic : overlays.keySet()) {
-    		Set<String> overlaySet = overlays.get(topic);
-    		prop.put(topic, createCommaStringFromStringSet(overlaySet));
-    	}
-    	
-    	try {
-			prop.store(new BufferedOutputStream(new FileOutputStream(conf)), null);
-		} catch (Exception e) {
-			Log.e("overlayregistry", "Error while saving overlays to file!", e);
+    	synchronized (OVERLAY_CONFIG_FILE) {	
+    		File conf = new File(Environment.getExternalStorageDirectory()
+    				.getAbsolutePath() + File.separator + MapManager.MAPS_DIR + File.separator + OVERLAY_CONFIG_FILE);
+    		Properties prop = new Properties();
+    		HashMap<String, Set<String>> overlays = new HashMap<String, Set<String>>();
+    		for (AbstractOverlay overlay : allOverlays) {
+    			String topic = overlay.getRosTopic();
+    			Set<String> overlayTypes = overlays.get(topic);
+    			if (overlayTypes == null) {
+    				overlayTypes = new HashSet<String>();
+    				overlays.put(topic, overlayTypes);
+    			}
+    			overlayTypes.add(overlay.getOverlayType().name());
+    		}
+    		
+    		for (String topic : overlays.keySet()) {
+    			Set<String> overlaySet = overlays.get(topic);
+    			prop.put(topic, createCommaStringFromStringSet(overlaySet));
+    		}
+    		
+    		try {
+    			prop.store(new BufferedOutputStream(new FileOutputStream(conf)), null);
+    		} catch (Exception e) {
+    			Log.e("overlayregistry", "Error while saving overlays to file!", e);
+    		}
 		}
     	
     }

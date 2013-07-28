@@ -38,7 +38,7 @@ public class BitmapManager {
 				loadedBitmaps_PATH.put(path, bitmap);
 			} catch (OutOfMemoryError e) {
 				recycleAllBitmaps();
-				getBitmap(path);
+				return getBitmap(path);
 			}
 		}
 		return bitmap;

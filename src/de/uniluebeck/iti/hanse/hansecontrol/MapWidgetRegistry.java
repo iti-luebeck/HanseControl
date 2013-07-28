@@ -67,16 +67,19 @@ public class MapWidgetRegistry {
 		//read properties from local SharedPrefernces file
 		HashMap<String, Set<String>> widgets = new HashMap<String, Set<String>>();
 //		if (widgets.keySet().isEmpty()) {		
+		
+		synchronized (WIDGETS_CONFIG_FILE) {	
 			//read properties from default config file
-		File conf = new File(Environment.getExternalStorageDirectory()
-				.getAbsolutePath() + File.separator + MapManager.MAPS_DIR + File.separator + WIDGETS_CONFIG_FILE);
-		if (conf.exists()) {
-			Properties prop = new Properties();
-			try {
-				prop.load(new BufferedInputStream(new FileInputStream(conf)));
-				widgets = readWidgetsFromFile(prop);
-			} catch (Exception e) {
-				Log.e("mapwidgetregistry", "Error while loading widgets from file!", e);
+			File conf = new File(Environment.getExternalStorageDirectory()
+					.getAbsolutePath() + File.separator + MapManager.MAPS_DIR + File.separator + WIDGETS_CONFIG_FILE);
+			if (conf.exists()) {
+				Properties prop = new Properties();
+				try {
+					prop.load(new BufferedInputStream(new FileInputStream(conf)));
+					widgets = readWidgetsFromFile(prop);
+				} catch (Exception e) {
+					Log.e("mapwidgetregistry", "Error while loading widgets from file!", e);
+				}
 			}
 		}
 //		}
@@ -279,7 +282,7 @@ public class MapWidgetRegistry {
 // 		}
 //	}
 	
-	public void saveWidgetsToFile() {
+	public synchronized void saveWidgetsToFile() {
 		File conf = new File(Environment.getExternalStorageDirectory()
 				.getAbsolutePath() + File.separator + MapManager.MAPS_DIR + File.separator + WIDGETS_CONFIG_FILE);
 		Properties prop = new Properties();

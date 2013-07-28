@@ -39,7 +39,7 @@ import android.widget.ScrollView;
  * 
  * @author Stefan Hueske
  */
-public class MapLayer extends SurfaceView implements SurfaceHolder.Callback{
+public class MapLayer extends SurfaceView implements SurfaceHolder.Callback {
 	
 //	GestureDetector gestureDetector;
 	
@@ -149,15 +149,15 @@ public class MapLayer extends SurfaceView implements SurfaceHolder.Callback{
 						
 						getHolder().unlockCanvasAndPost(canvas);
 						
-						Thread.sleep(0);
+//						Thread.sleep(0);
 						
-					} catch (InterruptedException e) {
+//					} catch (InterruptedException e) {
 					} catch (Exception e) {
 						Log.d("MapSurface", "Scheduled drawing throwed exception! ", e);
-					} finally {
-						getHolder().unlockCanvasAndPost(null);
+						try {
+							getHolder().unlockCanvasAndPost(null);							
+						} catch (Exception e1) { }
 					}
-					
 				}
 			}, 0, TimeUnit.MILLISECONDS);
 		} catch (RejectedExecutionException e) {
@@ -245,10 +245,16 @@ public class MapLayer extends SurfaceView implements SurfaceHolder.Callback{
 		
 	}
 	
-	public void setMap(Map map) {
-		mapSurface.setMap(map);
-		mapSurface.scaleToViewport(getWidth(), getHeight());
-		scheduleSurfaceDrawing();
+	public void setMap(final Map map) {
+		MainScreen.getExecutorService().execute(new Runnable() {
+			
+			@Override
+			public void run() {
+				mapSurface.setMap(map);
+				mapSurface.scaleToViewport(getWidth(), getHeight());
+				scheduleSurfaceDrawing();
+			}
+		});
 	}
 	
 	public void savePrefs(String tabPrefix, SharedPreferences.Editor ed) {
