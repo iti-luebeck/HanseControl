@@ -80,6 +80,7 @@ public class RosRobot {
 					}					
 				}
 				
+				notifyPositionListeners();
 				
 //				
 //				notifyUpdateListeners();
