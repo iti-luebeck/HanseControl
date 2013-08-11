@@ -131,8 +131,8 @@ public class RosRobot {
 		
 		notifyOrientationListeners();
 		
-		Log.d("imu", "POSE: roll: " + String.format("%.5f", roll) + " pitch: " 
-		+ String.format("%.5f", pitch) + " yaw: " + String.format("%.5f", yaw));
+//		Log.d("imu", "POSE: roll: " + String.format("%.5f", roll) + " pitch: " 
+//		+ String.format("%.5f", pitch) + " yaw: " + String.format("%.5f", yaw));
 	}
 	
 	private class UpdateOrientationRunnable implements Runnable {

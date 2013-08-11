@@ -96,7 +96,7 @@ public class DragLayer extends RelativeLayout {
 		switch (event.getActionMasked()) {
 		case MotionEvent.ACTION_MOVE:
 			MapWidget widget = dragInProgress_widgetFromList;
-			Log.w("touchlog", "Handling widget drag from list...");
+//			Log.w("touchlog", "Handling widget drag from list...");
 			// set new widget position
 			setWidgetPosition_edgeSnapping(widget,
 					event.getX() - widget.getWidth() / 2,
@@ -120,7 +120,7 @@ public class DragLayer extends RelativeLayout {
 		switch (event.getActionMasked()) {
 		case MotionEvent.ACTION_MOVE:
 			MapWidget widget = dragInProgress_widgetOnWidgetLayer;
-			Log.w("touchlog", "Handling widget drag on widget layer...");
+//			Log.w("touchlog", "Handling widget drag on widget layer...");
 			// set new widget position
 			// RelativeLayout.LayoutParams params
 			// = (RelativeLayout.LayoutParams) widget.getLayoutParams();
@@ -264,7 +264,7 @@ public class DragLayer extends RelativeLayout {
 				//force ratio, if set
 				if (widget.getRatio() != null && resizeCache_width > 0 && resizeCache_height > 0) {
 					float ratio = widget.getRatio();
-					Log.d("ratio", String.format("w: %f, h: %f", resizeCache_width, resizeCache_height));
+//					Log.d("ratio", String.format("w: %f, h: %f", resizeCache_width, resizeCache_height));
 					
 					if (ratio > minWidth / minHeight) {
 						minWidth = (int)(ratio * minHeight);
@@ -483,11 +483,11 @@ public class DragLayer extends RelativeLayout {
 
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
-		Log.w("touchlog",
-				String.format(
-						"DragLayer.onTouchEvent(): x: %f, y: %f, action: %d, actionmasked: %d",
-						event.getX(), event.getY(), event.getAction(),
-						event.getActionMasked()));
+//		Log.w("touchlog",
+//				String.format(
+//						"DragLayer.onTouchEvent(): x: %f, y: %f, action: %d, actionmasked: %d",
+//						event.getX(), event.getY(), event.getAction(),
+//						event.getActionMasked()));
 		if (dragInProgress_widgetFromList != null) {
 			handleDrag_widgetFromList(event);
 			return true;
@@ -503,15 +503,15 @@ public class DragLayer extends RelativeLayout {
 
 	@Override
 	public boolean onInterceptTouchEvent(MotionEvent event) {
-		Log.w("touchlog",
-				String.format(
-						"DragLayer.onInterceptTouchEvent(): x: %f, y: %f, action: %d, actionmasked: %d",
-						event.getX(), event.getY(), event.getAction(),
-						event.getActionMasked()));
+//		Log.w("touchlog",
+//				String.format(
+//						"DragLayer.onInterceptTouchEvent(): x: %f, y: %f, action: %d, actionmasked: %d",
+//						event.getX(), event.getY(), event.getAction(),
+//						event.getActionMasked()));
 		if (dragInProgress_widgetFromList != null) {
 			MapWidget widget = dragInProgress_widgetFromList;
-			Log.d("touchlog",
-					"DragLayer is now handling a dragged MapWidget from list, intercepting...");
+//			Log.d("touchlog",
+//					"DragLayer is now handling a dragged MapWidget from list, intercepting...");
 			// remove widget from parent LinearLayout
 			dragInProgress_widgetFromList_layout.removeView(widget);
 			// add widget as own child
@@ -523,14 +523,14 @@ public class DragLayer extends RelativeLayout {
 			return true;
 		}
 		if (dragInProgress_widgetOnWidgetLayer != null) {
-			Log.d("touchlog",
-					"DragLayer is now handling a dragged MapWidget on WidgetLayer, intercepting...");
+//			Log.d("touchlog",
+//					"DragLayer is now handling a dragged MapWidget on WidgetLayer, intercepting...");
 			onTouchEvent(event);
 			return true;
 		}
 		if (resizeInProgress != null) {
-			Log.d("touchlog",
-					"DragLayer is now handling the resizing of a MapWidget, intercepting...");
+//			Log.d("touchlog",
+//					"DragLayer is now handling the resizing of a MapWidget, intercepting...");
 			onTouchEvent(event);
 			return true;
 		}

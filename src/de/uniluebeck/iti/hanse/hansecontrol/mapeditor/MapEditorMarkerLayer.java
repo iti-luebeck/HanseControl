@@ -122,7 +122,7 @@ public class MapEditorMarkerLayer extends RelativeLayout {
 		
 		
 		
-		Log.d("errfind", (marker == marker1 ? "Marker1" : "Marker2 or null") + " left: " + left + " top: " + top);
+//		Log.d("errfind", (marker == marker1 ? "Marker1" : "Marker2 or null") + " left: " + left + " top: " + top);
 			
 		marker.post(new Runnable() {
 			@Override
@@ -176,7 +176,7 @@ public class MapEditorMarkerLayer extends RelativeLayout {
 				return true;
 			}
 			if (event.getActionMasked() == MotionEvent.ACTION_MOVE) {
-				Log.d("errfind", "mx=" + mx + " eventx=" + event.getX());
+//				Log.d("errfind", "mx=" + mx + " eventx=" + event.getX());
 //				setX(getX() - mx + (event.getX()));
 //				setY(getY() - my - YOFFSET + (event.getY()));
 				

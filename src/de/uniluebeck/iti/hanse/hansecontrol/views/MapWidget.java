@@ -228,10 +228,6 @@ public class MapWidget extends BasicView {
 	
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
-		
-		Log.w("touchlog", String.format("MapWidget.onTouchEvent(): x: %f, y: %f, action: %d, actionmasked: %d", event.getX(), event.getY(), 
-				event.getAction(), event.getActionMasked()));
-		
 		switch (event.getActionMasked()) {
 			case MotionEvent.ACTION_DOWN:
 				mX = event.getX();
@@ -247,11 +243,6 @@ public class MapWidget extends BasicView {
 		//single tap on "empty space" in MapWidget in Fullsize-Mode
 		if (getMode() == FULLSIZE_MODE && event.getActionMasked() == MotionEvent.ACTION_UP) {
 			//play animation to make closebutton and cornerresizers visible
-			Log.d("animator", "animation started");
-			
-//			cornerResizerTopLeft.setYPos(20);
-//			cornerResizerTopLeft.setXPos(20);
-			
 			if (controlsVisible) {
 				hideControls();
 			} else {
@@ -311,8 +302,6 @@ public class MapWidget extends BasicView {
 			float distX = mX - event.getX();
 			float len = (float) Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2));
 			float alpha = (float) Math.acos(distY/len);
-			
-//			Log.w("touchcalc", String.format("distx: %f, disty: %f, len: %f, alpha: %f", distX, distY, len, alpha));
 			
 			if (distY > 20 && alpha < Math.PI / 4) {
 				//dragging up
@@ -464,7 +453,6 @@ public class MapWidget extends BasicView {
 			
 			@Override
 			public void run() {
-				Log.d("test", "executorTask");
 				//run task on UI thread
 				post(new Runnable() {
 					
@@ -577,7 +565,6 @@ public class MapWidget extends BasicView {
 		}
 		
 		ed.putInt(id+"-currentMode", currentMode);
-//		Log.d("ttt1save", id+"-currentMode");
 		if (getMode() == FULLSIZE_MODE) {
 			RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) getLayoutParams();
 			ed.putInt(id+"-params.leftMargin", params.leftMargin);
@@ -640,14 +627,12 @@ public class MapWidget extends BasicView {
 		}
 		
 		public void setXPos(float xPos) {
-//			Log.d("animatortest", "setXPos() " + xPos);
 			RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) getLayoutParams();
 			params.leftMargin = (int) xPos;
 			setLayoutParams(params);
 		}
 		
 		public void setYPos(float yPos) {
-//			Log.d("animatortest", "setYPos() " + yPos);
 			RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) getLayoutParams();
 			params.topMargin = (int) yPos;
 			setLayoutParams(params);
@@ -684,8 +669,6 @@ public class MapWidget extends BasicView {
 			if (!controlsVisible) {
 				return false;
 			}
-			Log.w("touchlog", String.format("MapWidget.CloseButton.onTouchEvent(): x: %f, y: %f, action: %d, actionmasked: %d", event.getX(), event.getY(), 
-					event.getAction(), event.getActionMasked()));
 			if (getMode() == FULLSIZE_MODE) {
 				//TODO remove test
 //				parentWidget.getMainScreenFragment().getActivity().openContextMenu(this);
@@ -740,8 +723,6 @@ public class MapWidget extends BasicView {
 		
 		@Override
 		public boolean onTouchEvent(MotionEvent event) {
-			Log.w("touchlog", String.format("MapWidget.CornerResizer.onTouchEvent(): x: %f, y: %f, action: %d, actionmasked: %d", event.getX(), event.getY(), 
-					event.getAction(), event.getActionMasked()));
 			if (!controlsVisible) {
 				return false;
 			}
@@ -759,9 +740,7 @@ public class MapWidget extends BasicView {
 			//dragging on WidgetLayer
 			if (getMode() == FULLSIZE_MODE && event.getActionMasked() == MotionEvent.ACTION_MOVE && dragLayer != null) {
 				//request touch event interception from dragLayer
-				Log.d("touchlog", "CornerResizer: requesting interception from draglayer...");
 				dragLayer.startWidgetResizing(this, mX, mY);
-//				return true;
 			}
 			return true;
 		}
@@ -799,8 +778,6 @@ public class MapWidget extends BasicView {
 			if (getVisibility() != View.VISIBLE || getMode() != ICON_MODE) {
 				return false;
 			}
-//			Log.w("touchlog", String.format("MapWidget.CloseButton.onTouchEvent(): x: %f, y: %f, action: %d, actionmasked: %d", event.getX(), event.getY(), 
-//					event.getAction(), event.getActionMasked()));
 			LinearLayout widgetLayout = (LinearLayout) parentWidget.getParent();
 			widgetLayout.removeView(parentWidget);
 			mapWidgetRegistry.getAllWidgets().remove(parentWidget);
@@ -847,15 +824,8 @@ public class MapWidget extends BasicView {
 			if (!controlsVisible) {
 				return false;
 			}
-			Log.w("touchlog", String.format("MapWidget.CloseButton.onTouchEvent(): x: %f, y: %f, action: %d, actionmasked: %d", 
-					event.getX(), event.getY(), 
-					event.getAction(), event.getActionMasked()));
 			if (getMode() == FULLSIZE_MODE && event.getActionMasked() == MotionEvent.ACTION_UP) {
 				parentWidget.getMainScreenFragment().getActivity().openContextMenu(this);
-				//TODO uncomment
-//				hideControls();
-//				WidgetLayer widgetLayer = (WidgetLayer) parentWidget.getParent();
-//				widgetLayer.removeWidget(parentWidget);
 			}
 			return true;
 		}

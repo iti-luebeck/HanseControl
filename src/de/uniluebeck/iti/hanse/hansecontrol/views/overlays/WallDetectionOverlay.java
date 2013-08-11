@@ -125,7 +125,6 @@ public class WallDetectionOverlay extends AbstractOverlay implements MessageList
 					canvas.drawLine(a.x, a.y, b.x, b.y, linePaint);
 					canvas.drawCircle(b.x, b.y, 3, circlePaint);
 					
-//					Log.d("wall", String.format("a.x = %f, a.y = %f, b.x = %f, b.y = %f", a.x, a.y, b.x, b.y));
 					circlePaint.setAlpha(Math.min(circlePaint.getAlpha() + 5, 255));
 				}
 			}
@@ -174,7 +173,6 @@ public class WallDetectionOverlay extends AbstractOverlay implements MessageList
 		
 		addWallDetection(det);
 		redraw();
-		Log.d("wall", det.getHeadPosition() + "");
 		
 		
 		// TODO Auto-generated method stub

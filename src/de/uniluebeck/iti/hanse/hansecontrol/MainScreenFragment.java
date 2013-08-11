@@ -120,7 +120,7 @@ public class MainScreenFragment extends Fragment {
 		
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
-		Log.d("statemanagement", "MainScreenFragment" + tabID + ".onCreate() called.");
+//		Log.d("statemanagement", "MainScreenFragment" + tabID + ".onCreate() called.");
 		super.onCreate(savedInstanceState);
 		mPrefs = getActivity().getSharedPreferences("pref", 0);
 		if (getArguments() != null) {
@@ -134,7 +134,7 @@ public class MainScreenFragment extends Fragment {
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
-		Log.d("statemanagement", "MainScreenFragment" + tabID + ".onCreateView() called.");
+//		Log.d("statemanagement", "MainScreenFragment" + tabID + ".onCreateView() called.");
 		super.onCreateView(inflater, container, savedInstanceState);
 		setHasOptionsMenu(true);
 		return inflater.inflate(R.layout.main_screen_fragment, null);
@@ -143,7 +143,7 @@ public class MainScreenFragment extends Fragment {
 	@Override
 	public void onResume() {
 		super.onResume();
-		Log.d("statemanagement", "MainScreenFragment" + tabID + ".onResume");
+//		Log.d("statemanagement", "MainScreenFragment" + tabID + ".onResume");
 		setWidgetBarVisibility(mPrefs.getBoolean(TAB_PREFIX + tabID + "_widgetbarisvisible", true));
 		//load MapLayer preferences (map position and zoom)
 		((MapLayer)getView().findViewById(R.id.mapLayer1)).loadPrefs(TAB_PREFIX + tabID, mPrefs);
@@ -157,14 +157,14 @@ public class MainScreenFragment extends Fragment {
 	
 	@Override
 	public void onViewCreated(View view, Bundle savedInstanceState) {
-		Log.d("statemanagement", "MainScreenFragment.onViewCreated() called.");
+//		Log.d("statemanagement", "MainScreenFragment.onViewCreated() called.");
 		super.onViewCreated(view, savedInstanceState);
 				
 		widgetLayer = (WidgetLayer) view.findViewById(R.id.widgetLayer);
 		widgetbarLayout = (LinearLayout) view.findViewById(R.id.widgetLayout);	
 		((HorizontalScrollView) view.findViewById(R.id.widgetScrollView)).setBackgroundColor(Color.parseColor("#7907121d"));
 		overlayLayer = (OverlayLayer) view.findViewById(R.id.overlayLayer);
-		Log.d("statemanagement", "overLayer is " + (overlayLayer == null ? "NULL" : "not null"));
+//		Log.d("statemanagement", "overLayer is " + (overlayLayer == null ? "NULL" : "not null"));
 		mapLayer = (MapLayer) view.findViewById(R.id.mapLayer1);
 		mapLayer.setMapLayerListener(new MapLayer.MapLayerListener() {
 			
@@ -244,7 +244,7 @@ public class MainScreenFragment extends Fragment {
 					
 					@Override
 					public void onAdd(WidgetType widgetType, String topic) {
-						Log.d("addwidget", widgetType.name() + ": " + topic);
+//						Log.d("addwidget", widgetType.name() + ": " + topic);
 						RosMapWidget widget = widgetRegistry.createWidget(widgetType, topic);
 						widgetbarLayout.addView(widget, 0);
 						widget.setMode(MapWidget.ICON_MODE);
@@ -342,7 +342,7 @@ public class MainScreenFragment extends Fragment {
 	@Override
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
-        Log.d("statemanagement", "MainScreenFragment" + tabID + ".onCreateOptionsMenu");
+//        Log.d("statemanagement", "MainScreenFragment" + tabID + ".onCreateOptionsMenu");
         inflater.inflate(R.menu.main_screen, menu);
     	actionBarMenu = menu;
     	MenuItem item = actionBarMenu.findItem(R.id.showhidewidgetbar);
@@ -391,13 +391,13 @@ public class MainScreenFragment extends Fragment {
 		for (AbstractOverlay overlay : overlayLayer.getOverlayRegistry().getAllOverlays()) {
         	MenuItem overlayItem = overlayMenu.getSubMenu().add(
         			overlay.getOverlayType().name() + ": " + overlay.getRosTopic()).setCheckable(true);
-        	Log.d("menutest", "loading: " + TAB_PREFIX + tabID + overlay.getOverlayType().name() + ":" + overlay.getRosTopic());
-        	Log.d("menutest", "entry exists: " + mPrefs.contains(TAB_PREFIX + tabID + overlay.getOverlayType().name() + ":" + overlay.getRosTopic()));
-        	Log.d("menutest", "entry value: " + mPrefs.getBoolean(TAB_PREFIX + tabID + overlay.getOverlayType().name() + ":" + overlay.getRosTopic(), true));
+//        	Log.d("menutest", "loading: " + TAB_PREFIX + tabID + overlay.getOverlayType().name() + ":" + overlay.getRosTopic());
+//        	Log.d("menutest", "entry exists: " + mPrefs.contains(TAB_PREFIX + tabID + overlay.getOverlayType().name() + ":" + overlay.getRosTopic()));
+//        	Log.d("menutest", "entry value: " + mPrefs.getBoolean(TAB_PREFIX + tabID + overlay.getOverlayType().name() + ":" + overlay.getRosTopic(), true));
         	
         	if (overlay.isVisible()) {
         		overlayItem.setChecked(true);
-        		Log.d("menutest", overlayItem.getTitle().toString());
+//        		Log.d("menutest", overlayItem.getTitle().toString());
         	} else {
         		overlayItem.setChecked(false);
         	}
@@ -412,7 +412,7 @@ public class MainScreenFragment extends Fragment {
 	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		Log.d("actionbar", "MainScreenFragment" + tabID + ": Menu action activated! s'" + item.getTitle() + "'");
+//		Log.d("actionbar", "MainScreenFragment" + tabID + ": Menu action activated! s'" + item.getTitle() + "'");
 		
 		switch(item.getItemId()) {
 			case R.id.showhidewidgetbar:
@@ -542,9 +542,9 @@ public class MainScreenFragment extends Fragment {
 							}
 						}
 						for (MenuItem item : maps.keySet()) { 
-							Log.d("ttttt", maps.get(item).getName());
+//							Log.d("ttttt", maps.get(item).getName());
 							if (mapToDelete.getConfigPath().equals(maps.get(item).getConfigPath())) {
-								Log.d("ttttt", "sel " + maps.get(item).getName());
+//								Log.d("ttttt", "sel " + maps.get(item).getName());
 								item.setVisible(false);
 								maps.remove(item);
 								break;
@@ -628,10 +628,10 @@ public class MainScreenFragment extends Fragment {
 	
 	@Override
 	public void onPause() {
-		Log.d("statemanagement", "MainScreenFragment" + tabID + ".onPause() called.");
+//		Log.d("statemanagement", "MainScreenFragment" + tabID + ".onPause() called.");
 		super.onPause();		
 		if (dontSaveStateFlag) {
-			Log.d("statemanagement", "MainScreenFragment" + tabID + ".onPause(): dontSaveStateFlag active");
+//			Log.d("statemanagement", "MainScreenFragment" + tabID + ".onPause(): dontSaveStateFlag active");
 			return;
 		}
 		SharedPreferences.Editor ed = mPrefs.edit();
@@ -651,7 +651,7 @@ public class MainScreenFragment extends Fragment {
 		});
 		
 		for (AbstractOverlay overlay : overlayLayer.getOverlayRegistry().getAllOverlays()) {
-			Log.d("menutest", "saving: " + TAB_PREFIX + tabID + overlay.getOverlayType().name() + ":" + overlay.getRosTopic() + " value:"+ overlay.isVisible());
+//			Log.d("menutest", "saving: " + TAB_PREFIX + tabID + overlay.getOverlayType().name() + ":" + overlay.getRosTopic() + " value:"+ overlay.isVisible());
 			ed.putBoolean(TAB_PREFIX + tabID + overlay.getOverlayType().name() + ":" + overlay.getRosTopic(), overlay.isVisible());
 		}
 		
@@ -662,8 +662,8 @@ public class MainScreenFragment extends Fragment {
 	
 	public void setWidgetBarVisibility(boolean isvisible) {
 		HorizontalScrollView widgetLayoutScroll = (HorizontalScrollView) getView().findViewById(R.id.widgetScrollView);
-		Log.d("statemanagement", "MainScreenFragment" + tabID + ", actionBarMenu is null = " + (actionBarMenu == null));
-		Log.d("statemanagement", "MainScreenFragment" + tabID + ", widgetandayoutScroll is null = " + (widgetLayoutScroll == null));
+//		Log.d("statemanagement", "MainScreenFragment" + tabID + ", actionBarMenu is null = " + (actionBarMenu == null));
+//		Log.d("statemanagement", "MainScreenFragment" + tabID + ", widgetandayoutScroll is null = " + (widgetLayoutScroll == null));
 		
 //		Menu menu = (Menu) getActivity().findViewById(R.menu.main_screen);
 //		Log.d("errfind", "menu is null = " + (menu == null));

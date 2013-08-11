@@ -56,9 +56,6 @@ public abstract class RosTextWidget<T> extends RosMapWidget implements MessageLi
 		this.rosTopic = rosTopic;
 		this.rosTtype = rosTtype;
 		textView = new TextView(context);
-//		removeAllViews();
-		
-		Log.d("textwidgeterrfind", rosTopic + " : " + rosTtype);
 		
 		textView.setTextSize(18);
 		textView.setTextColor(Color.WHITE);

@@ -305,7 +305,7 @@ public class RosOrientationWidget extends RosMapWidget implements MessageListene
 		
 		roll = (float) Math.atan2(2*(q0*q3+q1*q2), 1 - 2*(q2*q2 + q3*q3));
 		pitch = (float) Math.asin(2*(q0*q2 - q3*q1));
-		Log.d("orientationwidget", String.format("Roll: %f, Pitch: %f", roll, pitch));
+//		Log.d("orientationwidget", String.format("Roll: %f, Pitch: %f", roll, pitch));
 		redraw();
 	}
 } 

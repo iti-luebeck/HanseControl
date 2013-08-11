@@ -249,9 +249,9 @@ public class PathLayer extends RelativeLayout {
 //				}
 //			}
 //		});
-		Log.d("err", "before loading");
+//		Log.d("err", "before loading");
 		loadTargets();
-		Log.d("err", "after loading");
+//		Log.d("err", "after loading");
 		
     }
  
@@ -278,22 +278,18 @@ public class PathLayer extends RelativeLayout {
 	            @Override
 	            public void onGlobalLayout()
 	            {
-	            	Log.d("err", "layoutlistener start, mapsuface == null is " + (mapSurface == null));
+//	            	Log.d("err", "layoutlistener start, mapsuface == null is " + (mapSurface == null));
 	            	target.getViewTreeObserver().removeGlobalOnLayoutListener(this);
 	            	if (mapSurface != null && t.getRosPos() != null) {
-	            		try {
-	            		PointF pos = mapSurface.getViewportPosFromPose(t.getRosPos().x, t.getRosPos().y);
+            			PointF pos = mapSurface.getViewportPosFromPose(t.getRosPos().x, t.getRosPos().y);
 	            		target.setRosPos(t.getRosPos());
 	            		setTargetPos(target, pos.x, pos.y);
-	            		} catch (Exception e) {
-							Log.d("err", "" + (t.getRosPos() == null));
-						}
 	            	} else {
 	            		target.setRosPos(t.getRosPos());
 	            		target.setWaitForMapSurfaceFlag(true);
 	            	}
 	            	target.setAnimationInProgress(false);
-	            	Log.d("err", "layoutlistener end");
+//	            	Log.d("err", "layoutlistener end");
 	            }
 	        });
 			
@@ -327,7 +323,7 @@ public class PathLayer extends RelativeLayout {
 //    } 
     
     public void onLongPress(MotionEvent event) {
-    	Log.d("pathlayer", "longpress");
+//    	Log.d("pathlayer", "longpress");
     	boolean robotPos = rosRobot.getPosition() != null && mapSurface != null;    	
     	for (int i = robotPos ? -1 : 0; i < targetPath.size() - 1; i++) {
     		PointF from = null;
@@ -340,7 +336,7 @@ public class PathLayer extends RelativeLayout {
     			from = targetPath.get(i).getPos();
     		}
     		double lineDist = calcDistToLine(new PointF(event.getX(), event.getY()), from, to);
-    		Log.d("pathlayer", "Line dist between " + i + " and " + (i+1) + " is " + lineDist);
+//    		Log.d("pathlayer", "Line dist between " + i + " and " + (i+1) + " is " + lineDist);
     		if (lineDist < 50) {
     			Target t = addTarget(event.getX(), event.getY());
     			targetPath.remove(targetPath.size() - 1);
@@ -394,11 +390,11 @@ public class PathLayer extends RelativeLayout {
 							});
 	    				}
 	    			});
-            		Log.d("err", "addtarget after posting runnable, mapsuface == null is " + (mapSurface == null));
+//            		Log.d("err", "addtarget after posting runnable, mapsuface == null is " + (mapSurface == null));
             		if (mapSurface != null) {
-            			Log.d("err", "setting ros pos start");
+//            			Log.d("err", "setting ros pos start");
     					target.setRosPos(mapSurface.getPoseFromViewportPos(x, y));
-    					Log.d("err", "setting ros pos end");
+//    					Log.d("err", "setting ros pos end");
     				}
 	            }
 	        });
@@ -437,7 +433,7 @@ public class PathLayer extends RelativeLayout {
     }	
     
     public void setTargetPos(final Target target, float x, float y) {
-		Log.d("err", "setting target pos x=" + x + " y=" + y);
+//		Log.d("err", "setting target pos x=" + x + " y=" + y);
     	if (x == Float.NaN || y == Float.NaN) {
 			x = -100;
 			y = -100;
@@ -544,7 +540,7 @@ public class PathLayer extends RelativeLayout {
 				return true;
 			}
 			if (event.getActionMasked() == MotionEvent.ACTION_MOVE) {
-				Log.d("errfind", "mx=" + mx + " eventx=" + event.getX());
+//				Log.d("errfind", "mx=" + mx + " eventx=" + event.getX());
 //				setX(getX() - mx + (event.getX()));
 //				setY(getY() - my - YOFFSET + (event.getY()));
 				
@@ -655,7 +651,7 @@ public class PathLayer extends RelativeLayout {
 	}
 	
 	public void setMapSurface(final MapSurface mapSurface) {
-		Log.d("err", "setting mapsurface!");
+//		Log.d("err", "setting mapsurface!");
 		this.mapSurface = mapSurface;
 		mapSurface.addListener(new MapSurface.MapSurfaceListener() {
 
@@ -697,7 +693,7 @@ public class PathLayer extends RelativeLayout {
 			
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
-				Log.d("pathlayer", which + "");
+//				Log.d("pathlayer", which + "");
 				if (which == 0) {
 					targetPath.remove(target);
 					removeView(target);

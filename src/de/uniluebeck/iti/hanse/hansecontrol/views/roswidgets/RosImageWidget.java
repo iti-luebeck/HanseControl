@@ -65,7 +65,6 @@ public class RosImageWidget extends RosMapWidget implements MessageListener<sens
 	public RosImageWidget(int widgetID,	Context context, final String rosTopic, 
 			DragLayer dragLayer, MapWidgetRegistry mapWidgetRegistry, MainScreenFragment mainScreenFragment) {
 		super(300, 200, widgetID, context, dragLayer, mapWidgetRegistry, mainScreenFragment);
-		Log.d("compressedImageTest", "Creating widget instance");
 		this.rosTopic = rosTopic;
 		
 		linearLayout = new LinearLayout(context);
@@ -118,33 +117,6 @@ public class RosImageWidget extends RosMapWidget implements MessageListener<sens
 				}
 			}
 		}, 0);
-		
-//		imageSurface.setVisibility(View.INVISIBLE);
-		
-//		new Thread() {
-//			public void run() {
-//				while(true) {
-//					try {
-//						Thread.sleep(2000);
-//					} catch (InterruptedException e) {
-//						// TODO Auto-generated catch block
-//						e.printStackTrace();
-//					}
-//					Log.d("RosImageWidget", Thread.currentThread().getName() + " h:" + imageSurface.getHeight() + " w:" + imageSurface.getWidth() 
-//							+ " isInvisible:" + (imageSurface.getVisibility() == View.INVISIBLE));
-//					drawImage();
-//					imageSurface.post(new Runnable() {
-//						
-//						@Override
-//						public void run() {
-//							imageSurface.setVisibility(View.VISIBLE);
-//							imageSurface.invalidate();
-//						}
-//					});
-//				}
-//			};
-//		}.start();
-		
 	}
 	
 	private String shrinkStringToWidth(Paint paint, float width, String str) {
@@ -203,12 +175,8 @@ public class RosImageWidget extends RosMapWidget implements MessageListener<sens
 	
 	@Override
 	public void subscribe(ConnectedNode node) {
-		Log.d("compressedImageTest", "subscribing... " + sensor_msgs.CompressedImage._TYPE);
 		subscriber = node.newSubscriber(rosTopic, sensor_msgs.CompressedImage._TYPE);
 		subscriber.addMessageListener(this);
-		
-		
-		
 	}
 
 	@Override
@@ -219,7 +187,7 @@ public class RosImageWidget extends RosMapWidget implements MessageListener<sens
 	}
 	
 	private void drawImage() {
-		Log.d("RosImageWidget", Thread.currentThread().getName() + "drawImage()...");
+//		Log.d("RosImageWidget", Thread.currentThread().getName() + "drawImage()...");
 		try {
 //			imageSurface.getHolder().setFormat(PixelFormat.TRANSPARENT);
 			if (imageSurface.getSurfaceHolder() == null) {
@@ -239,7 +207,7 @@ public class RosImageWidget extends RosMapWidget implements MessageListener<sens
 //			canvas.drawLine(0, 0, 50, 50, new Paint());
 			
 			imageSurface.getHolder().unlockCanvasAndPost(canvas);	
-			Log.d("RosImageWidget", Thread.currentThread().getName() + "...drawImage() finished drawing!");
+//			Log.d("RosImageWidget", Thread.currentThread().getName() + "...drawImage() finished drawing!");
 		} catch (Exception e) {
 			Log.e("RosImageWidget", "Error while drawing image", e);
 			try {
@@ -263,11 +231,6 @@ public class RosImageWidget extends RosMapWidget implements MessageListener<sens
 	
 	@Override
 	public void onNewMessage(final sensor_msgs.CompressedImage image) {
-//		Log.d("RosImageWidget", "OnNewMsg...");
-		
-		
-		
-		
 		if (imageSurface.getVisibility() != View.VISIBLE && !isControlsVisible()) {
 			imageSurface.post(new Runnable() {
 				@Override
@@ -346,7 +309,7 @@ class ImageSurface extends SurfaceView implements SurfaceHolder.Callback {
 	public ImageSurface(Context context) {
 		super(context);
 		getHolder().addCallback(this);
-		Log.d("RosImageWidget", "SurfaceView created...");
+//		Log.d("RosImageWidget", "SurfaceView created...");
 	}
 	
 	public SurfaceHolder getSurfaceHolder() {
@@ -357,7 +320,7 @@ class ImageSurface extends SurfaceView implements SurfaceHolder.Callback {
 	public void surfaceCreated(SurfaceHolder holder) {
 		surfaceHolder = holder;
 		surfaceHolder.setFormat(PixelFormat.TRANSPARENT);
-		Log.d("RosImageWidget", "SurfaceHolder ready...");
+//		Log.d("RosImageWidget", "SurfaceHolder ready...");
 	}
 	
 	@Override

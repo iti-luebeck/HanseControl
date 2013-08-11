@@ -104,8 +104,8 @@ public class MapSurface {
 			y = 0;
 			x = viewportWidth / 2 - getWidth() / 2;
 		}
-		Log.d("mapsurface", String.format("scaleToViewport(%f, %f): x=%f, y=%f, zoom=%f, imgWidth=%f, imgHeight=%f", 
-				viewportWidth, viewportHeight, x, y, zoom, imgWidth, imgHeight));
+//		Log.d("mapsurface", String.format("scaleToViewport(%f, %f): x=%f, y=%f, zoom=%f, imgWidth=%f, imgHeight=%f", 
+//				viewportWidth, viewportHeight, x, y, zoom, imgWidth, imgHeight));
 	}
 	
 	public synchronized void translate(float dx, float dy) {
@@ -170,7 +170,6 @@ public class MapSurface {
 	public PointF getViewportPosFromPose(float x_onPose, float y_onPose) {
 		float xRes = x + ((poseAxisXinvert ? -1 : 1) * (x_onPose / imagePoseScale) + x_PoseOriginOnImage) * zoom;
 		float yRes = y + ((poseAxisYinvert ? -1 : 1) * (y_onPose / imagePoseScale) + y_PoseOriginOnImage) * zoom;
-//		Log.d("err", "getViewportPosFromPose x=" + xRes + " y=" + yRes);
 		return new PointF(xRes, yRes);
 	}
 	
@@ -202,8 +201,8 @@ public class MapSurface {
 		x = viewportX - initViewPortX_relativeToMap * getWidth();
 		y = viewportY - 
 				initViewPortY_relativeToMap * getHeight();
-		Log.d("multitouch", String.format("initViewPortX_relativeToMap=%f, viewportX=%f, getWidth=%f", 
-				initViewPortX_relativeToMap, viewportX, getWidth()));
+//		Log.d("multitouch", String.format("initViewPortX_relativeToMap=%f, viewportX=%f, getWidth=%f", 
+//				initViewPortX_relativeToMap, viewportX, getWidth()));
 	}
 
 	public float getX() {

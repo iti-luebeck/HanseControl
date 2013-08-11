@@ -112,7 +112,7 @@ public class MapLayer extends SurfaceView implements SurfaceHolder.Callback {
 			
 			@Override
 			public boolean onScale(ScaleGestureDetector detector) {
-				Log.d("multitouch", String.format("PinchToZoom: focusX=%f, factor=%f", detector.getFocusX(), detector.getScaleFactor()));
+//				Log.d("multitouch", String.format("PinchToZoom: focusX=%f, factor=%f", detector.getFocusX(), detector.getScaleFactor()));
 				mapSurface.zoom(detector.getFocusX(), detector.getFocusY(), detector.getScaleFactor());
 				scheduleSurfaceDrawing();
 				return true;
@@ -153,7 +153,7 @@ public class MapLayer extends SurfaceView implements SurfaceHolder.Callback {
 						
 //					} catch (InterruptedException e) {
 					} catch (Exception e) {
-						Log.d("MapSurface", "Scheduled drawing throwed exception! ", e);
+						Log.e("MapSurface", "Scheduled drawing throwed exception! ", e);
 						try {
 							getHolder().unlockCanvasAndPost(null);							
 						} catch (Exception e1) { }

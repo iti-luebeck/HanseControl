@@ -309,8 +309,8 @@ class SonarView extends View {
 		RectF rect = new RectF(0, 0, viewportRect.width(), viewportRect.height());
 		
 //		Log.d("viewrect", "----");
-		Log.d("viewrect", String.format("left: %d, top: %d, right: %d, bottom", viewportRect.left, viewportRect.top,
-				viewportRect.right, viewportRect.bottom));
+//		Log.d("viewrect", String.format("left: %d, top: %d, right: %d, bottom", viewportRect.left, viewportRect.top,
+//				viewportRect.right, viewportRect.bottom));
 
 		float toDegrees = (float)(360 / (2*Math.PI));
 
