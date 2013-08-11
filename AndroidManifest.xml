@@ -16,13 +16,13 @@
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme" android:largeHeap="true">
-        
+        android:largeHeap="true"
+        android:theme="@style/AppTheme" >
         <activity android:name="org.ros.android.MasterChooser" />
-        
         <activity android:name="group.pals.android.lib.ui.filechooser.FileChooserActivity" />
+
         <service android:name="group.pals.android.lib.ui.filechooser.services.LocalFileProvider" />
-        
+
         <activity
             android:name="de.uniluebeck.iti.hanse.hansecontrol.MainScreen"
             android:label="@string/title_activity_main_screen"
@@ -33,17 +33,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name="de.uniluebeck.iti.hanse.hansecontrol.ChatterActivity"
-            android:label="@string/app_name" >
-        </activity>
 
         <service android:name="org.ros.android.NodeMainExecutorService" />
 
         <activity
             android:name="de.uniluebeck.iti.hanse.hansecontrol.mapeditor.MapEditor"
             android:label="@string/title_activity_image_editor"
-            android:windowSoftInputMode="stateHidden" android:screenOrientation="landscape">
+            android:screenOrientation="landscape"
+            android:windowSoftInputMode="stateHidden" >
         </activity>
     </application>
 
