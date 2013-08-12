@@ -68,18 +68,11 @@ import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.DragLayer;
 import de.uniluebeck.iti.hanse.hansecontrol.views.RosMapWidget;
 
 public class RosOrientationWidget extends RosMapWidget implements MessageListener<sensor_msgs.Imu> {
-	String rosTopic;
 	Subscriber<sensor_msgs.Imu> subscriber;
-	
-	TextView textView;
-	
-	Paint backgroundPaint = new Paint();
+
 	Paint linePaint = new Paint();
 	Paint polyFillPaint = new Paint();
 	Paint thinLinePaint = new Paint();
-	Paint textPaint = new Paint();
-	
-	LinearLayout linearLayout;
 	
 	View view;
 	
@@ -88,21 +81,9 @@ public class RosOrientationWidget extends RosMapWidget implements MessageListene
 	
 	public RosOrientationWidget(int widgetID, Context context, final String rosTopic, 
 			DragLayer dragLayer, MapWidgetRegistry mapWidgetRegistry, MainScreenFragment mainScreenFragment) {
-		super(250, 250, widgetID, context, dragLayer, mapWidgetRegistry, mainScreenFragment);
+		super(250, 250, widgetID, context, dragLayer, mapWidgetRegistry, mainScreenFragment, rosTopic,
+				WidgetType.ROS_ORIENTATION_WIDGET);
 		setRatio(1f);
-		this.rosTopic = rosTopic;
-		textView = new TextView(context);
-		
-		textView.setTextSize(18);
-		textView.setTextColor(Color.WHITE);
-		
-		linearLayout = new LinearLayout(context);
-		linearLayout.setOrientation(LinearLayout.VERTICAL);
-		
-		TextView topicHeader = new TextView(context);
-		topicHeader.setText(rosTopic);
-		topicHeader.setGravity(Gravity.CENTER);
-		topicHeader.setTextColor(Color.LTGRAY);
 		
 		view = new View(getContext()) {
 			@Override
@@ -152,13 +133,7 @@ public class RosOrientationWidget extends RosMapWidget implements MessageListene
 				
 			}
 		};
-		
-		linearLayout.addView(topicHeader);
-		linearLayout.addView(view);
-		
-		backgroundPaint.setColor(Color.BLACK);
-		backgroundPaint.setAlpha(80);
-		backgroundPaint.setStyle(Paint.Style.FILL);
+		setContent(view);
 		
 		linePaint.setAntiAlias(true);
 		linePaint.setStrokeWidth(2f);
@@ -169,89 +144,6 @@ public class RosOrientationWidget extends RosMapWidget implements MessageListene
 		thinLinePaint.setStyle(Style.STROKE);
 		polyFillPaint.setStyle(Style.FILL);
 		polyFillPaint.setAlpha(100);
-		
-		final Paint iconTextPaint = new Paint();
-		iconTextPaint.setColor(Color.WHITE);
-		final float textSize = 16;
-		iconTextPaint.setTextSize(textSize);
-		
-		addView(new View(context){
-			@Override
-			protected void onDraw(Canvas canvas) {
-				if (getMode() == FULLSIZE_MODE) {
-					canvas.drawRect(new Rect(0,0, getWidth(), getHeight()), backgroundPaint);
-				} else if (getMode() == ICON_MODE) {
-					String iconText = shrinkStringToWidth(iconTextPaint, getWidth(), rosTopic);
-					canvas.drawText(iconText, getWidth() / 2 - iconTextPaint.measureText(iconText) / 2, textSize, iconTextPaint);
-					Bitmap bitmap = BitmapManager.getInstance().getBitmap(getResources(), 
-							R.drawable.widgeticon_orientation);
-					canvas.drawBitmap(bitmap, null, 
-							scaleToBox(bitmap.getWidth(), bitmap.getHeight(), 
-									0, textSize + 3, getWidth(), getHeight() - (textSize + 3)), null);
-				}
-			}
-		}, 0);
-		
-		
-	}
-	
-	private String shrinkStringToWidth(Paint paint, float width, String str) {
-		if (!str.isEmpty() && paint.measureText(str) > width) {
-			String placeholder = "...";			
-			String head = str.substring(0, str.length() / 2);
-			String tail = str.substring(str.length() / 2);
-			while (paint.measureText(head + placeholder + tail) > width && !head.isEmpty() && !tail.isEmpty()) {
-				head = head.substring(0, head.length() - 1);
-				tail = tail.substring(1);
-			}
-			return head + placeholder + tail;
-		}
-		return str;
-	}
-	
-	private RectF scaleToBox(float inputWidth, float inputHeight, float x, float y, float width, float height) {
-		float ratio = width / height;
-		float inputRatio = inputWidth / inputHeight;
-		
-		float outX;
-		float outY;
-		float outWidth;
-		float outHeight;
-		
-		if (inputRatio < ratio) {
-			outHeight = height;
-			outWidth = inputRatio * height;
-			outY = y;
-			outX = x + (width / 2 - outWidth / 2);
-		} else {
-			outWidth = width;
-			outHeight = (1 / inputRatio) * width;
-			outX = x;
-			outY = y + (height / 2 - outHeight / 2);
-		}
-		
-		return new RectF(outX, outY, outWidth + outX, outHeight + outY);
-	}
-	
-	@Override
-	public void setMode(int mode) {
-		super.setMode(mode);
-		if (mode == ICON_MODE) {
-			removeView(linearLayout);
-		} else if (mode == FULLSIZE_MODE && linearLayout.getParent() != this) {
-			addView(linearLayout, 1);
-			RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) linearLayout.getLayoutParams();
-			params.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-			params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
-			params.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
-			params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
-			linearLayout.setLayoutParams(params);
-		}
-	}
-	
-	@Override
-	public String getRosTopic() {
-		return rosTopic;
 	}
 	
 	public void redraw() {
@@ -265,13 +157,8 @@ public class RosOrientationWidget extends RosMapWidget implements MessageListene
 	}
 
 	@Override
-	public WidgetType getWidgetType() {
-		return WidgetType.ROS_ORIENTATION_WIDGET;
-	}
-
-	@Override
 	public void subscribe(ConnectedNode node) {
-		subscriber = node.newSubscriber(rosTopic, sensor_msgs.Imu._TYPE);
+		subscriber = node.newSubscriber(getRosTopic(), sensor_msgs.Imu._TYPE);
 		subscriber.addMessageListener(this);
 	}
 

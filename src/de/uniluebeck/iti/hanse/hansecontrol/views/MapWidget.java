@@ -82,6 +82,8 @@ public class MapWidget extends BasicView {
 	
 	ControlsListener controlsListener = null;
 	
+	
+	
 	//allow ratio change??
 	//public float zoom = 1; //TODO implement
 	
@@ -114,7 +116,9 @@ public class MapWidget extends BasicView {
 	//TODO use bitmapmanager!
 //	Bitmap bitmap_closeButton, bitmap_resizer;
 	
-	public MapWidget(int defaultWidth, int defaultHeight, int widgetID, Context context, DragLayer dragLayer, MapWidgetRegistry mapWidgetRegistry, MainScreenFragment mainScreenFragment) {
+	public MapWidget(int defaultWidth, int defaultHeight, int widgetID, Context context, 
+			DragLayer dragLayer, MapWidgetRegistry mapWidgetRegistry, 
+			MainScreenFragment mainScreenFragment) {
 		super(context);
 		this.mapWidgetRegistry = mapWidgetRegistry;
 		this.mainScreenFragment = mainScreenFragment;

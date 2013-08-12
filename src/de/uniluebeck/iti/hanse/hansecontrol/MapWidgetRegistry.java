@@ -91,7 +91,7 @@ public class MapWidgetRegistry {
 				try {
 					createWidget(WidgetType.valueOf(widgetType), topic);
 				} catch (Exception e) {
-					Log.e("mapwidgetregistry", "Error while creating widget type " + widgetType + " with topic " + topic);
+					Log.e("mapwidgetregistry", "Error while creating widget type " + widgetType + " with topic " + topic, e);
 				}
 			}
 		}
@@ -129,56 +129,45 @@ public class MapWidgetRegistry {
 		RosMapWidget widget = null;
 		if (widgetType == WidgetType.ROS_TEXT_WIDGET__STRING) {
 			widget = new RosTextWidget<std_msgs.String>(currentIDforWidget++, context, topic, 
-					dragLayer, this, mainScreenFragment, std_msgs.String._TYPE){
+					dragLayer, this, mainScreenFragment, std_msgs.String._TYPE, 
+					WidgetType.ROS_TEXT_WIDGET__STRING){
 				@Override
 				public String getStringFromMsg(std_msgs.String msg) {
 					return msg.getData();
 				}
-				@Override
-				public WidgetType getWidgetType() {
-					return WidgetType.ROS_TEXT_WIDGET__STRING;
-				}
 			};
 		} else if (widgetType == WidgetType.ROS_TEXT_WIDGET__PRESSURE) {
 			widget = new RosTextWidget<hanse_msgs.pressure>(currentIDforWidget++, context, topic, 
-					dragLayer, this, mainScreenFragment, hanse_msgs.pressure._TYPE){
+					dragLayer, this, mainScreenFragment, hanse_msgs.pressure._TYPE,
+					WidgetType.ROS_TEXT_WIDGET__PRESSURE){
 				@Override
 				public String getStringFromMsg(pressure msg) {
 					return Short.toString(msg.getData());
 				};
-				@Override
-				public WidgetType getWidgetType() {
-					return WidgetType.ROS_TEXT_WIDGET__PRESSURE;
-				}
 			};
 		} else if (widgetType == WidgetType.ROS_TEXT_WIDGET__SOLLSPEED) {
 			widget = new RosTextWidget<hanse_msgs.sollSpeed>(currentIDforWidget++, context, topic, 
-					dragLayer, this, mainScreenFragment, hanse_msgs.sollSpeed._TYPE){
+					dragLayer, this, mainScreenFragment, hanse_msgs.sollSpeed._TYPE,
+					WidgetType.ROS_TEXT_WIDGET__SOLLSPEED){
 				@Override
 				public String getStringFromMsg(sollSpeed msg) {
 					return Byte.toString(msg.getData());
 				}
-				@Override
-				public WidgetType getWidgetType() {
-					return WidgetType.ROS_TEXT_WIDGET__SOLLSPEED;
-				}
 			};
 		} else if (widgetType == WidgetType.ROS_TEXT_WIDGET__FLOAT64) {
 			widget = new RosTextWidget<std_msgs.Float64>(currentIDforWidget++, context, topic, 
-					dragLayer, this, mainScreenFragment, std_msgs.Float64._TYPE){
+					dragLayer, this, mainScreenFragment, std_msgs.Float64._TYPE,
+					WidgetType.ROS_TEXT_WIDGET__FLOAT64){
 				@Override
 				public String getStringFromMsg(Float64 msg) {
 					return Double.toString(msg.getData());
 				};
-				@Override
-				public WidgetType getWidgetType() {
-					return WidgetType.ROS_TEXT_WIDGET__FLOAT64;
-				}
 			};
 		} else if (widgetType == WidgetType.ROS_IMAGE_WIDGET) {
 			widget = new RosImageWidget(currentIDforWidget++, context, topic, dragLayer, this, mainScreenFragment);
 		} else if (widgetType == WidgetType.ROS_PLOT_WIDGET__PRESSURE) {
-			widget = new RosPlotWidget<hanse_msgs.pressure>(currentIDforWidget++, context, topic, dragLayer, this, mainScreenFragment) {
+			widget = new RosPlotWidget<hanse_msgs.pressure>(currentIDforWidget++, context, topic, 
+					dragLayer, this, mainScreenFragment, WidgetType.ROS_PLOT_WIDGET__PRESSURE) {
 
 				@Override
 				public String getDataTypeString() {
@@ -189,14 +178,10 @@ public class MapWidgetRegistry {
 				public float getValue(pressure msg) {
 					return msg.getData();
 				}
-				
-				@Override
-				public WidgetType getWidgetType() {
-					return WidgetType.ROS_PLOT_WIDGET__PRESSURE;
-				}
 			};
 		} else if (widgetType == WidgetType.ROS_PLOT_WIDGET__SOLLSPEED) {
-			widget = new RosPlotWidget<hanse_msgs.sollSpeed>(currentIDforWidget++, context, topic, dragLayer, this, mainScreenFragment) {
+			widget = new RosPlotWidget<hanse_msgs.sollSpeed>(currentIDforWidget++, context, topic, 
+					dragLayer, this, mainScreenFragment, WidgetType.ROS_PLOT_WIDGET__SOLLSPEED) {
 
 				@Override
 				public String getDataTypeString() {
@@ -207,14 +192,10 @@ public class MapWidgetRegistry {
 				public float getValue(sollSpeed msg) {
 					return msg.getData();
 				}
-				
-				@Override
-				public WidgetType getWidgetType() {
-					return WidgetType.ROS_PLOT_WIDGET__SOLLSPEED;
-				}
 			};
 		} else if (widgetType == WidgetType.ROS_PLOT_WIDGET__FLOAT64) {
-			widget = new RosPlotWidget<std_msgs.Float64>(currentIDforWidget++, context, topic, dragLayer, this, mainScreenFragment) {
+			widget = new RosPlotWidget<std_msgs.Float64>(currentIDforWidget++, context, topic,
+					dragLayer, this, mainScreenFragment, WidgetType.ROS_PLOT_WIDGET__FLOAT64) {
 
 				@Override
 				public String getDataTypeString() {
@@ -225,16 +206,13 @@ public class MapWidgetRegistry {
 				public float getValue(Float64 msg) {
 					return (float) msg.getData();
 				}
-				
-				@Override
-				public WidgetType getWidgetType() {
-					return WidgetType.ROS_PLOT_WIDGET__FLOAT64;
-				}
 			};
 		} else if (widgetType == WidgetType.ROS_SONAR_WIDGET) {
-			widget = new RosSonarWidget(currentIDforWidget++, context, topic, dragLayer, this, mainScreenFragment);
+			widget = new RosSonarWidget(currentIDforWidget++, context, topic, dragLayer, this, 
+					mainScreenFragment);
 		} else if (widgetType == WidgetType.ROS_ORIENTATION_WIDGET) {
-			widget = new RosOrientationWidget(currentIDforWidget++, context, topic, dragLayer, this, mainScreenFragment);
+			widget = new RosOrientationWidget(currentIDforWidget++, context, topic, dragLayer, this, 
+					mainScreenFragment);
 		}
 		
 		allWidgets.add(widget);

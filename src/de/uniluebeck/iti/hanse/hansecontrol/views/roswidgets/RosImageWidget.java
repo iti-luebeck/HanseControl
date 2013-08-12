@@ -47,15 +47,10 @@ import de.uniluebeck.iti.hanse.hansecontrol.views.RosMapWidget;
 
 public class RosImageWidget extends RosMapWidget implements MessageListener<sensor_msgs.CompressedImage> {
 	
-	String rosTopic;
 	Subscriber<sensor_msgs.CompressedImage> subscriber;
 	
 	ImageSurface imageSurface;
 	boolean drawingInProgress = false;
-	
-	Paint backgroundPaint = new Paint();
-	
-	LinearLayout linearLayout;
 	
 	Bitmap bitmap;	
 	
@@ -64,24 +59,12 @@ public class RosImageWidget extends RosMapWidget implements MessageListener<sens
 	
 	public RosImageWidget(int widgetID,	Context context, final String rosTopic, 
 			DragLayer dragLayer, MapWidgetRegistry mapWidgetRegistry, MainScreenFragment mainScreenFragment) {
-		super(300, 200, widgetID, context, dragLayer, mapWidgetRegistry, mainScreenFragment);
-		this.rosTopic = rosTopic;
-		
-		linearLayout = new LinearLayout(context);
-		linearLayout.setOrientation(LinearLayout.VERTICAL);
-		
-		TextView topicHeader = new TextView(context);
-		topicHeader.setText(rosTopic);
-		topicHeader.setGravity(Gravity.CENTER);
-		topicHeader.setTextColor(Color.LTGRAY);
+		super(300, 200, widgetID, context, dragLayer, mapWidgetRegistry, mainScreenFragment,
+				rosTopic, WidgetType.ROS_IMAGE_WIDGET);
 		
 		imageSurface = new ImageSurface(getContext());
-		
-		
-		linearLayout.addView(topicHeader);
-		linearLayout.addView(imageSurface);
-		
 		imageSurface.setZOrderOnTop(true);
+		setContent(imageSurface);
 		setControlsListener(new ControlsListener() {
 			
 			@Override
@@ -91,91 +74,11 @@ public class RosImageWidget extends RosMapWidget implements MessageListener<sens
 			@Override
 			public void onControlsInvisible() {}
 		});
-		
-		backgroundPaint.setColor(Color.BLACK);
-		backgroundPaint.setAlpha(80);
-		backgroundPaint.setStyle(Paint.Style.FILL);
-		
-		final Paint iconTextPaint = new Paint();
-		iconTextPaint.setColor(Color.WHITE);
-		final float textSize = 16;
-		iconTextPaint.setTextSize(textSize);
-		
-		addView(new View(context){
-			@Override
-			protected void onDraw(Canvas canvas) {
-				if (getMode() == FULLSIZE_MODE) {
-					canvas.drawRect(new Rect(0,0, getWidth(), getHeight()), backgroundPaint);
-				} else if (getMode() == ICON_MODE) {
-					String iconText = shrinkStringToWidth(iconTextPaint, getWidth(), rosTopic);
-					canvas.drawText(iconText, getWidth() / 2 - iconTextPaint.measureText(iconText) / 2, textSize, iconTextPaint);
-					Bitmap bitmap = BitmapManager.getInstance().getBitmap(getResources(), 
-							R.drawable.widgeticon_image);
-					canvas.drawBitmap(bitmap, null, 
-							scaleToBox(bitmap.getWidth(), bitmap.getHeight(), 
-									0, textSize + 3, getWidth(), getHeight() - (textSize + 3)), null);
-				}
-			}
-		}, 0);
-	}
-	
-	private String shrinkStringToWidth(Paint paint, float width, String str) {
-		if (!str.isEmpty() && paint.measureText(str) > width) {
-			String placeholder = "...";			
-			String head = str.substring(0, str.length() / 2);
-			String tail = str.substring(str.length() / 2);
-			while (paint.measureText(head + placeholder + tail) > width && !head.isEmpty() && !tail.isEmpty()) {
-				head = head.substring(0, head.length() - 1);
-				tail = tail.substring(1);
-			}
-			return head + placeholder + tail;
-		}
-		return str;
-	}
-	
-	private RectF scaleToBox(float inputWidth, float inputHeight, float x, float y, float width, float height) {
-		float ratio = width / height;
-		float inputRatio = inputWidth / inputHeight;
-		
-		float outX;
-		float outY;
-		float outWidth;
-		float outHeight;
-		
-		if (inputRatio < ratio) {
-			outHeight = height;
-			outWidth = inputRatio * height;
-			outY = y;
-			outX = x + (width / 2 - outWidth / 2);
-		} else {
-			outWidth = width;
-			outHeight = (1 / inputRatio) * width;
-			outX = x;
-			outY = y + (height / 2 - outHeight / 2);
-		}
-		
-		return new RectF(outX, outY, outWidth + outX, outHeight + outY);
-	}
-	
-	@Override
-	public void setMode(int mode) {
-		super.setMode(mode);
-		if (mode == ICON_MODE) {
-			removeView(linearLayout);
-		} else if (mode == FULLSIZE_MODE && linearLayout.getParent() != this) {
-			addView(linearLayout, 1);
-			RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) linearLayout.getLayoutParams();
-			params.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-			params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
-			params.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
-			params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
-			linearLayout.setLayoutParams(params);
-		}
 	}
 	
 	@Override
 	public void subscribe(ConnectedNode node) {
-		subscriber = node.newSubscriber(rosTopic, sensor_msgs.CompressedImage._TYPE);
+		subscriber = node.newSubscriber(getRosTopic(), sensor_msgs.CompressedImage._TYPE);
 		subscriber.addMessageListener(this);
 	}
 
@@ -271,34 +174,6 @@ public class RosImageWidget extends RosMapWidget implements MessageListener<sens
 				}
 			}
 		});
-		
-		
-		
-		
-		
-		//TODO remove debugging code
-//		try {
-//			FileOutputStream fout = new FileOutputStream(new File("/sdcard/imagefile"));
-//			fout.write(cb.array(), cb.readerIndex() + byteArrayOffset, cb.readableBytes());
-//			fout.flush();
-//			fout.close();
-//		} catch (FileNotFoundException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-	}
-	
-	@Override
-	public WidgetType getWidgetType() {
-		return WidgetType.ROS_IMAGE_WIDGET;
-	}
-	
-	@Override
-	public String getRosTopic() {
-		return rosTopic;
 	}
 }
 
@@ -325,10 +200,7 @@ class ImageSurface extends SurfaceView implements SurfaceHolder.Callback {
 	
 	@Override
 	public void surfaceChanged(SurfaceHolder holder, int format, int width,
-			int height) {
-		// TODO Auto-generated method stub
-		
-	}
+			int height) { }
 
 	@Override
 	public void surfaceDestroyed(SurfaceHolder holder) {

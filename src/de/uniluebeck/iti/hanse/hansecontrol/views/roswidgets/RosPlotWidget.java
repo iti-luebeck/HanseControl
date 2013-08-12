@@ -59,15 +59,7 @@ import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.DragLayer;
 import de.uniluebeck.iti.hanse.hansecontrol.views.RosMapWidget;
 
 public abstract class RosPlotWidget<T> extends RosMapWidget implements MessageListener<T> {
-	//hanse_msgs.pressure
-	String rosTopic;
 	Subscriber<T> subscriber;
-	
-	TextView textView;
-	
-	Paint backgroundPaint = new Paint();
-	
-	LinearLayout linearLayout;
 	
 	PlotView plotView;
 	
@@ -75,114 +67,14 @@ public abstract class RosPlotWidget<T> extends RosMapWidget implements MessageLi
 	
 	private int redrawInterval = 500; //in ms, must be a value available in the config dialog!
 	private long lastdraw = System.currentTimeMillis();
-
 	
 	public RosPlotWidget(int widgetID,	Context context, final String rosTopic, 
-			DragLayer dragLayer, MapWidgetRegistry mapWidgetRegistry, MainScreenFragment mainScreenFragment) {
-		super(300, 200, widgetID, context, dragLayer, mapWidgetRegistry, mainScreenFragment);
-		this.rosTopic = rosTopic;
-		textView = new TextView(context);
-//		removeAllViews();
-		
-		textView.setTextSize(18);
-		textView.setTextColor(Color.WHITE);
-		
-		linearLayout = new LinearLayout(context);
-		linearLayout.setOrientation(LinearLayout.VERTICAL);
-		
-		TextView topicHeader = new TextView(context);
-		topicHeader.setText(rosTopic);
-		topicHeader.setGravity(Gravity.CENTER);
-		topicHeader.setTextColor(Color.LTGRAY);
-		
-		plotView = new PlotView(getContext());
-		
-		linearLayout.addView(topicHeader);
-		linearLayout.addView(plotView);
-		
-//		addView(linearLayout, 0);
-		
-		backgroundPaint.setColor(Color.BLACK);
-		backgroundPaint.setAlpha(80);
-		backgroundPaint.setStyle(Paint.Style.FILL);
-		
-		
-		final Paint iconTextPaint = new Paint();
-		iconTextPaint.setColor(Color.WHITE);
-		final float textSize = 16;
-		iconTextPaint.setTextSize(textSize);
-		
-		addView(new View(context){
-			@Override
-			protected void onDraw(Canvas canvas) {
-				if (getMode() == FULLSIZE_MODE) {
-					canvas.drawRect(new Rect(0,0, getWidth(), getHeight()), backgroundPaint);
-				} else if (getMode() == ICON_MODE) {
-					String iconText = shrinkStringToWidth(iconTextPaint, getWidth(), rosTopic);
-					canvas.drawText(iconText, getWidth() / 2 - iconTextPaint.measureText(iconText) / 2, textSize, iconTextPaint);
-					Bitmap bitmap = BitmapManager.getInstance().getBitmap(getResources(), 
-							R.drawable.widgeticon_plot);
-					canvas.drawBitmap(bitmap, null, 
-							scaleToBox(bitmap.getWidth(), bitmap.getHeight(), 
-									0, textSize + 3, getWidth(), getHeight() - (textSize + 3)), null);
-				}
-			}
-		}, 0);
-		
-	}
-	
-	private String shrinkStringToWidth(Paint paint, float width, String str) {
-		if (!str.isEmpty() && paint.measureText(str) > width) {
-			String placeholder = "...";			
-			String head = str.substring(0, str.length() / 2);
-			String tail = str.substring(str.length() / 2);
-			while (paint.measureText(head + placeholder + tail) > width && !head.isEmpty() && !tail.isEmpty()) {
-				head = head.substring(0, head.length() - 1);
-				tail = tail.substring(1);
-			}
-			return head + placeholder + tail;
-		}
-		return str;
-	}
-	
-	private RectF scaleToBox(float inputWidth, float inputHeight, float x, float y, float width, float height) {
-		float ratio = width / height;
-		float inputRatio = inputWidth / inputHeight;
-		
-		float outX;
-		float outY;
-		float outWidth;
-		float outHeight;
-		
-		if (inputRatio < ratio) {
-			outHeight = height;
-			outWidth = inputRatio * height;
-			outY = y;
-			outX = x + (width / 2 - outWidth / 2);
-		} else {
-			outWidth = width;
-			outHeight = (1 / inputRatio) * width;
-			outX = x;
-			outY = y + (height / 2 - outHeight / 2);
-		}
-		
-		return new RectF(outX, outY, outWidth + outX, outHeight + outY);
-	}
-	
-	@Override
-	public void setMode(int mode) {
-		super.setMode(mode);
-		if (mode == ICON_MODE) {
-			removeView(linearLayout);
-		} else if (mode == FULLSIZE_MODE && linearLayout.getParent() != this) {
-			addView(linearLayout, 1);
-			RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) linearLayout.getLayoutParams();
-			params.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-			params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
-			params.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
-			params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
-			linearLayout.setLayoutParams(params);
-		}
+			DragLayer dragLayer, MapWidgetRegistry mapWidgetRegistry, MainScreenFragment mainScreenFragment,
+			WidgetType widgetType) {
+		super(300, 200, widgetID, context, dragLayer, mapWidgetRegistry, mainScreenFragment,
+				rosTopic, widgetType);
+		plotView = new PlotView(getContext());	
+		setContent(plotView);
 	}
 	
 	public abstract String getDataTypeString();
@@ -190,7 +82,7 @@ public abstract class RosPlotWidget<T> extends RosMapWidget implements MessageLi
 	
 	@Override
 	public void subscribe(ConnectedNode node) {
-		subscriber = node.newSubscriber(rosTopic, getDataTypeString());
+		subscriber = node.newSubscriber(getRosTopic(), getDataTypeString());
 		subscriber.addMessageListener(this);
 	}
 
@@ -228,14 +120,6 @@ public abstract class RosPlotWidget<T> extends RosMapWidget implements MessageLi
 				}
 			}
 		});
-	}
-	
-//	@Override
-//	public abstract WidgetType getWidgetType();
-	
-	@Override
-	public String getRosTopic() {
-		return rosTopic;
 	}
 	
 	public void redraw() {
@@ -385,17 +269,17 @@ public abstract class RosPlotWidget<T> extends RosMapWidget implements MessageLi
 	@Override
 	public void loadPrefs(String tabPrefix, SharedPreferences prefs) {
 		super.loadPrefs(tabPrefix, prefs);
-		redrawInterval = prefs.getInt(tabPrefix + rosTopic + this.getClass().getName() + "redrawInterval", redrawInterval);
-		plotView.setTimeSpan(prefs.getLong(tabPrefix + rosTopic + this.getClass().getName() + "timespan", plotView.getTimeSpan()));
-		plotView.setConnectDots(prefs.getBoolean(tabPrefix + rosTopic + this.getClass().getName() + "connectDots", plotView.isConnectDots()));
+		redrawInterval = prefs.getInt(tabPrefix + getRosTopic() + this.getClass().getName() + "redrawInterval", redrawInterval);
+		plotView.setTimeSpan(prefs.getLong(tabPrefix + getRosTopic() + this.getClass().getName() + "timespan", plotView.getTimeSpan()));
+		plotView.setConnectDots(prefs.getBoolean(tabPrefix + getRosTopic() + this.getClass().getName() + "connectDots", plotView.isConnectDots()));
 	}
 	
 	@Override
 	public void savePrefs(String tabPrefix, Editor ed) {
 		super.savePrefs(tabPrefix, ed);
-		ed.putInt(tabPrefix + rosTopic + this.getClass().getName() + "redrawInterval", redrawInterval);
-		ed.putLong(tabPrefix + rosTopic + this.getClass().getName() + "timespan", plotView.getTimeSpan());
-		ed.putBoolean(tabPrefix + rosTopic + this.getClass().getName() + "connectDots", plotView.isConnectDots());
+		ed.putInt(tabPrefix + getRosTopic() + this.getClass().getName() + "redrawInterval", redrawInterval);
+		ed.putLong(tabPrefix + getRosTopic() + this.getClass().getName() + "timespan", plotView.getTimeSpan());
+		ed.putBoolean(tabPrefix + getRosTopic() + this.getClass().getName() + "connectDots", plotView.isConnectDots());
 	}
 	
 }
