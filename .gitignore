@@ -4,6 +4,7 @@ gen/
 
 android-filechooser/code/bin
 
+project.properties
 local.properties
 build.xml
 
