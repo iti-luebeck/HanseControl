@@ -53,6 +53,7 @@ import de.uniluebeck.iti.hanse.hansecontrol.BitmapManager;
 import de.uniluebeck.iti.hanse.hansecontrol.MainScreen;
 import de.uniluebeck.iti.hanse.hansecontrol.MainScreenFragment;
 import de.uniluebeck.iti.hanse.hansecontrol.MapWidgetRegistry;
+import de.uniluebeck.iti.hanse.hansecontrol.PerformanceBenchmark;
 import de.uniluebeck.iti.hanse.hansecontrol.R;
 import de.uniluebeck.iti.hanse.hansecontrol.MapWidgetRegistry.WidgetType;
 import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.DragLayer;
@@ -453,7 +454,7 @@ class PlotView extends View {
 			}
 		}
 	}
-	
+	PerformanceBenchmark benchmark = new PerformanceBenchmark("RosPlotWidget", getContext());
 	private void drawPlot(Canvas canvas) {
 		//value constants
 		int topBottomPadding = 20;
@@ -506,6 +507,8 @@ class PlotView extends View {
 		//draw debug info (values count)
 		text = "values: " + values.size();
 		drawText(3, 3, text, TOP_LEFT, canvas, textDebugInfoPaint);
+		
+		benchmark.log();
 	}
 	
 	private void drawText(float x, float y, String text, int alignTo, Canvas canvas, Paint paint) {

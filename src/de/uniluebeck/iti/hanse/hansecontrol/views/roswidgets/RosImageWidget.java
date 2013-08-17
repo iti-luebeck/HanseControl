@@ -40,6 +40,7 @@ import de.uniluebeck.iti.hanse.hansecontrol.BitmapManager;
 import de.uniluebeck.iti.hanse.hansecontrol.MainScreen;
 import de.uniluebeck.iti.hanse.hansecontrol.MainScreenFragment;
 import de.uniluebeck.iti.hanse.hansecontrol.MapWidgetRegistry;
+import de.uniluebeck.iti.hanse.hansecontrol.PerformanceBenchmark;
 import de.uniluebeck.iti.hanse.hansecontrol.R;
 import de.uniluebeck.iti.hanse.hansecontrol.MapWidgetRegistry.WidgetType;
 import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.DragLayer;
@@ -131,7 +132,7 @@ public class RosImageWidget extends RosMapWidget implements MessageListener<sens
 ////			}
 ////		}, 100, TimeUnit.MILLISECONDS);
 //	}
-	
+	PerformanceBenchmark benchmark = new PerformanceBenchmark("RosImageWidget", getContext());
 	@Override
 	public void onNewMessage(final sensor_msgs.CompressedImage image) {
 		if (imageSurface.getVisibility() != View.VISIBLE && !isControlsVisible()) {
@@ -167,6 +168,7 @@ public class RosImageWidget extends RosMapWidget implements MessageListener<sens
 						setRatio(bitmap.getWidth() / (float) bitmap.getHeight());
 					}
 					drawImage();
+					benchmark.log();
 				} catch (Exception e) {
 					Log.e("RosImageWidget", "Error while decoding image", e);	
 				} finally {

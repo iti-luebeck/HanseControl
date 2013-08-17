@@ -55,6 +55,7 @@ import de.uniluebeck.iti.hanse.hansecontrol.BitmapManager;
 import de.uniluebeck.iti.hanse.hansecontrol.MainScreen;
 import de.uniluebeck.iti.hanse.hansecontrol.MainScreenFragment;
 import de.uniluebeck.iti.hanse.hansecontrol.MapWidgetRegistry;
+import de.uniluebeck.iti.hanse.hansecontrol.PerformanceBenchmark;
 import de.uniluebeck.iti.hanse.hansecontrol.R;
 import de.uniluebeck.iti.hanse.hansecontrol.MapWidgetRegistry.WidgetType;
 import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.DragLayer;
@@ -336,10 +337,11 @@ class SonarView extends View {
 //		canvas.drawLine(0, (values.size() * 3) % bitmap.getHeight(), bitmap.getWidth() -1, (values.size() * 3) % bitmap.getHeight(), new Paint());
 	}
 	
+	PerformanceBenchmark benchmark = new PerformanceBenchmark("RosSonarWidget", getContext());
 	private synchronized void scheduleDrawing() {
 //		synchronized (this) {			
 //			Log.d("sonartasks", MainScreen.getExecutorService().
-			Log.d("sonartasks", (drawingFuture == null || drawingFuture.isDone()) + "");
+//			Log.d("sonartasks", (drawingFuture == null || drawingFuture.isDone()) + "");
 			if (drawingFuture == null || drawingFuture.isDone()) {
 				drawingFuture = MainScreen.getExecutorService().schedule(new Runnable() {
 					
@@ -379,6 +381,7 @@ class SonarView extends View {
 		
 		if (bitmap != null && !bitmap.isRecycled()) {
 			canvas.drawBitmap(bitmap, null, getViewportRect(), null);
+			benchmark.log();
 		}
 			
 			
