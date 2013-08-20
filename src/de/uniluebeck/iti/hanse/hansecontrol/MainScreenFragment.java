@@ -153,6 +153,7 @@ public class MainScreenFragment extends Fragment {
 		widgetRegistry.setNode(node);
 		overlayLayer.getOverlayRegistry().setNode(node);
 		RosRobot.getInstance().setNode(node);
+		pathLayer.setNode(node);
 	}
 	
 	@Override

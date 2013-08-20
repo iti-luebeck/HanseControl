@@ -5,6 +5,9 @@ import geometry_msgs.Point;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+
+import org.ros.node.ConnectedNode;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -35,6 +38,7 @@ import android.widget.ArrayAdapter;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
+import de.uniluebeck.iti.hanse.hansecontrol.Behaviours;
 import de.uniluebeck.iti.hanse.hansecontrol.BitmapManager;
 import de.uniluebeck.iti.hanse.hansecontrol.MainScreen;
 import de.uniluebeck.iti.hanse.hansecontrol.MapSurface;
@@ -43,6 +47,7 @@ import de.uniluebeck.iti.hanse.hansecontrol.R;
 import de.uniluebeck.iti.hanse.hansecontrol.RosRobot;
 import de.uniluebeck.iti.hanse.hansecontrol.MainScreenFragment.AddOverlayDialog;
 import de.uniluebeck.iti.hanse.hansecontrol.OverlayRegistry.OverlayType;
+import de.uniluebeck.iti.hanse.hansecontrol.TcpTestServerBehaviours;
 import de.uniluebeck.iti.hanse.hansecontrol.mapeditor.MapEditorMarkerLayer.MarkerPositionListener;
 import de.uniluebeck.iti.hanse.hansecontrol.views.AbstractOverlay;
 
@@ -64,12 +69,15 @@ public class PathLayer extends RelativeLayout {
 	
 	FragmentManager fragmentManager;
 	
+	IBehaviours behaviours;
+	
+	PointF lastSendGoal;
+	
 	//drawing parameters
 	public static final float ACTION_PADDING = 3;
 	public static final float ACTION_ICON_WIDTH = 20;
 	public static final float ACTION_ICON_HEIGHT = 18;
 	public static final float ACTION_BACKGROUND_RADIUS = 6;
-	
 	
 	public PathLayer(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
@@ -182,7 +190,52 @@ public class PathLayer extends RelativeLayout {
     	canvas.drawText(action.getName(), textX, textY, actionNamePaint);
     }
     
+    private void sendGoal() {
+    	if (!targetPath.isEmpty()) {
+    		if (targetPath.get(0).getRosPos() != null &&
+    				(lastSendGoal == null || !lastSendGoal.equals(targetPath.get(0).getRosPos()))) {
+    			lastSendGoal = targetPath.get(0).getRosPos();
+    			behaviours.sendGoal(targetPath.get(0));    		    			
+    		}
+    	}
+    }
+    
     private void init(Context context) {
+    	
+    	behaviours = new Behaviours();
+    	behaviours.setBehavioursListener(new BehavioursListener() {
+			
+			@Override
+			public void goalReached() {
+				Target target = targetPath.get(0);
+				if (target.getActions().isEmpty()) {
+					removeTarget(target);
+				} else {
+					behaviours.startBehaviour(target.getActions().get(0).getName());
+				}
+			}
+			
+			@Override
+			public void behaviourFinished(String name) {
+				if (!targetPath.isEmpty()) {
+					Target target = targetPath.get(0);
+					if (!target.getActions().isEmpty() && target.getActions().get(0).getName().equals(name)) {
+						target.getActions().remove(0);
+						drawView.post(new Runnable() {
+							public void run() {
+								drawView.invalidate();
+							}
+						});
+						if (target.getActions().isEmpty()) {
+							removeTarget(target);
+						} else {
+							behaviours.startBehaviour(target.getActions().get(0).getName());
+						}
+					}
+				}
+			}
+		});
+    	
     	linePaint.setColor(Color.BLACK);
     	linePaint.setAlpha(100);
     	linePaint.setStrokeWidth(6);
@@ -265,6 +318,8 @@ public class PathLayer extends RelativeLayout {
 //		}
 //    }
 
+    
+    
 	private void loadTargets() {
 		//load targets
 		List<Target> oldTargetPath = targetPath;
@@ -394,6 +449,7 @@ public class PathLayer extends RelativeLayout {
             		if (mapSurface != null) {
 //            			Log.d("err", "setting ros pos start");
     					target.setRosPos(mapSurface.getPoseFromViewportPos(x, y));
+    					sendGoal();
 //    					Log.d("err", "setting ros pos end");
     				}
 	            }
@@ -419,10 +475,10 @@ public class PathLayer extends RelativeLayout {
 		}
 		
 		//TODO remove this
-		target.getActions().add(new TargetAction("Wallfollow"));
-		target.getActions().add(new TargetAction("Fire torpedo"));
-		target.getActions().add(new TargetAction("Self-destruction"));
-		target.getActions().add(new TargetAction("Testaction"));
+//		target.getActions().add(new TargetAction("Wallfollow"));
+//		target.getActions().add(new TargetAction("Fire torpedo"));
+//		target.getActions().add(new TargetAction("Self-destruction"));
+//		target.getActions().add(new TargetAction("Testaction"));
 		
 		
 		return target;
@@ -462,7 +518,7 @@ public class PathLayer extends RelativeLayout {
 		});	
     }
     
-    private class TargetAction {
+    public class TargetAction {
     	String name;
     	
     	public TargetAction(String name) {
@@ -474,7 +530,7 @@ public class PathLayer extends RelativeLayout {
 		}
     }
     
-    private class Target extends View {
+    public class Target extends View {
 		Bitmap image;
 		
 		float mx;
@@ -567,6 +623,7 @@ public class PathLayer extends RelativeLayout {
 				return true;
 			}
 			if (event.getActionMasked() == MotionEvent.ACTION_UP || event.getActionMasked() == MotionEvent.ACTION_CANCEL) {
+				sendGoal();
 				if (targetPathListener != null) {
 					targetPathListener.targetPathUpdate();
 				}
@@ -593,6 +650,7 @@ public class PathLayer extends RelativeLayout {
 		
 		public void setRosPos(PointF rosPos) {
 			this.rosPos = rosPos;
+//			sendGoal();
 		}
 		
 		public void setAnimationInProgress(boolean isAnimationInProgress) {
@@ -686,6 +744,22 @@ public class PathLayer extends RelativeLayout {
 		});
 	}
 	
+	private void removeTarget(final Target target) {
+		target.post(new Runnable() {
+			
+			@Override
+			public void run() {
+				targetPath.remove(target);
+				removeView(target);
+				drawView.invalidate();
+				sendGoal();
+				if (targetPathListener != null) {
+					targetPathListener.targetPathUpdate();
+				}
+			}
+		});
+	}
+	
 	public void showTargetOptions(final Target target) {
 		AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
 		CharSequence[] items = {"Delete this target", "Delete all targets", "Add action", "Delete action"};
@@ -695,28 +769,26 @@ public class PathLayer extends RelativeLayout {
 			public void onClick(DialogInterface dialog, int which) {
 //				Log.d("pathlayer", which + "");
 				if (which == 0) {
-					targetPath.remove(target);
-					removeView(target);
-					drawView.invalidate();
-					if (targetPathListener != null) {
-						targetPathListener.targetPathUpdate();
-					}
+					removeTarget(target);
 				} else if (which == 1) {
 					for (Target t : targetPath) {
 						removeView(t);
 					}
 					targetPath.clear();
 					drawView.invalidate();
+					sendGoal();
 					if (targetPathListener != null) {
 						targetPathListener.targetPathUpdate();
 					}
 				} else if (which == 2) {
-					new AddTargetActionDialog() {
+					AddTargetActionDialog addTargetActionDialog = new AddTargetActionDialog() {
 						public void onAdd(String name) {
 							target.getActions().add(new TargetAction(name));
 							drawView.invalidate();
 						};
-					}.show(fragmentManager, "add_targetaction");
+					};
+					addTargetActionDialog.setBehaviours(behaviours);
+					addTargetActionDialog.show(fragmentManager, "add_targetaction");
 				} else if (which == 3) {					
 					showRemoveTargetAction(target);
 				}
@@ -769,6 +841,7 @@ public class PathLayer extends RelativeLayout {
 	}
 	
 	public abstract static class AddTargetActionDialog extends DialogFragment {
+		IBehaviours behaviours;
 		
 		@Override
 		public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -784,7 +857,7 @@ public class PathLayer extends RelativeLayout {
 			//fill spinner with widget types
 			ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(), 
 					android.R.layout.simple_spinner_item);
-			adapter.addAll(Arrays.asList(new String[]{"Wallfollow", "Fire torpedo", "Self-destruction", "Testaction"}));
+			adapter.addAll(behaviours.getBehaviours());
 			
 			final Spinner spinner = (Spinner) view.findViewById(R.id.spinner1);	
 			final TextView topicTextView = (TextView) view.findViewById(R.id.mapName);
@@ -798,21 +871,41 @@ public class PathLayer extends RelativeLayout {
 				}
 			});
 			
-			builder.setPositiveButton("Add action", new DialogInterface.OnClickListener() {
-				
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
+			if (!behaviours.getBehaviours().isEmpty()) {
+				builder.setPositiveButton("Add action", new DialogInterface.OnClickListener() {
 					
-					onAdd((String)spinner.getSelectedItem());
-				}
-			});
-			
-			return builder.create();	
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						
+						onAdd((String)spinner.getSelectedItem());
+					}
+				});
+			}
+			return builder.create();
 			
 		}
 		
 		public abstract void onAdd(String name);
 		
+		public void setBehaviours(IBehaviours behaviours) {
+			this.behaviours = behaviours;
+		}
 	}
 	
+	public void setNode(ConnectedNode node) {
+		behaviours.setNode(node);
+	}
+	
+	public interface IBehaviours {
+		public Set<String> getBehaviours();
+		public void sendGoal(Target target);
+		public void setBehavioursListener(BehavioursListener behavioursListener);
+		public void startBehaviour(String name);
+		public void setNode(ConnectedNode node);
+	}
+	
+	public interface BehavioursListener {
+		public void goalReached();
+		public void behaviourFinished(String name);
+	}
 }
