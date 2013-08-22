@@ -202,7 +202,7 @@ public class PathLayer extends RelativeLayout {
     
     private void init(Context context) {
     	
-    	behaviours = new Behaviours();
+    	behaviours = Behaviours.getInstance();
     	behaviours.setBehavioursListener(new BehavioursListener() {
 			
 			@Override

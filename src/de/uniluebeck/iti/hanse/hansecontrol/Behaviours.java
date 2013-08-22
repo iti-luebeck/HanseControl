@@ -31,6 +31,12 @@ public class Behaviours implements MessageListener<hanse_msgs.BehaviourStatus>, 
 	Publisher<hanse_msgs.BehaviourStatus> pubBehaviour;
 	Publisher<geometry_msgs.Twist> pubGoal;
 	
+	static Behaviours instance = new Behaviours();
+	
+	public static Behaviours getInstance() {
+		return instance;
+	}
+	
 	@Override
 	public void onNewMessage(BehaviourStatus msg) {
 		String name = msg.getName().getData();
@@ -49,6 +55,7 @@ public class Behaviours implements MessageListener<hanse_msgs.BehaviourStatus>, 
 	@Override
 	public void setNode(ConnectedNode node) {
 		this.node = node;
+		behaviours.clear();
 		pubBehaviour = node.newPublisher("/hanse/BehaviourStatus", hanse_msgs.BehaviourStatus._TYPE);
 		pubGoal = node.newPublisher("/goal", geometry_msgs.Twist._TYPE);
 	}
@@ -94,7 +101,7 @@ public class Behaviours implements MessageListener<hanse_msgs.BehaviourStatus>, 
 	RosRobot rosRobot;
 	PointF lastTarget;
 	
-	public Behaviours() {
+	private Behaviours() {
 		rosRobot = RosRobot.getInstance();
 		rosRobot.addRobotPositionListener(new RosRobot.RobotPositionListener() {
 			
