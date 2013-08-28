@@ -83,6 +83,8 @@ public class MainScreen extends RosActivity {
 	
 	private View activeContextMenuView = null;
 	
+	public static final int MESSAGE_QUEUE = 20;
+	
 	public MainScreen() {
 		super("HanseControl", "HanseControl");
 	}

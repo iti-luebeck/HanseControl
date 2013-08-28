@@ -20,6 +20,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.RelativeLayout;
 import de.uniluebeck.iti.hanse.hansecontrol.BitmapManager;
+import de.uniluebeck.iti.hanse.hansecontrol.MainScreen;
 import de.uniluebeck.iti.hanse.hansecontrol.MapSurface;
 import de.uniluebeck.iti.hanse.hansecontrol.R;
 import de.uniluebeck.iti.hanse.hansecontrol.OverlayRegistry.OverlayType;
@@ -84,7 +85,7 @@ public class WallDetectionOverlay extends AbstractOverlay implements MessageList
 	@Override
 	public void subscribe(ConnectedNode node) {
 		subscriber = node.newSubscriber(topic, hanse_msgs.WallDetection._TYPE);
-		subscriber.addMessageListener(this);
+		subscriber.addMessageListener(this, MainScreen.MESSAGE_QUEUE);
 	}
 	
 	private void removeOldValues() {

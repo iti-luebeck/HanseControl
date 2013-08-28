@@ -198,9 +198,9 @@ public class RosRobot {
 	public void setNode(ConnectedNode connectedNode) {
 		this.node = connectedNode;
 		positionSubscriber = node.newSubscriber(positionTopic, geometry_msgs.PoseStamped._TYPE);
-		positionSubscriber.addMessageListener(positionListener);
+		positionSubscriber.addMessageListener(positionListener, MainScreen.MESSAGE_QUEUE);
 //		imuSubscriber = node.newSubscriber(imuTopic, sensor_msgs.Imu._TYPE);
-//		imuSubscriber.addMessageListener(imuListener);
+//		imuSubscriber.addMessageListener(imuListener, MainScreen.MESSAGE_QUEUE);
 	}
 
 	public PointF getPosition() {

@@ -17,6 +17,7 @@ import android.view.View;
 import android.widget.RelativeLayout;
 
 import de.uniluebeck.iti.hanse.hansecontrol.BitmapManager;
+import de.uniluebeck.iti.hanse.hansecontrol.MainScreen;
 import de.uniluebeck.iti.hanse.hansecontrol.MapSurface;
 import de.uniluebeck.iti.hanse.hansecontrol.R;
 import de.uniluebeck.iti.hanse.hansecontrol.OverlayRegistry.OverlayType;
@@ -88,7 +89,7 @@ public class PoseOverlay extends AbstractOverlay implements MessageListener<geom
 	@Override
 	public void subscribe(ConnectedNode node) {
 		subscriber = node.newSubscriber(topic, geometry_msgs.PoseStamped._TYPE);
-		subscriber.addMessageListener(this);
+		subscriber.addMessageListener(this, MainScreen.MESSAGE_QUEUE);
 	}
 
 	@Override

@@ -142,7 +142,7 @@ public class RosSonarWidget extends RosMapWidget implements MessageListener<hans
 	@Override
 	public void subscribe(ConnectedNode node) {
 		subscriber = node.newSubscriber(getRosTopic(), hanse_msgs.ScanningSonar._TYPE);
-		subscriber.addMessageListener(this);
+		subscriber.addMessageListener(this, MainScreen.MESSAGE_QUEUE);
 		
 		//workaround for drawing issue, apparently canvas.draw methods perform 
 		//the actual drawing into the bitmap in background

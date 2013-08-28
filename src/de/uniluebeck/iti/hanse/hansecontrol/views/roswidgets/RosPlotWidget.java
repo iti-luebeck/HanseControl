@@ -84,7 +84,7 @@ public abstract class RosPlotWidget<T> extends RosMapWidget implements MessageLi
 	@Override
 	public void subscribe(ConnectedNode node) {
 		subscriber = node.newSubscriber(getRosTopic(), getDataTypeString());
-		subscriber.addMessageListener(this);
+		subscriber.addMessageListener(this, MainScreen.MESSAGE_QUEUE);
 	}
 
 	@Override

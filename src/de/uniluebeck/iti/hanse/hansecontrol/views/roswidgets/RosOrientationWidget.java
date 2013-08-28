@@ -159,7 +159,7 @@ public class RosOrientationWidget extends RosMapWidget implements MessageListene
 	@Override
 	public void subscribe(ConnectedNode node) {
 		subscriber = node.newSubscriber(getRosTopic(), sensor_msgs.Imu._TYPE);
-		subscriber.addMessageListener(this);
+		subscriber.addMessageListener(this, MainScreen.MESSAGE_QUEUE);
 	}
 
 	@Override
