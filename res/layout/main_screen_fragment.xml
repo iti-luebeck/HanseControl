@@ -12,7 +12,9 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true" >
-
+	
+        
+        
         <de.uniluebeck.iti.hanse.hansecontrol.viewgroups.MapLayer
             android:id="@+id/mapLayer1"
             android:layout_width="wrap_content"
@@ -57,6 +59,7 @@
 	        android:layout_alignParentBottom="true" >
 	
 	        <LinearLayout
+	            android:orientation="horizontal"
 	            android:id="@+id/widgetLayout"
 	            android:layout_width="wrap_content"
 	            android:layout_height="match_parent" >            

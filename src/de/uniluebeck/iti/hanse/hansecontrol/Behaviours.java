@@ -39,6 +39,7 @@ public class Behaviours implements MessageListener<hanse_msgs.BehaviourStatus>, 
 	
 //	String currentBehaviour = "";
 	
+	
 	public static Behaviours getInstance() {
 		return instance;
 	}
@@ -69,7 +70,7 @@ public class Behaviours implements MessageListener<hanse_msgs.BehaviourStatus>, 
 		pubBehaviour = node.newPublisher("/hanse/behaviourstatus", hanse_msgs.BehaviourStatus._TYPE);
 		pubGoal = node.newPublisher("/goal", geometry_msgs.PoseStamped._TYPE);
 		subBehaviours = node.newSubscriber("/hanse/behaviourstatus", hanse_msgs.BehaviourStatus._TYPE);
-		subBehaviours.addMessageListener(this, MainScreen.MESSAGE_QUEUE);
+//		subBehaviours.addMessageListener(this, MainScreen.MESSAGE_QUEUE);
 	}
 
 	@Override

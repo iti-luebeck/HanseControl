@@ -121,6 +121,10 @@ public class MapSurface {
 	}
 	
 	public synchronized void draw(Canvas canvas) {
+//		zoom=1;
+//		x=0;
+//		y=0;
+		Log.e("errfind", "Drawing... zoom="+zoom+" x="+x+"y="+y+" map is null:" + (map == null) + " image is null:" + (image == null));
 		if (map == null) {
 			canvas.drawText(noMapHintText == null ? ("No Map was found in folder " 
 					+ MapManager.getInstance().getMapsDir()) : noMapHintText,

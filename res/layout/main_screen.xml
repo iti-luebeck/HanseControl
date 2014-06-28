@@ -4,11 +4,45 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
 
-<!--     <fragment -->
-<!--         android:id="@+id/mainscreenfragment" -->
-<!--         android:layout_width="match_parent" -->
-<!--         android:layout_height="match_parent" -->
-<!--         class="de.uniluebeck.iti.hanse.hansecontrol.MainScreenFragment" -->
-<!--         tools:layout="@layout/fragment_main_screen" /> -->
+    <!-- <fragment -->
+    <!-- android:id="@+id/mainscreenfragment" -->
+    <!-- android:layout_width="match_parent" -->
+    <!-- android:layout_height="match_parent" -->
+    <!-- class="de.uniluebeck.iti.hanse.hansecontrol.MainScreenFragment" -->
+    <!-- tools:layout="@layout/fragment_main_screen" /> -->
 
+    <RelativeLayout
+        android:id="@+id/tabcontainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignTop="@+id/treeListDragLayer" />
+
+    <de.uniluebeck.iti.hanse.hansecontrol.gui.TreeListDragLayer
+        android:id="@+id/treeListDragLayer"
+        android:layout_width="match_parent"
+        android:layout_height="fill_parent"
+        android:layout_alignParentBottom="true"
+        android:layout_below="@+id/tabbar"
+        android:layout_centerHorizontal="true" >
+
+        <de.uniluebeck.iti.hanse.hansecontrol.gui.Sidebar
+            android:id="@+id/sidebarLeft"
+            android:layout_width="300dip"
+            android:layout_height="match_parent"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true" >
+        </de.uniluebeck.iti.hanse.hansecontrol.gui.Sidebar>
+    </de.uniluebeck.iti.hanse.hansecontrol.gui.TreeListDragLayer>
+
+    <de.uniluebeck.iti.hanse.hansecontrol.gui.Tabbar
+        android:id="@+id/tabbar"
+        android:layout_width="match_parent"
+        android:layout_height="50dip"
+        android:layout_alignParentTop="true" >
+    </de.uniluebeck.iti.hanse.hansecontrol.gui.Tabbar>
+
+    <de.uniluebeck.iti.hanse.hansecontrol.gui.ChooseWidgetClassLayer
+        android:id="@+id/chooseWidgetTypeLayer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 </RelativeLayout>

@@ -8,7 +8,7 @@ import java.util.List;
 
 import de.uniluebeck.iti.hanse.hansecontrol.BitmapManager;
 import de.uniluebeck.iti.hanse.hansecontrol.MainScreen;
-import de.uniluebeck.iti.hanse.hansecontrol.MainScreenFragment;
+//import de.uniluebeck.iti.hanse.hansecontrol.MainScreenFragment;
 import de.uniluebeck.iti.hanse.hansecontrol.MapManager;
 import de.uniluebeck.iti.hanse.hansecontrol.MapSurface;
 import de.uniluebeck.iti.hanse.hansecontrol.MapManager.Map;
@@ -58,8 +58,9 @@ public class MapEditor extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map_editor);
-        map = MapManager.getInstance().getMapFromConfigPath(
-        		getIntent().getStringExtra(MainScreenFragment.MAP_TO_EDIT_MESSAGE));
+        //FIXME map
+//        map = MapManager.getInstance().getMapFromConfigPath(
+//        		getIntent().getStringExtra(MainScreenFragment.MAP_TO_EDIT_MESSAGE));
         if (map == null) {
         	map = new Map();
         }

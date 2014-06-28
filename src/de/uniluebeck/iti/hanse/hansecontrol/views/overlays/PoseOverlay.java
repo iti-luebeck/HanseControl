@@ -20,6 +20,7 @@ import de.uniluebeck.iti.hanse.hansecontrol.BitmapManager;
 import de.uniluebeck.iti.hanse.hansecontrol.MainScreen;
 import de.uniluebeck.iti.hanse.hansecontrol.MapSurface;
 import de.uniluebeck.iti.hanse.hansecontrol.R;
+import de.uniluebeck.iti.hanse.hansecontrol.RosMessageDataExtractorTest;
 import de.uniluebeck.iti.hanse.hansecontrol.OverlayRegistry.OverlayType;
 import de.uniluebeck.iti.hanse.hansecontrol.RosRobot;
 import de.uniluebeck.iti.hanse.hansecontrol.views.AbstractOverlay;
@@ -88,8 +89,8 @@ public class PoseOverlay extends AbstractOverlay implements MessageListener<geom
 	
 	@Override
 	public void subscribe(ConnectedNode node) {
-		subscriber = node.newSubscriber(topic, geometry_msgs.PoseStamped._TYPE);
-		subscriber.addMessageListener(this, MainScreen.MESSAGE_QUEUE);
+//		subscriber = node.newSubscriber(topic, geometry_msgs.PoseStamped._TYPE);
+//		subscriber.addMessageListener(this, MainScreen.MESSAGE_QUEUE);
 	}
 
 	@Override
@@ -108,9 +109,20 @@ public class PoseOverlay extends AbstractOverlay implements MessageListener<geom
 	public String getRosTopic() {
 		return topic;
 	}
-
+	
+	boolean b = true;
 	@Override
 	public void onNewMessage(PoseStamped pose) {
+		
+		try {
+			if (b) {
+				b = false;
+				RosMessageDataExtractorTest.testPose(pose);
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			Log.e("reflectionTest", e.getMessage());
+		}
 		// TODO Auto-generated method stub
 //		Log.d("poseoverlay", "Pose reveiced: x:" + pose.getPose().getPosition().getX() + " y:" + pose.getPose().getPosition().getY());
 		lastPos = pose.getPose().getPosition();

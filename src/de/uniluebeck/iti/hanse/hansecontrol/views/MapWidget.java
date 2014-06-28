@@ -10,8 +10,8 @@ import com.google.common.base.Preconditions;
 
 import de.uniluebeck.iti.hanse.hansecontrol.BitmapManager;
 import de.uniluebeck.iti.hanse.hansecontrol.MainScreen;
-import de.uniluebeck.iti.hanse.hansecontrol.MainScreenFragment;
-import de.uniluebeck.iti.hanse.hansecontrol.MapWidgetRegistry;
+//import de.uniluebeck.iti.hanse.hansecontrol.MainScreenFragment;
+//import de.uniluebeck.iti.hanse.hansecontrol.MapWidgetRegistry;
 import de.uniluebeck.iti.hanse.hansecontrol.R;
 import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.DragLayer;
 import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.WidgetLayer;
@@ -56,18 +56,18 @@ import android.widget.RemoteViews.ActionException;
  */
 public class MapWidget extends BasicView {
 	
-	public static final int ICON_MODE = 0;
-	public static final int FULLSIZE_MODE = 1;
-	
-	private int currentMode = ICON_MODE;
+//	public static final int ICON_MODE = 0;
+//	public static final int FULLSIZE_MODE = 1;
+//	
+//	private int currentMode = ICON_MODE;
 	
 	public static Paint imagePaint = new Paint();
 	
 	Float mX, mY; //last position while dragging
 	
 	DragLayer dragLayer = null;
-	MapWidgetRegistry mapWidgetRegistry;
-	MainScreenFragment mainScreenFragment;
+//	MapWidgetRegistry mapWidgetRegistry;
+//	MainScreenFragment mainScreenFragment;
 	
 	private int widgetID = -1;
 	public static final String WIDGET_PREFIX = "MapWidget-";
@@ -82,7 +82,7 @@ public class MapWidget extends BasicView {
 	
 	ControlsListener controlsListener = null;
 	
-	
+	WidgetLayer widgetLayer;
 	
 	//allow ratio change??
 	//public float zoom = 1; //TODO implement
@@ -109,7 +109,7 @@ public class MapWidget extends BasicView {
 	private boolean controlsVisible = false;
 	private ScheduledFuture autoHideFuture = null;
 	
-	RemoveWidgetButton removeWidgetButton;
+//	RemoveWidgetButton removeWidgetButton;
 	boolean removeWidgetButtonVisible = false;	
 	
 	
@@ -117,11 +117,10 @@ public class MapWidget extends BasicView {
 //	Bitmap bitmap_closeButton, bitmap_resizer;
 	
 	public MapWidget(int defaultWidth, int defaultHeight, int widgetID, Context context, 
-			DragLayer dragLayer, MapWidgetRegistry mapWidgetRegistry, 
-			MainScreenFragment mainScreenFragment) {
+			DragLayer dragLayer) {
 		super(context);
-		this.mapWidgetRegistry = mapWidgetRegistry;
-		this.mainScreenFragment = mainScreenFragment;
+//		this.mapWidgetRegistry = mapWidgetRegistry;
+//		this.mainScreenFragment = mainScreenFragment;
 		this.widgetID = widgetID;
 		this.defaultWidth = defaultWidth;
 		this.defaultHeight = defaultHeight;
@@ -131,26 +130,26 @@ public class MapWidget extends BasicView {
 	}
 	
 	private void init() {
-		if (DEBUG_MODE && !(this instanceof RosMapWidget)) {
-			View view = new View(getContext()) {
-				@Override
-				protected void onDraw(Canvas canvas) {
-					super.onDraw(canvas);
-					if (getMode() == ICON_MODE) {
-						paint.setTextSize(20);
-						paint.setStrokeWidth(1);
-						paint.setStyle(Paint.Style.FILL);
-						canvas.drawText("ICON", 30, 25, paint);
-					}
-				}
-			};
-			addView(view);	
-		}
+//		if (DEBUG_MODE && !(this instanceof RosMapWidget)) {
+//			View view = new View(getContext()) {
+//				@Override
+//				protected void onDraw(Canvas canvas) {
+//					super.onDraw(canvas);
+//					if (getMode() == ICON_MODE) {
+//						paint.setTextSize(20);
+//						paint.setStrokeWidth(1);
+//						paint.setStyle(Paint.Style.FILL);
+//						canvas.drawText("ICON", 30, 25, paint);
+//					}
+//				}
+//			};
+//			addView(view);	
+//		}
 		imagePaint.setAntiAlias(true);
 		
 		initCloseButton();
 		initCornerResizer();
-		initRemoveWidgetButton();
+//		initRemoveWidgetButton();
 		initShowContextMenuButton();
 		
 //		bitmap_closeButton = BitmapFactory.decodeResource(getResources(), R.drawable.trashbin);
@@ -179,16 +178,16 @@ public class MapWidget extends BasicView {
 		showContextMenuButton.setVisibility(View.INVISIBLE);
 	}
 	
-	private void initRemoveWidgetButton() {
-		removeWidgetButton = new RemoveWidgetButton(getContext(), this);
-		addView(removeWidgetButton);
-		int removeWidgetButtonWidth = (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 45, getResources().getDisplayMetrics());
-		RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(removeWidgetButtonWidth, removeWidgetButtonWidth);
-		params.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-		params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
-		removeWidgetButton.setLayoutParams(params);
-		removeWidgetButton.setVisibility(View.INVISIBLE);
-	}
+//	private void initRemoveWidgetButton() {
+//		removeWidgetButton = new RemoveWidgetButton(getContext(), this);
+//		addView(removeWidgetButton);
+//		int removeWidgetButtonWidth = (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 45, getResources().getDisplayMetrics());
+//		RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(removeWidgetButtonWidth, removeWidgetButtonWidth);
+//		params.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+//		params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+//		removeWidgetButton.setLayoutParams(params);
+//		removeWidgetButton.setVisibility(View.INVISIBLE);
+//	}
 	
 	private void initCloseButton() {
 		closeButton = new CloseButton(getContext(), this);
@@ -226,9 +225,9 @@ public class MapWidget extends BasicView {
 		cornerResizerBottomRight.setVisibility(View.INVISIBLE);
 	}
 	
-	public MainScreenFragment getMainScreenFragment() {
-		return mainScreenFragment;
-	}
+//	public MainScreenFragment getMainScreenFragment() {
+//		return mainScreenFragment;
+//	}
 	
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
@@ -245,50 +244,50 @@ public class MapWidget extends BasicView {
 		}
 		
 		//single tap on "empty space" in MapWidget in Fullsize-Mode
-		if (getMode() == FULLSIZE_MODE && event.getActionMasked() == MotionEvent.ACTION_UP) {
+//		if (getMode() == FULLSIZE_MODE && event.getActionMasked() == MotionEvent.ACTION_UP) {
 			//play animation to make closebutton and cornerresizers visible
 			if (controlsVisible) {
 				hideControls();
 			} else {
 				showControls(event);
 			}
-		}
+//		}
 		
 		//single tap on "empty space" in MapWidget in Icon-Mode
-		if (getMode() == ICON_MODE && event.getActionMasked() == MotionEvent.ACTION_UP) {
-			if (removeWidgetButton.getVisibility() == View.VISIBLE) {
-				removeWidgetButton.setAlpha(1);
-				fadeObjects(500, 0, removeWidgetButton).addListener(new AnimatorListenerAdapter() {
-					@Override
-					public void onAnimationEnd(Animator animation) {
-						removeWidgetButton.setVisibility(View.INVISIBLE);
-					}
-				});
-			} else {
-				removeWidgetButton.setAlpha(0);
-				fadeObjects(500, 1, removeWidgetButton);
-				removeWidgetButton.setVisibility(View.VISIBLE);
-				MainScreen.getExecutorService().schedule(new Runnable() {
-					
-					@Override
-					public void run() {
-						removeWidgetButton.post(new Runnable() {
-							
-							@Override
-							public void run() {
-								fadeObjects(500, 0, removeWidgetButton).addListener(new AnimatorListenerAdapter() {
-									@Override
-									public void onAnimationEnd(Animator animation) {
-										removeWidgetButton.setVisibility(View.INVISIBLE);
-										removeWidgetButtonVisible = false;																		
-									}
-								});
-							}
-						});
-					}
-				}, 2000, TimeUnit.MILLISECONDS);
-			}
-		}
+//		if (getMode() == ICON_MODE && event.getActionMasked() == MotionEvent.ACTION_UP) {
+//			if (removeWidgetButton.getVisibility() == View.VISIBLE) {
+//				removeWidgetButton.setAlpha(1);
+//				fadeObjects(500, 0, removeWidgetButton).addListener(new AnimatorListenerAdapter() {
+//					@Override
+//					public void onAnimationEnd(Animator animation) {
+//						removeWidgetButton.setVisibility(View.INVISIBLE);
+//					}
+//				});
+//			} else {
+//				removeWidgetButton.setAlpha(0);
+//				fadeObjects(500, 1, removeWidgetButton);
+//				removeWidgetButton.setVisibility(View.VISIBLE);
+//				MainScreen.getExecutorService().schedule(new Runnable() {
+//					
+//					@Override
+//					public void run() {
+//						removeWidgetButton.post(new Runnable() {
+//							
+//							@Override
+//							public void run() {
+//								fadeObjects(500, 0, removeWidgetButton).addListener(new AnimatorListenerAdapter() {
+//									@Override
+//									public void onAnimationEnd(Animator animation) {
+//										removeWidgetButton.setVisibility(View.INVISIBLE);
+//										removeWidgetButtonVisible = false;																		
+//									}
+//								});
+//							}
+//						});
+//					}
+//				}, 2000, TimeUnit.MILLISECONDS);
+//			}
+//		}
 		
 		int minDragDistance = 5;
 		
@@ -517,84 +516,88 @@ public class MapWidget extends BasicView {
 		this.dragLayer = dragLayer;
 	}
 	
-	public void setMode(int mode) {
-		currentMode = mode;
-		updateMode();
-	}
+//	public void setMode(int mode) {
+//		currentMode = mode;
+//		updateMode();
+//	}
 	
-	public int getMode() {
-		return currentMode;
-	}
+//	public int getMode() {
+//		return currentMode;
+//	}
 
 	public int getWidgetID() {
 		return widgetID;
 	}
 	
-	private void updateMode() {
-		switch(currentMode) {
-			case ICON_MODE:
-				float pixSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 85, getResources().getDisplayMetrics());
-				float pixMargin = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 5, getResources().getDisplayMetrics());
-				
-				//TODO get size from constant in MainScreen!!
-				LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) getLayoutParams();
-				params.width = (int) pixSize;
-				params.height = (int) pixSize;
-				params.setMargins((int)pixMargin, 0, (int)pixMargin, (int)pixMargin);
-				setLayoutParams(params);
-				break;
-			case FULLSIZE_MODE:
-				//TODO get size from upper derivation
-				if (getLayoutParams() instanceof RelativeLayout.LayoutParams) {
-					RelativeLayout.LayoutParams params2 = (RelativeLayout.LayoutParams) getLayoutParams();
-	//				params2.width = 200;
-	//				params2.height = 200;
-					params2.width = defaultWidth;
-					params2.height = defaultHeight;
-					
-					setLayoutParams(params2);
-				}
-				break;
-		}
+	public void setWidgetLayer(WidgetLayer widgetLayer) {
+		this.widgetLayer = widgetLayer;
 	}
+	
+//	private void updateMode() {
+////		switch(currentMode) {
+////			case ICON_MODE:
+////				float pixSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 85, getResources().getDisplayMetrics());
+////				float pixMargin = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 5, getResources().getDisplayMetrics());
+////				
+////				//TODO get size from constant in MainScreen!!
+////				LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) getLayoutParams();
+////				params.width = (int) pixSize;
+////				params.height = (int) pixSize;
+////				params.setMargins((int)pixMargin, 0, (int)pixMargin, (int)pixMargin);
+////				setLayoutParams(params);
+////				break;
+////			case FULLSIZE_MODE:
+//				//TODO get size from upper derivation
+////				if (getLayoutParams() instanceof RelativeLayout.LayoutParams) {
+//					RelativeLayout.LayoutParams params2 = (RelativeLayout.LayoutParams) getLayoutParams();
+//	//				params2.width = 200;
+//	//				params2.height = 200;
+//					params2.width = defaultWidth;
+//					params2.height = defaultHeight;
+//					
+//					setLayoutParams(params2);
+////				}
+////				break;
+////		}
+//	}
 	
 	
 	public void savePrefs(String tabPrefix, SharedPreferences.Editor ed) {
-		String id = null;
-		if (this instanceof RosMapWidget) {
-			RosMapWidget rw = (RosMapWidget) this;
-			id = tabPrefix + WIDGET_PREFIX + rw.getRosTopic() + rw.getWidgetType().name();
-		} else {
-			id = tabPrefix + WIDGET_PREFIX + widgetID;
-		}
+//		String id = null;
+//		if (this instanceof RosMapWidget) {
+//			RosMapWidget rw = (RosMapWidget) this;
+//			id = tabPrefix + WIDGET_PREFIX + rw.getRosTopic() + rw.getWidgetType().name();
+//		} else {
+//			id = tabPrefix + WIDGET_PREFIX + widgetID;
+//		}
 		
-		ed.putInt(id+"-currentMode", currentMode);
-		if (getMode() == FULLSIZE_MODE) {
-			RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) getLayoutParams();
-			ed.putInt(id+"-params.leftMargin", params.leftMargin);
-			ed.putInt(id+"-params.topMargin", params.topMargin);
-			ed.putInt(id+"-params.width", params.width);
-			ed.putInt(id+"-params.height", params.height);
-		}
+//		ed.putInt(id+"-currentMode", currentMode);
+//		if (getMode() == FULLSIZE_MODE) {
+//			RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) getLayoutParams();
+//			ed.putInt(id+"-params.leftMargin", params.leftMargin);
+//			ed.putInt(id+"-params.topMargin", params.topMargin);
+//			ed.putInt(id+"-params.width", params.width);
+//			ed.putInt(id+"-params.height", params.height);
+//		}
 	}
 	
 	public void loadPrefs(String tabPrefix, SharedPreferences prefs) {
-		String id = null;
-		if (this instanceof RosMapWidget) {
-			RosMapWidget rw = (RosMapWidget) this;
-			id = tabPrefix + WIDGET_PREFIX + rw.getRosTopic() + rw.getWidgetType().name();
-		} else {
-			id = tabPrefix + WIDGET_PREFIX + widgetID;
-		}
-		
-		setMode(prefs.getInt(id+"-currentMode", ICON_MODE));
-		if (getMode() == FULLSIZE_MODE) {
-			RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) getLayoutParams();
-			params.leftMargin = prefs.getInt(id+"-params.leftMargin", -1);
-			params.topMargin = prefs.getInt(id+"-params.topMargin", -1);
-			params.width = prefs.getInt(id+"-params.width", defaultWidth);
-			params.height = prefs.getInt(id+"-params.height", defaultHeight);
-		}
+//		String id = null;
+//		if (this instanceof RosMapWidget) {
+//			RosMapWidget rw = (RosMapWidget) this;
+//			id = tabPrefix + WIDGET_PREFIX + rw.getRosTopic() + rw.getWidgetType().name();
+//		} else {
+//			id = tabPrefix + WIDGET_PREFIX + widgetID;
+//		}
+//		
+//		setMode(prefs.getInt(id+"-currentMode", ICON_MODE));
+//		if (getMode() == FULLSIZE_MODE) {
+//			RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) getLayoutParams();
+//			params.leftMargin = prefs.getInt(id+"-params.leftMargin", -1);
+//			params.topMargin = prefs.getInt(id+"-params.topMargin", -1);
+//			params.width = prefs.getInt(id+"-params.width", defaultWidth);
+//			params.height = prefs.getInt(id+"-params.height", defaultHeight);
+//		}
 	}
 	
 	public Float getRatio() {
@@ -656,7 +659,7 @@ public class MapWidget extends BasicView {
 		
 		@Override
 		protected void onDraw(Canvas canvas) {
-			if (getMode() == FULLSIZE_MODE) {
+//			if (getMode() == FULLSIZE_MODE) {
 				super.onDraw(canvas);
 //				canvas.drawLine(0, 0, getWidth() - 1, getHeight() - 1, paint);
 //				canvas.drawLine(0, getHeight() - 1, getWidth() - 1, 0, paint);
@@ -665,7 +668,7 @@ public class MapWidget extends BasicView {
 //				canvas.drawBitmap(bitmap_closeButton, 0, 0, null);
 				canvas.drawBitmap(BitmapManager.getInstance().getBitmap(getResources(), R.drawable.widget_remove),
 						null, new RectF(0, 0, getWidth(), getHeight()), null);
-			}
+//			}
 		}
 		
 		@Override
@@ -673,16 +676,23 @@ public class MapWidget extends BasicView {
 			if (!controlsVisible) {
 				return false;
 			}
-			if (getMode() == FULLSIZE_MODE) {
+//			if (getMode() == FULLSIZE_MODE) {
 				//TODO remove test
 //				parentWidget.getMainScreenFragment().getActivity().openContextMenu(this);
 				//TODO uncomment
 				hideControls();
-				WidgetLayer widgetLayer = (WidgetLayer) parentWidget.getParent();
-				widgetLayer.removeWidget(parentWidget);
+				widgetLayer.removeView(MapWidget.this);
+				widgetLayer.invalidate();
+				//TODO do this in overriden abstract method
+				if (MapWidget.this instanceof RosMapWidget) {
+					((RosMapWidget)MapWidget.this).getDataConnection().shutdown();
+				}
+				
+//				WidgetLayer widgetLayer = (WidgetLayer) parentWidget.getParent();
+//				widgetLayer.removeWidget(parentWidget);
 				return true;
-			}
-			return false;
+//			}
+//			return false;
 		}
 //		private void layoutControls
 //		
@@ -742,7 +752,7 @@ public class MapWidget extends BasicView {
 					break;
 			}			
 			//dragging on WidgetLayer
-			if (getMode() == FULLSIZE_MODE && event.getActionMasked() == MotionEvent.ACTION_MOVE && dragLayer != null) {
+			if (event.getActionMasked() == MotionEvent.ACTION_MOVE && dragLayer != null) {
 				//request touch event interception from dragLayer
 				dragLayer.startWidgetResizing(this, mX, mY);
 			}
@@ -754,49 +764,49 @@ public class MapWidget extends BasicView {
 		}
 	}
 	
-	public class RemoveWidgetButton extends AnimatedView {
-		Paint paint;
-		MapWidget parentWidget;
-		
-		public RemoveWidgetButton(Context context, MapWidget parentWidget) {
-			super(context);
-			paint = new Paint();
-			this.parentWidget = parentWidget;
-		}
-		
-		@Override
-		protected void onDraw(Canvas canvas) {
-			if (getMode() == ICON_MODE) {
-				super.onDraw(canvas);
-//				canvas.drawLine(0, 0, getWidth() - 1, getHeight() - 1, paint);
-//				canvas.drawLine(0, getHeight() - 1, getWidth() - 1, 0, paint);
-				
-				//TODO consider to use a async task instead!
-//				canvas.drawBitmap(bitmap_closeButton, 0, 0, null);
-				canvas.drawBitmap(BitmapManager.getInstance().getBitmap(getResources(), R.drawable.widget_remove), null, new RectF(0, 0, getWidth(), getHeight()), null);
-			}
-		}
-		
-		@Override
-		public boolean onTouchEvent(MotionEvent event) {
-			if (getVisibility() != View.VISIBLE || getMode() != ICON_MODE) {
-				return false;
-			}
-			LinearLayout widgetLayout = (LinearLayout) parentWidget.getParent();
-			widgetLayout.removeView(parentWidget);
-			mapWidgetRegistry.getAllWidgets().remove(parentWidget);
-			return false;
-		}
-		
-//		private void layoutControls
+//	public class RemoveWidgetButton extends AnimatedView {
+//		Paint paint;
+//		MapWidget parentWidget;
+//		
+//		public RemoveWidgetButton(Context context, MapWidget parentWidget) {
+//			super(context);
+//			paint = new Paint();
+//			this.parentWidget = parentWidget;
+//		}
 //		
 //		@Override
-//		protected void onLayout(boolean changed, int left, int top, int right,
-//				int bottom) {
-//			super.onLayout(changed, left, top, right, bottom);
-//			
+//		protected void onDraw(Canvas canvas) {
+//			if (getMode() == ICON_MODE) {
+//				super.onDraw(canvas);
+////				canvas.drawLine(0, 0, getWidth() - 1, getHeight() - 1, paint);
+////				canvas.drawLine(0, getHeight() - 1, getWidth() - 1, 0, paint);
+//				
+//				//TODO consider to use a async task instead!
+////				canvas.drawBitmap(bitmap_closeButton, 0, 0, null);
+//				canvas.drawBitmap(BitmapManager.getInstance().getBitmap(getResources(), R.drawable.widget_remove), null, new RectF(0, 0, getWidth(), getHeight()), null);
+//			}
 //		}
-	}
+//		
+//		@Override
+//		public boolean onTouchEvent(MotionEvent event) {
+//			if (getVisibility() != View.VISIBLE || getMode() != ICON_MODE) {
+//				return false;
+//			}
+//			LinearLayout widgetLayout = (LinearLayout) parentWidget.getParent();
+//			widgetLayout.removeView(parentWidget);
+//			mapWidgetRegistry.getAllWidgets().remove(parentWidget);
+//			return false;
+//		}
+//		
+////		private void layoutControls
+////		
+////		@Override
+////		protected void onLayout(boolean changed, int left, int top, int right,
+////				int bottom) {
+////			super.onLayout(changed, left, top, right, bottom);
+////			
+////		}
+//	}
 	
 	public class ShowContextMenuButton extends AnimatedView {
 		Paint paint;
@@ -806,12 +816,12 @@ public class MapWidget extends BasicView {
 			super(context);
 			paint = new Paint();
 			this.parentWidget = parentWidget;
-			parentWidget.getMainScreenFragment().getActivity().registerForContextMenu(this);
+//			parentWidget.getMainScreenFragment().getActivity().registerForContextMenu(this);
 		}
 		
 		@Override
 		protected void onDraw(Canvas canvas) {
-			if (getMode() == FULLSIZE_MODE) {
+//			if (getMode() == FULLSIZE_MODE) {
 				super.onDraw(canvas);
 //				canvas.drawLine(0, 0, getWidth() - 1, getHeight() - 1, paint);
 //				canvas.drawLine(0, getHeight() - 1, getWidth() - 1, 0, paint);
@@ -820,7 +830,7 @@ public class MapWidget extends BasicView {
 //				canvas.drawBitmap(bitmap_closeButton, 0, 0, null);
 				canvas.drawBitmap(BitmapManager.getInstance().getBitmap(getResources(), R.drawable.widget_settings), 
 						null, new RectF(0, 0, getWidth(), getHeight()), null);
-			}
+//			}
 		}
 		
 		@Override
@@ -828,8 +838,8 @@ public class MapWidget extends BasicView {
 			if (!controlsVisible) {
 				return false;
 			}
-			if (getMode() == FULLSIZE_MODE && event.getActionMasked() == MotionEvent.ACTION_UP) {
-				parentWidget.getMainScreenFragment().getActivity().openContextMenu(this);
+			if (event.getActionMasked() == MotionEvent.ACTION_UP) {
+//				parentWidget.getMainScreenFragment().getActivity().openContextMenu(this);
 			}
 			return true;
 		}
@@ -840,9 +850,9 @@ public class MapWidget extends BasicView {
 		
 		public void performAction(MenuItem item, FragmentManager fragmentManager) {
 			if (item.getItemId() == R.id.close_other) {
-				parentWidget.getMainScreenFragment().closeAllOtherMapWidgets(parentWidget);
+//				parentWidget.getMainScreenFragment().closeAllOtherMapWidgets(parentWidget);
 			} else if (item.getItemId() == R.id.move_to_new_tab && parentWidget instanceof RosMapWidget) {
-				parentWidget.getMainScreenFragment().closeMapWidgetAndMoveToNewTab((RosMapWidget)parentWidget);
+//				parentWidget.getMainScreenFragment().closeMapWidgetAndMoveToNewTab((RosMapWidget)parentWidget);
 			} else if (item == configDialogItem) {
 				showConfigDialog(fragmentManager);
 			}

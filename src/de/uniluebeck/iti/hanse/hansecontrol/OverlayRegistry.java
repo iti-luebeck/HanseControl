@@ -110,7 +110,7 @@ public class OverlayRegistry {
 		}
     	return overlay;
     }
-    
+                    
     private HashMap<String, Set<String>> readOverlaysFromFile(Properties prop) {
 		HashMap<String, Set<String>> res = new HashMap<String, Set<String>>();
 		for (Object o : prop.keySet()) {

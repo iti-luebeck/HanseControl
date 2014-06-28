@@ -34,9 +34,9 @@ public class TcpTestServerBehaviours implements IBehaviours {
 			server.start();			
 		}
 		
-		behaviours.add("Behaviour1");
-		behaviours.add("Behaviour2");
-		behaviours.add("Behaviour3");
+		behaviours.add("Wall Follow");
+		behaviours.add("Pipe Follow");
+		behaviours.add("Circle");
 	}
 	
 	@Override

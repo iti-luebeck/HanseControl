@@ -17,7 +17,7 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:largeHeap="true"
-        android:theme="@style/AppTheme" >
+        android:theme="@android:style/Theme.Holo.Light.NoActionBar.Fullscreen">
         <activity android:name="org.ros.android.MasterChooser" />
         <activity android:name="group.pals.android.lib.ui.filechooser.FileChooserActivity" />
 
@@ -26,6 +26,7 @@
         <activity
             android:name="de.uniluebeck.iti.hanse.hansecontrol.MainScreen"
             android:label="@string/title_activity_main_screen"
+            android:theme="@android:style/Theme.Holo.Light.NoActionBar"
             android:screenOrientation="landscape" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -34,7 +35,8 @@
             </intent-filter>
         </activity>
 
-        <service android:name="org.ros.android.NodeMainExecutorService" />
+<!--         <service android:name="org.ros.android.NodeMainExecutorService" /> -->
+        <service android:name="de.uniluebeck.iti.hanse.hansecontrol.rosbackend.RosService" />
 
         <activity
             android:name="de.uniluebeck.iti.hanse.hansecontrol.mapeditor.MapEditor"

@@ -2,11 +2,16 @@ package de.uniluebeck.iti.hanse.hansecontrol;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
@@ -93,7 +98,7 @@ public class MapManager {
 		}
 	}
 	
-	public static class Map {
+	public static class Map implements Serializable {
 		//TODO configuration data to locate pose on map
 		String name;
 		String configPath;
@@ -256,6 +261,21 @@ public class MapManager {
 		public synchronized void setY2_OnImage(int y2_OnImage) {
 			this.y2_OnImage = y2_OnImage;
 		}
+		
+//		//FIXME strange bug work around: using the same Map object on multiple MapLayers causes errors
+//		public Map clone() {
+//			try {
+//				ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//				ObjectOutputStream oos = new ObjectOutputStream(baos);
+//				oos.writeObject(this);
+//
+//				ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+//				ObjectInputStream ois = new ObjectInputStream(bais);
+//				return (Map) ois.readObject();
+//			} catch (Exception e) {
+//				return null;
+//			}
+//		}
 	}
 
 	public Map getEmptyMap() {

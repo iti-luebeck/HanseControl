@@ -84,8 +84,8 @@ public class WallDetectionOverlay extends AbstractOverlay implements MessageList
 	
 	@Override
 	public void subscribe(ConnectedNode node) {
-		subscriber = node.newSubscriber(topic, hanse_msgs.WallDetection._TYPE);
-		subscriber.addMessageListener(this, MainScreen.MESSAGE_QUEUE);
+//		subscriber = node.newSubscriber(topic, hanse_msgs.WallDetection._TYPE);
+//		subscriber.addMessageListener(this, MainScreen.MESSAGE_QUEUE);
 	}
 	
 	private void removeOldValues() {

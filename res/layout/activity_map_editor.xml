@@ -72,7 +72,7 @@
 		    android:background="@android:color/darker_gray"/>
             
             <TextView
-                android:id="@+id/textView2"
+                android:id="@+id/errorTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentLeft="true"
@@ -87,7 +87,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="35dp"
                 android:layout_alignParentLeft="true"
-                android:layout_below="@+id/textView2"
+                android:layout_below="@+id/errorTextView"
                 android:text="Choose"
                 android:textSize="15dp"
                 android:layout_marginBottom="10dp" />

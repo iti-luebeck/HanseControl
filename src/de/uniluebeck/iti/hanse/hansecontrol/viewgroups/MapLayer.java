@@ -5,7 +5,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import de.uniluebeck.iti.hanse.hansecontrol.MainScreen;
-import de.uniluebeck.iti.hanse.hansecontrol.MainScreenFragment;
+//import de.uniluebeck.iti.hanse.hansecontrol.MainScreenFragment;
 import de.uniluebeck.iti.hanse.hansecontrol.MapManager;
 import de.uniluebeck.iti.hanse.hansecontrol.MapSurface;
 import de.uniluebeck.iti.hanse.hansecontrol.MapManager.Map;
@@ -33,6 +33,8 @@ import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
+
+import static de.uniluebeck.iti.hanse.hansecontrol.gui.GuiTools.*;
 
 /**
  * On this surface view all contents of the map will be drawn.
@@ -101,6 +103,13 @@ public class MapLayer extends SurfaceView implements SurfaceHolder.Callback {
 					onLongPressListener.onLongPress(e);
 				}
 			}
+			
+			@Override
+			public boolean onDoubleTap(MotionEvent e) {
+				mapSurface.zoom(e.getX(), e.getY(), 1.5f);
+				scheduleSurfaceDrawing();
+				return true;
+			}
 		});
 		
 		scaleGestureDetector = new ScaleGestureDetector(getContext(), new ScaleGestureDetector.SimpleOnScaleGestureListener() {
@@ -143,6 +152,9 @@ public class MapLayer extends SurfaceView implements SurfaceHolder.Callback {
 						Canvas canvas = getHolder().lockCanvas();
 	//					canvas.drawBitmap(testimage, null, new Rect(0, 0, 300, 300), null);
 	//					mapSurface.scaleToViewport(getWidth(), getHeight());
+						if (canvas == null) {
+							Log.e("Errfind", "canvas is null!");
+						}
 						canvas.drawRect(new Rect(0,0,getWidth(), getHeight()), surfaceBackgroundPaint);
 						mapSurface.draw(canvas);
 	//										canvas.drawLine(0, 0, 300, 300, paint);
@@ -178,9 +190,10 @@ public class MapLayer extends SurfaceView implements SurfaceHolder.Callback {
 	public void surfaceCreated(SurfaceHolder holder) {
 		// TODO Auto-generated method stub
 		
-//		Log.d("errfind", "MapLayer.surfaceCreated()" + getWidth());
+		Log.e("errfind", "MapLayer.surfaceCreated()" + getWidth() + "ID: " + this.hashCode());
 //		MapSurface mapSurface = new MapSurface(testimage);		
 		if (!mapPositionRestoredFlag) {
+			
 			mapSurface.scaleToViewport(getWidth(), getHeight());
 		}
 		scheduleSurfaceDrawing();
@@ -246,13 +259,17 @@ public class MapLayer extends SurfaceView implements SurfaceHolder.Callback {
 	}
 	
 	public void setMap(final Map map) {
-		MainScreen.getExecutorService().execute(new Runnable() {
-			
-			@Override
+		addLayoutListener(this, new Runnable() {
 			public void run() {
-				mapSurface.setMap(map);
-				mapSurface.scaleToViewport(getWidth(), getHeight());
-				scheduleSurfaceDrawing();
+				MainScreen.getExecutorService().execute(new Runnable() {
+					
+					@Override
+					public void run() {
+						mapSurface.setMap(map);
+						mapSurface.scaleToViewport(getWidth(), getHeight());
+						scheduleSurfaceDrawing();
+					}
+				});				
 			}
 		});
 	}

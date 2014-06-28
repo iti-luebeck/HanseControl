@@ -45,7 +45,7 @@ import de.uniluebeck.iti.hanse.hansecontrol.MapSurface;
 import de.uniluebeck.iti.hanse.hansecontrol.OverlayRegistry;
 import de.uniluebeck.iti.hanse.hansecontrol.R;
 import de.uniluebeck.iti.hanse.hansecontrol.RosRobot;
-import de.uniluebeck.iti.hanse.hansecontrol.MainScreenFragment.AddOverlayDialog;
+//import de.uniluebeck.iti.hanse.hansecontrol.MainScreenFragment.AddOverlayDialog;
 import de.uniluebeck.iti.hanse.hansecontrol.OverlayRegistry.OverlayType;
 import de.uniluebeck.iti.hanse.hansecontrol.TcpTestServerBehaviours;
 import de.uniluebeck.iti.hanse.hansecontrol.mapeditor.MapEditorMarkerLayer.MarkerPositionListener;

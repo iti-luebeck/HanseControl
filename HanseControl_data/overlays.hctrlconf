@@ -1,11 +1,3 @@
-#This file contains all widgets and overlays that currently exist.
-#You can change this file to add new widgets/overlays or do this within the application.
-
-#Topic1 = WIDGET_TYPE1, OVERLAY_TYPE1, WIDGET_TYPE2, ...
-#Topic2 = WIDGET_TYPE2, OVERLAY_TYPE2, WIDGET_TYPE3, ...
-
-#Currently available widgets and overlays are:
-#ROS_TEXT_WIDGET - a widget to display plain text
-
-chatter = ROS_TEXT_WIDGET
-/hanse/langer/topic/name = ROS_TEXT_WIDGET
+#Mon Mar 03 15:54:28 MEZ 2014
+/hanse/sonar/scan/walls=WALL_DETECTION_OVERLAY
+/hanse/position/estimate=POSE_OVERLAY

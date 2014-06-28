@@ -51,16 +51,19 @@ import android.widget.RelativeLayout.LayoutParams;
 
 import de.uniluebeck.iti.hanse.hansecontrol.BitmapManager;
 import de.uniluebeck.iti.hanse.hansecontrol.MainScreen;
-import de.uniluebeck.iti.hanse.hansecontrol.MainScreenFragment;
-import de.uniluebeck.iti.hanse.hansecontrol.MapWidgetRegistry;
+import de.uniluebeck.iti.hanse.hansecontrol.MainScreen.TopicTree;
+//import de.uniluebeck.iti.hanse.hansecontrol.MainScreenFragment;
+//import de.uniluebeck.iti.hanse.hansecontrol.MapWidgetRegistry;
 import de.uniluebeck.iti.hanse.hansecontrol.PerformanceBenchmark;
 import de.uniluebeck.iti.hanse.hansecontrol.R;
-import de.uniluebeck.iti.hanse.hansecontrol.MapWidgetRegistry.WidgetType;
+//import de.uniluebeck.iti.hanse.hansecontrol.MapWidgetRegistry.WidgetType;
 import de.uniluebeck.iti.hanse.hansecontrol.viewgroups.DragLayer;
 import de.uniluebeck.iti.hanse.hansecontrol.views.RosMapWidget;
 
-public abstract class RosPlotWidget<T> extends RosMapWidget implements MessageListener<T> {
-	Subscriber<T> subscriber;
+import static de.uniluebeck.iti.hanse.hansecontrol.gui.GuiTools.*;
+
+public class RosPlotWidget extends RosMapWidget {
+//	Subscriber<T> subscriber;
 	
 	PlotView plotView;
 	
@@ -69,59 +72,60 @@ public abstract class RosPlotWidget<T> extends RosMapWidget implements MessageLi
 	private int redrawInterval = 500; //in ms, must be a value available in the config dialog!
 	private long lastdraw = System.currentTimeMillis();
 	
-	public RosPlotWidget(int widgetID,	Context context, final String rosTopic, 
-			DragLayer dragLayer, MapWidgetRegistry mapWidgetRegistry, MainScreenFragment mainScreenFragment,
-			WidgetType widgetType) {
-		super(300, 200, widgetID, context, dragLayer, mapWidgetRegistry, mainScreenFragment,
-				rosTopic, widgetType);
+	public RosPlotWidget(int widgetID,	Context context, DragLayer dragLayer, TopicTree topicTree) {
+		super(300, 200, widgetID, context, dragLayer, topicTree);
 		plotView = new PlotView(getContext());	
 		setContent(plotView);
 	}
+//	
+//	public RosPlotWidget(Context co) {
+//		super(300, 200, -1, context, dragLayer, rosTopic);
+//	}
 	
-	public abstract String getDataTypeString();
-	public abstract float getValue(T msg);
+//	public abstract String getDataTypeString();
+//	public abstract float getValue(T msg);
 	
 	@Override
 	public void subscribe(ConnectedNode node) {
-		subscriber = node.newSubscriber(getRosTopic(), getDataTypeString());
-		subscriber.addMessageListener(this, MainScreen.MESSAGE_QUEUE);
+//		subscriber = node.newSubscriber(getRosTopic(), getDataTypeString());
+//		subscriber.addMessageListener(this, MainScreen.MESSAGE_QUEUE);
 	}
 
 	@Override
 	public void unsubscribe(ConnectedNode node) {
-		if (subscriber != null) {
-			subscriber.shutdown();
-		}
+//		if (subscriber != null) {
+//			subscriber.shutdown();
+//		}
 		plotView.clearValues();
 	}
 
-	@Override
-	public void onNewMessage(final T msg) {
-//		Log.d("plotwidget", getValue(msg) + "");
-		MainScreen.getExecutorService().execute(new Runnable() {
-			@Override
-			public void run() {
-				plotView.addValue(getValue(msg));				
-				
-				if (System.currentTimeMillis() - lastdraw > redrawInterval) { //TODO schedule drawing instead
-					//draw immediately
-					redraw();
-					lastdraw = System.currentTimeMillis();
-				} else if (redrawFuture == null) {
-					//schedule drawing at next possible moment with respect to the redrawInterval
-					redrawFuture = MainScreen.getExecutorService().schedule(new Runnable() {
-						
-						@Override
-						public void run() {
-							redraw();
-							lastdraw = System.currentTimeMillis();
-							redrawFuture = null;
-						}
-					}, redrawInterval - (System.currentTimeMillis() - lastdraw), TimeUnit.MILLISECONDS);
-				}
-			}
-		});
-	}
+//	@Override
+//	public void onNewMessage(final T msg) {
+////		Log.d("plotwidget", getValue(msg) + "");
+//		MainScreen.getExecutorService().execute(new Runnable() {
+//			@Override
+//			public void run() {
+//				plotView.addValue(getValue(msg));				
+//				
+//				if (System.currentTimeMillis() - lastdraw > redrawInterval) { //TODO schedule drawing instead
+//					//draw immediately
+//					redraw();
+//					lastdraw = System.currentTimeMillis();
+//				} else if (redrawFuture == null) {
+//					//schedule drawing at next possible moment with respect to the redrawInterval
+//					redrawFuture = MainScreen.getExecutorService().schedule(new Runnable() {
+//						
+//						@Override
+//						public void run() {
+//							redraw();
+//							lastdraw = System.currentTimeMillis();
+//							redrawFuture = null;
+//						}
+//					}, redrawInterval - (System.currentTimeMillis() - lastdraw), TimeUnit.MILLISECONDS);
+//				}
+//			}
+//		});
+//	}
 	
 	public void redraw() {
 		plotView.post(new Runnable() {
@@ -270,17 +274,60 @@ public abstract class RosPlotWidget<T> extends RosMapWidget implements MessageLi
 	@Override
 	public void loadPrefs(String tabPrefix, SharedPreferences prefs) {
 		super.loadPrefs(tabPrefix, prefs);
-		redrawInterval = prefs.getInt(tabPrefix + getRosTopic() + this.getClass().getName() + "redrawInterval", redrawInterval);
-		plotView.setTimeSpan(prefs.getLong(tabPrefix + getRosTopic() + this.getClass().getName() + "timespan", plotView.getTimeSpan()));
-		plotView.setConnectDots(prefs.getBoolean(tabPrefix + getRosTopic() + this.getClass().getName() + "connectDots", plotView.isConnectDots()));
+//		redrawInterval = prefs.getInt(tabPrefix + getRosTopic() + this.getClass().getName() + "redrawInterval", redrawInterval);
+//		plotView.setTimeSpan(prefs.getLong(tabPrefix + getRosTopic() + this.getClass().getName() + "timespan", plotView.getTimeSpan()));
+//		plotView.setConnectDots(prefs.getBoolean(tabPrefix + getRosTopic() + this.getClass().getName() + "connectDots", plotView.isConnectDots()));
 	}
 	
 	@Override
 	public void savePrefs(String tabPrefix, Editor ed) {
 		super.savePrefs(tabPrefix, ed);
-		ed.putInt(tabPrefix + getRosTopic() + this.getClass().getName() + "redrawInterval", redrawInterval);
-		ed.putLong(tabPrefix + getRosTopic() + this.getClass().getName() + "timespan", plotView.getTimeSpan());
-		ed.putBoolean(tabPrefix + getRosTopic() + this.getClass().getName() + "connectDots", plotView.isConnectDots());
+//		ed.putInt(tabPrefix + getRosTopic() + this.getClass().getName() + "redrawInterval", redrawInterval);
+//		ed.putLong(tabPrefix + getRosTopic() + this.getClass().getName() + "timespan", plotView.getTimeSpan());
+//		ed.putBoolean(tabPrefix + getRosTopic() + this.getClass().getName() + "connectDots", plotView.isConnectDots());
+	}
+
+	private Float convertToFloat(Object data) {
+		if (data instanceof Double) {
+			return ((Double) data).floatValue();
+		} else if (data instanceof Byte) {
+			return ((Byte) data).floatValue();
+		} else if (data instanceof Integer) {
+			return ((Integer) data).floatValue();
+		} else if (data instanceof Float) {
+			return (Float)data;
+		} 
+		return -1f;
+	}
+	
+	@Override
+	public void update(final Object data) {
+//		Log.d("plotwidget", "Data received: " + data.toString());
+		MainScreen.getExecutorService().execute(new Runnable() {
+			
+			@Override
+			public void run() {
+				plotView.addValue(convertToFloat(data));			
+				//TODO schedule drawing instead
+				if (System.currentTimeMillis() - lastdraw > redrawInterval) { 
+					//draw immediately
+					redraw();
+					lastdraw = System.currentTimeMillis();
+				} else if (redrawFuture == null) {
+					//schedule drawing at next possible moment with respect to the redrawInterval
+					redrawFuture = MainScreen.getExecutorService().schedule(new Runnable() {
+						
+						@Override
+						public void run() {
+							redraw();
+							lastdraw = System.currentTimeMillis();
+							redrawFuture = null;
+						}
+					}, redrawInterval - (System.currentTimeMillis() - lastdraw), TimeUnit.MILLISECONDS);
+				}						
+//				Log.d("plotwidget", "running");
+			}
+		});
 	}
 	
 }
@@ -347,7 +394,7 @@ class PlotView extends View {
 		markerPaint.setColor(Color.RED);
 		
 		textPaint.setColor(Color.WHITE);
-		textPaint.setTextSize(13);
+		textPaint.setTextSize(dipToPixels(10, getContext()));
 		
 		textDebugInfoPaint.setColor(Color.WHITE);
 		textDebugInfoPaint.setTextSize(10);
@@ -439,6 +486,7 @@ class PlotView extends View {
 	}
 	
 	public void addValue(Float value) {
+//		Log.d("plotwidget", "value added: " + value);
 		synchronized (values) {
 			values.add(value);
 			long now = System.currentTimeMillis();
@@ -454,7 +502,8 @@ class PlotView extends View {
 			}
 		}
 	}
-	PerformanceBenchmark benchmark = new PerformanceBenchmark("RosPlotWidget", getContext());
+	
+//	PerformanceBenchmark benchmark = new PerformanceBenchmark("RosPlotWidget", getContext());
 	private void drawPlot(Canvas canvas) {
 		//value constants
 		int topBottomPadding = 20;
@@ -508,7 +557,7 @@ class PlotView extends View {
 		text = "values: " + values.size();
 		drawText(3, 3, text, TOP_LEFT, canvas, textDebugInfoPaint);
 		
-		benchmark.log();
+//		benchmark.log();
 	}
 	
 	private void drawText(float x, float y, String text, int alignTo, Canvas canvas, Paint paint) {

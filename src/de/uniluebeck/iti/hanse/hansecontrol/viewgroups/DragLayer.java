@@ -30,6 +30,8 @@ public class DragLayer extends RelativeLayout {
 
 	//TODO cleanup
 	
+	WidgetLayer widgetLayer;
+	
 	private MapWidget dragInProgress_widgetFromList = null;
 	LinearLayout dragInProgress_widgetFromList_layout;
 	// int dragInProgress_widgetFromList_oldIndex;
@@ -63,6 +65,10 @@ public class DragLayer extends RelativeLayout {
 	public DragLayer(Context context) {
 		super(context);
 		init();
+	}
+	
+	public void setWidgetLayer(WidgetLayer widgetLayer) {
+		this.widgetLayer = widgetLayer;
 	}
 
 	private void init() {
@@ -109,8 +115,7 @@ public class DragLayer extends RelativeLayout {
 		case MotionEvent.ACTION_UP:
 			// place widget at current position
 			removeView(dragInProgress_widgetFromList);
-			((WidgetLayer) findViewById(R.id.widgetLayer))
-					.addView(dragInProgress_widgetFromList);
+			widgetLayer.addView(dragInProgress_widgetFromList);
 			dragInProgress_widgetFromList.showControls();
 			dragInProgress_widgetFromList = null;
 		}
@@ -334,7 +339,6 @@ public class DragLayer extends RelativeLayout {
 		edgesX.add(getWidth() - 1);
 
 		// add widget edges
-		WidgetLayer widgetLayer = (WidgetLayer) findViewById(R.id.widgetLayer);
 		for (int i = 0; i < widgetLayer.getChildCount(); i++) {
 			View child = widgetLayer.getChildAt(i);
 			if (child instanceof MapWidget && child != resizeInProgress.getParent()) {
@@ -373,7 +377,6 @@ public class DragLayer extends RelativeLayout {
 		edgesY.add(getHeight() - 1);
 
 		// add widget edges
-		WidgetLayer widgetLayer = (WidgetLayer) findViewById(R.id.widgetLayer);
 		for (int i = 0; i < widgetLayer.getChildCount(); i++) {
 			View child = widgetLayer.getChildAt(i);
 			if (child instanceof MapWidget && child != resizeInProgress.getParent()) {
@@ -426,7 +429,6 @@ public class DragLayer extends RelativeLayout {
 		edgesY.add((getHeight() - 1) - widget.getHeight());
 
 		// add edges for nearby widgets
-		WidgetLayer widgetLayer = (WidgetLayer) findViewById(R.id.widgetLayer);
 		for (int i = 0; i < widgetLayer.getChildCount(); i++) {
 			View child = widgetLayer.getChildAt(i);
 			if (child instanceof MapWidget && child != widget) {
@@ -517,7 +519,7 @@ public class DragLayer extends RelativeLayout {
 			// add widget as own child
 			addView(widget);
 			// change widget mode to full size
-			widget.setMode(MapWidget.FULLSIZE_MODE);
+//			widget.setMode(MapWidget.FULLSIZE_MODE);
 			// handle move event
 			onTouchEvent(event);
 			return true;
